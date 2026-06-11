@@ -249,23 +249,27 @@ DIRECT_HOLDINGS = [
     },
     # ── Bond Funds (Man Group) ────────────────────────────────────────────────
     # No exchange listing — NAV updated manually from BOS statements.
+    # manual_price_only=True excludes these from yfinance fetch; MANUAL_PRICES
+    # is always re-merged into the cache after every live price refresh.
     {
         "id": "man_dyna_inc",
         "name": "Man Dynamic Income Fund (Bond Fund)",
-        "ticker": "IE00039W6MB8",   # ISIN used as key; no live yfinance feed
+        "ticker": "IE00039W6MB8",   # ISIN used as price-dict key
         "isin": "IE00039W6MB8",
         "shares": 990,
         "purchase_price": 102.0806,
         "currency": "USD",
+        "manual_price_only": True,
     },
     {
         "id": "man_em_mkt_cor",
         "name": "Man Global InvGrade Opportunities Fund (Bond Fund)",
-        "ticker": "IE000KEXCUV1",   # ISIN used as key; no live yfinance feed
+        "ticker": "IE000KEXCUV1",   # ISIN used as price-dict key
         "isin": "IE000KEXCUV1",
         "shares": 880,
         "purchase_price": 113.0190,
         "currency": "USD",
+        "manual_price_only": True,
     },
 ]
 
@@ -801,6 +805,7 @@ def build_html(prices, fcn_stats, alerts, live_mode=False):
 # ═════════════════════════════════════════════════════════════════════════════
 
 def _all_tickers():
+    """Return tickers for live yfinance fetch. Skips manual_price_only holdings."""
     tickers = []
     for f in FCN_POSITIONS:
         tickers.extend(u["ticker"] for u in f.get("underlyings", []))
@@ -808,9 +813,18 @@ def _all_tickers():
         if a.get("underlying_ticker"):
             tickers.append(a["underlying_ticker"])
     for h in DIRECT_HOLDINGS:
-        if h.get("ticker"):
+        if h.get("ticker") and not h.get("manual_price_only"):
             tickers.append(h["ticker"])
     return list(dict.fromkeys(tickers))
+
+def _merge_manual_prices(prices: dict) -> dict:
+    """Re-inject any MANUAL_PRICES entries not in the live-fetched dict.
+    This ensures manual_price_only holdings (e.g. bond fund NAVs keyed by
+    ISIN) survive every cache refresh and are never dropped."""
+    for k, v in MANUAL_PRICES.items():
+        if k not in prices:
+            prices[k] = v
+    return prices
 
 def _fetch_with_fallback(tickers):
     try:
@@ -825,6 +839,8 @@ def _fetch_with_fallback(tickers):
             src = "manual prices" if not prices else f"manual fallback for {', '.join(filled)}"
             print(f"  📋 Using {src} (as of {MANUAL_PRICES_DATE})")
         prices.update(filled)
+    # Always re-merge manual-only prices (bond funds etc.) after every fetch
+    _merge_manual_prices(prices)
     return prices
 
 def _compute_alerts(prices):
