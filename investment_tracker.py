@@ -15,7 +15,7 @@ To fill in a missing FCN (Semiconductor FCN), replace the None values
 with the actual figures from the term sheet.
 """
 
-import subprocess, sys, json, webbrowser, threading, time
+import subprocess, sys, json, webbrowser, threading, time, os
 from datetime import datetime, date
 from pathlib import Path
 from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -44,19 +44,19 @@ AUDUSD = 0.705  # AUD → USD rate (updated Jun 2026)
 
 FCN_POSITIONS = [
 
-    # ── 1. US Index Worst-of FCN — SPY / QQQ / DIA  (HSBC, XS3358849498) ────
+    # ── 1. US Index Worst-of FCN — SPY / QQQ / DIA  (BNP Paribas, XS3358849498) ─
     {
         "id": "spy_qqq_dia",
         "name": "US Index Worst-of FCN",
-        "issuer": "HSBC (ISIN: XS3358849498)",
+        "issuer": "BNP Paribas (ISIN: XS3358849498)",
         "notional_usd": 100_000,
         "coupon_monthly_pct": 0.77,
         "coupon_annual_pct": 9.24,
         "issue_date": "2026-05-13",
         "maturity_date": "2027-06-01",
-        "first_autocall_date": "2026-06-29",
+        "first_autocall_date": "2026-08-27",
         "autocall_freq": "Monthly",
-        "ki_type": "KI at 80%, Strike at 90%",
+        "ki_type": "European — KI at 80%, Strike at 90%; checked only at Determination Date (27 May 2027)",
         "underlyings": [
             {"ticker": "SPY", "name": "SPDR S&P 500 ETF",  "initial": 738.37, "ki_pct": 80, "strike_pct": 90, "ac_pct": 100},
             {"ticker": "QQQ", "name": "Invesco QQQ Trust",  "initial": 709.75, "ki_pct": 80, "strike_pct": 90, "ac_pct": 100},
@@ -79,7 +79,7 @@ FCN_POSITIONS = [
         "maturity_date": "2027-06-02",
         "first_autocall_date": "2026-08-28",
         "autocall_freq": "Monthly",
-        "ki_type": "Unknown — verify from term sheet",
+        "ki_type": "European — KI checked only at Final Valuation Date (28 May 2027)",
         "underlyings": [
             {"ticker": "META",  "name": "Meta Platforms",     "initial": 598.83, "ki_pct": 60, "strike_pct": 70, "ac_pct": 100},
             {"ticker": "GOOGL", "name": "Alphabet (Google)",  "initial": 385.34, "ki_pct": 60, "strike_pct": 70, "ac_pct": 100},
@@ -89,7 +89,8 @@ FCN_POSITIONS = [
     },
 
     # ── 3. European Banks Worst-of FCN — HSBA / GLE / UBS  (Goldman Sachs, XS3292699736) ──
-    # Underlyings priced in local currencies (GBP / EUR / CHF).
+    # Underlyings priced in local currencies (GBP / EUR) and USD (UBS NYSE).
+    # UBS ticker: NYSE "UBS" in USD — confirmed from GS term sheet (Bloomberg: UBS UN Equity).
     {
         "id": "hsba_gle_ubs",
         "name": "European Banks Worst-of FCN",
@@ -101,11 +102,11 @@ FCN_POSITIONS = [
         "maturity_date": "2027-06-07",
         "first_autocall_date": "2026-09-03",
         "autocall_freq": "Monthly",
-        "ki_type": "Unknown — verify from term sheet",
+        "ki_type": "European — KI checked only at Final Valuation Date (3 Jun 2027)",
         "underlyings": [
-            {"ticker": "HSBA.L",  "name": "HSBC Group",           "initial": 1329.0, "ki_pct": 65, "strike_pct": 75, "ac_pct": 100, "currency": "GBP"},
-            {"ticker": "GLE.PA",  "name": "Société Générale",     "initial": 67.05,  "ki_pct": 65, "strike_pct": 75, "ac_pct": 100, "currency": "EUR"},
-            {"ticker": "UBSG.SW", "name": "UBS Group",            "initial": 46.22,  "ki_pct": 65, "strike_pct": 75, "ac_pct": 100, "currency": "CHF"},
+            {"ticker": "HSBA.L", "name": "HSBC Group",            "initial": 1329.0, "ki_pct": 65, "strike_pct": 75, "ac_pct": 100, "currency": "GBP"},
+            {"ticker": "GLE.PA", "name": "Société Générale",      "initial": 67.05,  "ki_pct": 65, "strike_pct": 75, "ac_pct": 100, "currency": "EUR"},
+            {"ticker": "UBS",    "name": "UBS AG (USD/NYSE)",     "initial": 46.22,  "ki_pct": 65, "strike_pct": 75, "ac_pct": 100, "currency": "USD"},
         ],
         "coupons_received": [],
     },
@@ -121,8 +122,8 @@ FCN_POSITIONS = [
         "issue_date": "2026-05-20",
         "maturity_date": "2027-06-07",
         "first_autocall_date": "2026-09-03",
-        "autocall_freq": "Every 3 months",
-        "ki_type": "Unknown — verify from term sheet",
+        "autocall_freq": "Monthly (from 3rd observation, Sep 2026)",
+        "ki_type": "European — KI checked only at Final Valuation Date (3 Jun 2027)",
         "underlyings": [
             {"ticker": "INTC", "name": "Intel Corporation",          "initial": 116.39,  "ki_pct": 50, "strike_pct": 60, "ac_pct": 95},
             {"ticker": "TSM",  "name": "Taiwan Semiconductor (ADR)", "initial": 397.60,  "ki_pct": 50, "strike_pct": 60, "ac_pct": 95},
@@ -132,9 +133,7 @@ FCN_POSITIONS = [
     },
 
     # ── 5. Industrials Worst-of FCN — HON / SU / SIE  (HSBC, XS3376556539) ──
-    # ⚠ BOS spreadsheet shows SIE initial as $46.22 — this appears to be a data entry
-    # error (that is the UBS CHF price). Using $210.86 as best estimate; verify from
-    # the actual HSBC term sheet.
+    # SIE initial 279.10 EUR confirmed from HSBC term sheet (Jun 2026).
     {
         "id": "hon_su_sie",
         "name": "Industrials Worst-of FCN",
@@ -146,11 +145,11 @@ FCN_POSITIONS = [
         "maturity_date": "2027-06-21",
         "first_autocall_date": "2026-09-16",
         "autocall_freq": "Monthly",
-        "ki_type": "Unknown — verify from term sheet",
+        "ki_type": "European — KI checked only at Final Valuation Date (16 Jun 2027)",
         "underlyings": [
             {"ticker": "HON",   "name": "Honeywell International",  "initial": 235.94, "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
             {"ticker": "SU.PA", "name": "Schneider Electric (EUR)", "initial": 282.10, "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "EUR"},
-            {"ticker": "SIE.DE","name": "Siemens AG (EUR, est.)",   "initial": 210.86, "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "EUR"},
+            {"ticker": "SIE.DE","name": "Siemens AG (EUR)",          "initial": 279.10, "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "EUR"},
         ],
         "coupons_received": [],
     },
@@ -162,13 +161,13 @@ FCN_POSITIONS = [
         "name": "Banks Worst-of FCN (Largest)",
         "issuer": "Standard Chartered (ISIN: XS3341866369)",
         "notional_usd": 200_000,
-        "coupon_monthly_pct": 0.8983,
-        "coupon_annual_pct": 10.78,
+        "coupon_monthly_pct": 0.8958,
+        "coupon_annual_pct": 10.75,
         "issue_date": "2026-06-02",
         "maturity_date": "2027-06-18",
         "first_autocall_date": "2026-09-16",
         "autocall_freq": "Monthly",
-        "ki_type": "Unknown — verify from term sheet",
+        "ki_type": "European — KI checked only at Final Valuation Date (16 Jun 2027)",
         "underlyings": [
             {"ticker": "GS",  "name": "Goldman Sachs",  "initial": 1049.74, "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
             {"ticker": "JPM", "name": "JPMorgan Chase", "initial": 296.50,  "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
@@ -333,9 +332,9 @@ MANUAL_PRICES = {
     # European (local currency)
     "HSBA.L":  1329.20,   # GBp
     "GLE.PA":  69.87,     # EUR
-    "UBSG.SW": 46.77,     # CHF
+    "UBS":     46.77,     # USD (NYSE) — confirmed ticker from GS term sheet
     "SU.PA":   261.50,    # EUR
-    "SIE.DE":  260.20,    # EUR
+    "SIE.DE":  279.10,    # EUR — confirmed from HSBC term sheet
 }
 MANUAL_PRICES_DATE = "2026-06-11"
 
@@ -877,30 +876,42 @@ class _Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):
         pass  # silence request logs
 
-def serve(port=8765, open_browser=True):
+def serve(port=None, open_browser=True):
+    port = port or int(os.environ.get("PORT", 8765))
     print(f"\n{'═'*52}")
     print(f"  Investment Tracker — {OWNER}  [LIVE MODE]")
     print(f"{'═'*52}")
-    print(f"  🌐  http://localhost:{port}")
+    print(f"  🌐  http://0.0.0.0:{port}")
     print(f"  📡  Prices refresh every {CACHE_TTL_SEC}s automatically")
     print(f"  ⌨   Press Ctrl+C to stop\n")
 
-    # Pre-warm cache synchronously so first page load is instant
-    tickers = _all_tickers()
-    print(f"📡 [{datetime.now().strftime('%H:%M:%S')}] Fetching initial prices...")
-    p = _fetch_with_fallback(tickers)
+    # Seed cache with manual prices instantly so server is responsive immediately
     with _cache_lock:
-        _price_cache["prices"] = p
+        _price_cache["prices"] = dict(MANUAL_PRICES)
         _price_cache["ts"]     = time.time()
-    print(f"   ✓ Ready — {len(p)} prices loaded\n")
+    print(f"   ✓ Server starting (manual prices loaded, live fetch in background)\n")
 
-    # Background thread refreshes prices every 30s without blocking page loads
+    tickers = _all_tickers()
+
+    # Fetch live prices in a background thread — server stays responsive during fetch
+    def _initial_live_fetch():
+        print(f"📡 [{datetime.now().strftime('%H:%M:%S')}] Fetching live prices...")
+        p = _fetch_with_fallback(tickers)
+        with _cache_lock:
+            _price_cache["prices"] = p
+            _price_cache["ts"]     = time.time()
+        print(f"   ✓ Live prices loaded — {len(p)} tickers")
+
+    init_t = threading.Thread(target=_initial_live_fetch, daemon=True)
+    init_t.start()
+
+    # Background refresh every 30s
     bg = threading.Thread(target=_background_refresh, args=(tickers, CACHE_TTL_SEC), daemon=True)
     bg.start()
 
     if open_browser:
         webbrowser.open(f"http://localhost:{port}")
-    server = HTTPServer(("localhost", port), _Handler)
+    server = HTTPServer(("0.0.0.0", port), _Handler)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
@@ -931,4 +942,6 @@ if __name__ == "__main__":
     elif "--background" in sys.argv:
         serve(open_browser=False)           # silent background service (no auto-open)
     else:
-        serve(open_browser=True)            # start live web server and open browser
+        # Don't try to open a browser when running on a remote server (Render sets PORT)
+        on_server = "PORT" in os.environ
+        serve(open_browser=not on_server)   # start live web server
