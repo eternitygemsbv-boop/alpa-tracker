@@ -225,7 +225,9 @@ BOND_POSITIONS = [
     },
 ]
 
-# ─── Direct Holdings (ETFs, stocks, mutual funds) ────────────────────────────
+# ─── Direct Holdings (ETFs, stocks, bond funds) ──────────────────────────────
+# Bond funds use ISIN as ticker — yfinance won't find them, so they always
+# fall back to MANUAL_PRICES. Update the NAV there after each BOS statement.
 DIRECT_HOLDINGS = [
     {
         "id": "gld",
@@ -243,6 +245,26 @@ DIRECT_HOLDINGS = [
         "isin": "US92189H6071",
         "shares": 57,
         "purchase_price": 440.5664,
+        "currency": "USD",
+    },
+    # ── Bond Funds (Man Group) ────────────────────────────────────────────────
+    # No exchange listing — NAV updated manually from BOS statements.
+    {
+        "id": "man_dyna_inc",
+        "name": "Man Dynamic Income Fund (Bond Fund)",
+        "ticker": "IE00039W6MB8",   # ISIN used as key; no live yfinance feed
+        "isin": "IE00039W6MB8",
+        "shares": 990,
+        "purchase_price": 102.0806,
+        "currency": "USD",
+    },
+    {
+        "id": "man_em_mkt_cor",
+        "name": "Man Global InvGrade Opportunities Fund (Bond Fund)",
+        "ticker": "IE000KEXCUV1",   # ISIN used as key; no live yfinance feed
+        "isin": "IE000KEXCUV1",
+        "shares": 880,
+        "purchase_price": 113.0190,
         "currency": "USD",
     },
 ]
@@ -329,6 +351,9 @@ MANUAL_PRICES = {
     # Direct ETF holdings
     "GLD":   397.27,
     "OIH":   429.81,
+    # Bond funds (Man Group) — update NAV from each BOS statement
+    "IE00039W6MB8": 101.15,   # Man Dynamic Income — NAV USD (BOS 31 May 2026)
+    "IE000KEXCUV1": 113.08,   # Man Global InvGrade Opps — NAV USD (BOS 31 May 2026)
     # European (local currency)
     "HSBA.L":  1329.20,   # GBp
     "GLE.PA":  69.87,     # EUR
@@ -707,7 +732,7 @@ def build_html(prices, fcn_stats, alerts, live_mode=False):
     accum_cards   = "".join(accum_card(a, prices) for a in ACCUMULATOR_POSITIONS)
     accum_sec     = (f'<div class="sec">Accumulator Positions</div>{accum_cards}' if ACCUMULATOR_POSITIONS else "")
     holding_cards = "".join(holding_card(h, prices) for h in DIRECT_HOLDINGS)
-    holding_sec   = (f'<div class="sec">Direct ETF Holdings</div>{holding_cards}' if DIRECT_HOLDINGS else "")
+    holding_sec   = (f'<div class="sec">Direct Holdings (ETFs &amp; Bond Funds)</div>{holding_cards}' if DIRECT_HOLDINGS else "")
 
     alert_html = ""
     for level, msg in alerts:
