@@ -901,10 +901,23 @@ def _cached_prices():
 
 class _Handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path not in ("/", "/favicon.ico"):
-            self.send_response(404); self.end_headers(); return
         if self.path == "/favicon.ico":
             self.send_response(204); self.end_headers(); return
+
+        # /debug — dump live price cache as JSON (diagnostic endpoint)
+        if self.path == "/debug":
+            import json as _json
+            prices = _cached_prices()
+            body = _json.dumps({"ts": _price_cache["ts"], "prices": prices}, indent=2).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        if self.path != "/":
+            self.send_response(404); self.end_headers(); return
 
         prices            = _cached_prices()
         fcn_stats, alerts = _compute_alerts(prices)
