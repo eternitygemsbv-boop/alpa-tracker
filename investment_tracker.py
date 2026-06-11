@@ -15,7 +15,7 @@ To fill in a missing FCN (Semiconductor FCN), replace the None values
 with the actual figures from the term sheet.
 """
 
-import subprocess, sys, json, webbrowser, threading, time, os
+import subprocess, sys, json, webbrowser, threading, time
 from datetime import datetime, date
 from pathlib import Path
 from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -877,42 +877,30 @@ class _Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):
         pass  # silence request logs
 
-def serve(port=None, open_browser=True):
-    port = port or int(os.environ.get("PORT", 8765))
+def serve(port=8765, open_browser=True):
     print(f"\n{'═'*52}")
     print(f"  Investment Tracker — {OWNER}  [LIVE MODE]")
     print(f"{'═'*52}")
-    print(f"  🌐  http://0.0.0.0:{port}")
+    print(f"  🌐  http://localhost:{port}")
     print(f"  📡  Prices refresh every {CACHE_TTL_SEC}s automatically")
     print(f"  ⌨   Press Ctrl+C to stop\n")
 
-    # Seed cache with manual prices instantly so server is responsive immediately
-    with _cache_lock:
-        _price_cache["prices"] = dict(MANUAL_PRICES)
-        _price_cache["ts"]     = time.time()
-    print(f"   ✓ Server starting (manual prices loaded, live fetch in background)\n")
-
+    # Pre-warm cache synchronously so first page load is instant
     tickers = _all_tickers()
+    print(f"📡 [{datetime.now().strftime('%H:%M:%S')}] Fetching initial prices...")
+    p = _fetch_with_fallback(tickers)
+    with _cache_lock:
+        _price_cache["prices"] = p
+        _price_cache["ts"]     = time.time()
+    print(f"   ✓ Ready — {len(p)} prices loaded\n")
 
-    # Fetch live prices in a background thread — server stays responsive during fetch
-    def _initial_live_fetch():
-        print(f"📡 [{datetime.now().strftime('%H:%M:%S')}] Fetching live prices...")
-        p = _fetch_with_fallback(tickers)
-        with _cache_lock:
-            _price_cache["prices"] = p
-            _price_cache["ts"]     = time.time()
-        print(f"   ✓ Live prices loaded — {len(p)} tickers")
-
-    init_t = threading.Thread(target=_initial_live_fetch, daemon=True)
-    init_t.start()
-
-    # Background refresh every 30s
+    # Background thread refreshes prices every 30s without blocking page loads
     bg = threading.Thread(target=_background_refresh, args=(tickers, CACHE_TTL_SEC), daemon=True)
     bg.start()
 
     if open_browser:
         webbrowser.open(f"http://localhost:{port}")
-    server = HTTPServer(("0.0.0.0", port), _Handler)
+    server = HTTPServer(("localhost", port), _Handler)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
@@ -943,6 +931,4 @@ if __name__ == "__main__":
     elif "--background" in sys.argv:
         serve(open_browser=False)           # silent background service (no auto-open)
     else:
-        # Don't try to open a browser when running on a remote server (Render sets PORT)
-        on_server = "PORT" in os.environ
-        serve(open_browser=not on_server)   # start live web server
+        serve(open_browser=True)            # start live web server and open browser
