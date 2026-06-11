@@ -879,14 +879,16 @@ CACHE_TTL_SEC = 30
 
 def _background_refresh(tickers, interval=30):
     """Silently refresh prices every `interval` seconds in a background thread.
-    HTTP requests always return from cache instantly — no browser timeouts."""
+    HTTP requests always return from cache instantly — no browser timeouts.
+    Uses .update() (merge) not full replacement so manual-only entries
+    (e.g. bond fund ISINs) seeded at startup are never evicted."""
     while True:
         try:
             time.sleep(interval)
             print(f"📡 [{datetime.now().strftime('%H:%M:%S')}] Refreshing prices...")
             p = _fetch_with_fallback(tickers)
             with _cache_lock:
-                _price_cache["prices"] = p
+                _price_cache["prices"].update(p)   # merge, not replace
                 _price_cache["ts"]     = time.time()
             print(f"   ✓ Done")
         except Exception as e:
@@ -939,7 +941,7 @@ def serve(port=None, open_browser=True):
         print(f"📡 [{datetime.now().strftime('%H:%M:%S')}] Fetching live prices...")
         p = _fetch_with_fallback(tickers)
         with _cache_lock:
-            _price_cache["prices"] = p
+            _price_cache["prices"].update(p)   # merge into manual-seeded cache
             _price_cache["ts"]     = time.time()
         print(f"   ✓ Live prices loaded — {len(p)} tickers")
 
