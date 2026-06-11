@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: alpa-investment-tracker
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python investment_tracker.py
+    plan: free
