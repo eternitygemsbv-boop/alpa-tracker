@@ -797,7 +797,7 @@ def build_html(prices, fcn_stats, alerts, live_mode=False):
   {holding_sec}
 </div>
 <footer>Generated {now} · Live prices via Yahoo Finance{"" if not live_mode else " · Auto-refreshing every 30s"}</footer>
-{"<script>(function(){{let s=30;const el=document.getElementById('cds');const iv=setInterval(()=>{{s--;if(el)el.textContent=s;if(s<=0){{clearInterval(iv);location.reload();}}}},1000);}})();</script>" if live_mode else ""}
+{"<script>(function(){{let s=30;const el=document.getElementById('cds');const iv=setInterval(()=>{{s--;if(el)el.textContent=s;if(s<=0){{clearInterval(iv);sessionStorage.setItem('sy',window.scrollY);location.reload();}}}},1000);const sy=sessionStorage.getItem('sy');if(sy){{sessionStorage.removeItem('sy');window.scrollTo(0,parseInt(sy));}}}})();</script>" if live_mode else ""}
 </body></html>"""
 
 # ═════════════════════════════════════════════════════════════════════════════
