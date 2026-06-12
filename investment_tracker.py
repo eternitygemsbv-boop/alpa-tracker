@@ -797,7 +797,7 @@ def build_html(prices, fcn_stats, alerts, live_mode=False):
   {holding_sec}
 </div>
 <footer>Generated {now} · Live prices via Yahoo Finance{"" if not live_mode else " · Auto-refreshing every 30s"}</footer>
-{"<script>(function(){{let s=30;const el=document.getElementById('cds');const iv=setInterval(()=>{{s--;if(el)el.textContent=s;if(s<=0){{clearInterval(iv);sessionStorage.setItem('sy',window.scrollY);location.reload();}}}},1000);const sy=sessionStorage.getItem('sy');if(sy){{sessionStorage.removeItem('sy');window.scrollTo(0,parseInt(sy));}}}})();</script>" if live_mode else ""}
+{"<script>(function(){{var m=location.hash.match(/#sy=(\\d+)/);if(m){{window.scrollTo(0,+m[1]);history.replaceState(null,'',location.pathname);}}var s=30,el=document.getElementById('cds');var iv=setInterval(function(){{s--;if(el)el.textContent=s;if(s<=0){{clearInterval(iv);history.replaceState(null,'','#sy='+Math.round(window.scrollY));location.reload();}}}},1000);}})();</script>" if live_mode else ""}
 </body></html>"""
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -890,7 +890,8 @@ def _background_refresh(tickers, interval=30):
             with _cache_lock:
                 _price_cache["prices"].update(p)   # merge, not replace
                 _price_cache["ts"]     = time.time()
-            print(f"   ✓ Done")
+                _ci = {k: _price_cache["prices"].get(k) for k in ["IE00039W6MB8","IE000KEXCUV1"]}
+            print(f"   ✓ Done. ISINs in cache: {_ci}")
         except Exception as e:
             print(f"  ⚠ Background refresh error: {e}")
 
@@ -920,6 +921,8 @@ class _Handler(BaseHTTPRequestHandler):
             self.send_response(404); self.end_headers(); return
 
         prices            = _cached_prices()
+        _ri = {k: prices.get(k) for k in ["IE00039W6MB8","IE000KEXCUV1"]}
+        print(f"📋 GET /: ISINs in prices: {_ri}")
         fcn_stats, alerts = _compute_alerts(prices)
         html              = build_html(prices, fcn_stats, alerts, live_mode=True)
 
