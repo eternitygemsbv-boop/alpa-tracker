@@ -290,35 +290,33 @@ ACCUMULATOR_POSITIONS = [
         "shares_per_day": 1,
         "leverage_below_strike": 2,
     },
-    # SPY Accumulator — purchased 11 Jun 2026
-    # ⚠ Strike and KO prices not yet received — update when term sheet arrives
+    # SPY Accumulator — HSBC, trade date 11 Jun 2026
     {
         "id": "spy_accumulator",
         "name": "SPY Accumulator",
-        "issuer": "BOS",
+        "issuer": "HSBC (RFQ: 178043082)",
         "underlying_ticker": "SPY",
-        "underlying_name": "SPDR S&P 500 ETF",
+        "underlying_name": "SPDR S&P 500 ETF Trust",
         "start_date": "2026-06-11",
-        "end_date": "2028-06-11",           # assumed 24-month tenor
-        "strike_price": None,               # ⚠ Awaiting term sheet
-        "knockout_price": None,             # ⚠ Awaiting term sheet
-        "guaranteed_end": "2026-06-25",     # 2 weeks guaranteed (≈ 25 Jun 2026)
+        "end_date": "2027-05-11",           # 23-month tenor
+        "strike_price": 621.8292,           # 85.32% of spot 728.82
+        "knockout_price": 765.2610,         # 105.00% of spot 728.82
+        "guaranteed_end": "2026-07-09",     # 4 weeks guaranteed
         "shares_per_day": 1,
         "leverage_below_strike": 2,
     },
-    # GOOGL Accumulator — purchased 11 Jun 2026
-    # ⚠ Strike and KO prices not yet received — update when term sheet arrives
+    # GOOGL Accumulator — MS, trade date 11 Jun 2026
     {
         "id": "googl_accumulator",
         "name": "GOOGL Accumulator",
-        "issuer": "BOS",
+        "issuer": "Morgan Stanley (RFQ: 178043904)",
         "underlying_ticker": "GOOGL",
-        "underlying_name": "Alphabet (Google)",
+        "underlying_name": "Alphabet Inc",
         "start_date": "2026-06-11",
-        "end_date": "2028-06-11",           # assumed 24-month tenor
-        "strike_price": None,               # ⚠ Awaiting term sheet
-        "knockout_price": None,             # ⚠ Awaiting term sheet
-        "guaranteed_end": "2026-08-06",     # 8 weeks guaranteed (≈ 6 Aug 2026)
+        "end_date": "2027-05-11",           # 23-month tenor
+        "strike_price": 298.1035,           # 83.65% of spot 356.37
+        "knockout_price": 367.0611,         # 103.00% of spot 356.37
+        "guaranteed_end": "2026-08-06",     # 8 weeks guaranteed
         "shares_per_day": 1,
         "leverage_below_strike": 2,
     },
