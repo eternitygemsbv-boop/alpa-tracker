@@ -320,6 +320,22 @@ ACCUMULATOR_POSITIONS = [
         "shares_per_day": 1,
         "leverage_below_strike": 2,
     },
+    # META Accumulator — trade date 20 Jun 2026
+    # ⚠ Counterparty, tenor, guaranteed periods not yet confirmed
+    {
+        "id": "meta_accumulator",
+        "name": "META Accumulator",
+        "issuer": "BOS",                    # ⚠ Update counterparty when confirmed
+        "underlying_ticker": "META",
+        "underlying_name": "Meta Platforms",
+        "start_date": "2026-06-20",
+        "end_date": "2027-05-20",           # assumed 23-month tenor
+        "strike_price": 464.0166,           # ~81.0% of spot 572.86
+        "knockout_price": 590.0458,         # ~103.0% of spot 572.86
+        "guaranteed_end": "2026-07-18",     # ⚠ assumed 4 weeks — update if different
+        "shares_per_day": 1,
+        "leverage_below_strike": 2,
+    },
 ]
 
 # ═════════════════════════════════════════════════════════════════════════════
