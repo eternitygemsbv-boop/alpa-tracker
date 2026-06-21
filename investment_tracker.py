@@ -757,7 +757,7 @@ def accum_card(acc, prices, closes=None):
     pl           = mkt_val - cost_basis if (mkt_val is not None and cost_basis is not None) else None
     pl_pct       = pl / cost_basis * 100 if (pl is not None and cost_basis) else None
     pl_clr       = "#16a34a" if (pl is not None and pl >= 0) else "#dc2626"
-    pl_str       = (f'{"+" if pl >= 0 else ""}${pl:,.0f} ({pl_pct:+.1f}%)' if pl is not None else "—")
+    pl_str       = (f'{"+" if pl >= 0 else ""}${pl:,.0f} ({pl_pct:+.1f}%)' if (pl is not None and pl_pct is not None) else "—")
     mv_str       = f'${mkt_val:,.0f}' if mkt_val is not None else "—"
     cb_str       = f'${cost_basis:,.0f}' if cost_basis is not None else "—"
 
