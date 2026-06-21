@@ -704,9 +704,36 @@ def bond_card(b):
             f'<div class="is"><div style="font-weight:700;font-size:13px;margin-bottom:8px">Coupon Income</div>{coupon_html}</div>'
             f'</div>')
 
+def _business_days_to_date(start_str, end_str):
+    """Count Mon-Fri business days from start_str up to and including end_str (or today if earlier)."""
+    from datetime import timedelta
+    s = date.fromisoformat(start_str)
+    e = min(date.fromisoformat(end_str), date.today())
+    if e < s:
+        return 0
+    total = 0
+    d = s
+    while d <= e:
+        if d.weekday() < 5:
+            total += 1
+        d += timedelta(days=1)
+    return total
+
+def _shares_accumulated(acc):
+    """Shares accumulated from start_date to today (capped at end_date).
+    Guaranteed period always accumulates. Post-guarantee we count all business days
+    (exact leverage split requires per-day price history we don't have, so base count
+    used; double-up days add extra shares shown separately if currently in DOUBLE_UP)."""
+    start  = acc.get("start_date", "")
+    end    = acc.get("end_date", date.today().isoformat())
+    spd    = acc.get("shares_per_day", 1)
+    if not start:
+        return 0
+    return _business_days_to_date(start, end) * spd
+
 def accum_card(acc, prices, closes=None):
-    a = accumulator_status(acc, prices, closes)
-    t = acc.get("underlying_ticker", "?")
+    a  = accumulator_status(acc, prices, closes)
+    t  = acc.get("underlying_ticker", "?")
     STATUS_AC = {
         "KNOCKED_OUT":  ("#22c55e",  "✓ KNOCKED OUT — accumulation stopped"),
         "NEAR_KO":      ("#f97316",  "⚠ ABOVE KO INTRADAY — watch closing price"),
@@ -715,23 +742,63 @@ def accum_card(acc, prices, closes=None):
         "ACCUMULATING": ("#f59e0b",  "Accumulating (above strike)"),
         "UNKNOWN":      ("#94a3b8",  "Unknown"),
     }
-    sc, sl = STATUS_AC.get(a["status"], ("#94a3b8","—"))
-    pr  = f'${a["current"]:,.2f}' if a["current"] else "—"
-    ko  = f'${acc.get("knockout_price",0):,.2f}' if acc.get("knockout_price") else "—"
-    st  = f'${acc.get("strike_price",0):,.2f}'   if acc.get("strike_price")   else "—"
-    pko = (f'{a["current"]/acc["knockout_price"]*100:.1f}% of KO' if (a["current"] and acc.get("knockout_price")) else "—")
+    sc, sl   = STATUS_AC.get(a["status"], ("#94a3b8","—"))
+    pr       = f'${a["current"]:,.2f}' if a["current"] else "—"
+    ko_str   = f'${acc.get("knockout_price",0):,.2f}' if acc.get("knockout_price") else "—"
+    st_str   = f'${acc.get("strike_price",0):,.2f}'   if acc.get("strike_price")   else "—"
+    pko      = (f'{a["current"]/acc["knockout_price"]*100:.1f}% of KO' if (a["current"] and acc.get("knockout_price")) else "—")
+
+    # ── Equity / accumulated position ────────────────────────────────────────
+    shares       = _shares_accumulated(acc)
+    strike_px    = acc.get("strike_price")
+    current_px   = a["current"]
+    cost_basis   = shares * strike_px   if strike_px  else None
+    mkt_val      = shares * current_px  if current_px else None
+    pl           = mkt_val - cost_basis if (mkt_val is not None and cost_basis is not None) else None
+    pl_pct       = pl / cost_basis * 100 if (pl is not None and cost_basis) else None
+    pl_clr       = "#16a34a" if (pl is not None and pl >= 0) else "#dc2626"
+    pl_str       = (f'{"+" if pl >= 0 else ""}${pl:,.0f} ({pl_pct:+.1f}%)' if pl is not None else "—")
+    mv_str       = f'${mkt_val:,.0f}' if mkt_val is not None else "—"
+    cb_str       = f'${cost_basis:,.0f}' if cost_basis is not None else "—"
+
+    # Label changes based on status
+    if a["status"] == "KNOCKED_OUT":
+        eq_label = "Equity owned (KO'd)"
+        row2 = (f'<div style="margin-top:14px;padding-top:14px;border-top:1px solid #e2e8f0">'
+                f'<div style="font-weight:700;font-size:13px;margin-bottom:10px;color:#22c55e">Equity Position (accumulation stopped)</div>'
+                f'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">'
+                f'<div><div class="il">Shares owned</div><div class="iv">{shares:,}</div></div>'
+                f'<div><div class="il">Avg cost (strike)</div><div class="iv">{st_str}</div></div>'
+                f'<div><div class="il">Cost basis</div><div class="iv">{cb_str}</div></div>'
+                f'<div><div class="il">Market value</div><div class="iv">{mv_str}</div></div>'
+                f'</div>'
+                f'<div style="margin-top:10px;font-size:15px;font-weight:700;color:{pl_clr}">P&amp;L: {pl_str} &nbsp;<span style="font-size:12px;font-weight:400;color:#64748b">@ ${current_px:,.2f} live price</span></div>'
+                f'</div>')
+    else:
+        row2 = (f'<div style="margin-top:14px;padding-top:14px;border-top:1px solid #e2e8f0">'
+                f'<div style="font-weight:700;font-size:13px;margin-bottom:10px;color:#64748b">Accumulated so far</div>'
+                f'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">'
+                f'<div><div class="il">Shares so far</div><div class="iv">{shares:,}</div></div>'
+                f'<div><div class="il">Avg cost (strike)</div><div class="iv">{st_str}</div></div>'
+                f'<div><div class="il">Cost basis</div><div class="iv">{cb_str}</div></div>'
+                f'<div><div class="il">Mkt value</div><div class="iv">{mv_str}</div></div>'
+                f'</div>'
+                f'<div style="margin-top:10px;font-size:15px;font-weight:700;color:{pl_clr}">Unrealised P&amp;L: {pl_str} &nbsp;<span style="font-size:12px;font-weight:400;color:#64748b">@ {pr} live</span></div>'
+                f'</div>')
 
     return (f'<div class="card">'
             f'<div class="ch"><div>'
             f'<div class="ct">{acc.get("name","Accumulator")} &nbsp;<span class="badge" style="background:{sc}">{sl}</span></div>'
-            f'<div class="cm">{acc.get("underlying_name","—")} ({t}) · Strike: {st} · Knockout: {ko}</div>'
+            f'<div class="cm">{acc.get("underlying_name","—")} ({t}) · Strike: {st_str} · Knockout: {ko_str}</div>'
             f'<div class="cm">{acc.get("start_date","—")} → {acc.get("end_date","—")} · Guaranteed until: {acc.get("guaranteed_end","—")}</div>'
             f'</div></div>'
             f'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">'
             f'<div><div class="il">Current price</div><div class="iv">{pr}</div></div>'
             f'<div><div class="il">vs. KO (close only)</div><div class="iv">{pko}</div></div>'
-            f'<div><div class="il">2× leverage below</div><div class="iv" style="color:#dc2626">{st}</div></div>'
-            f'</div></div>')
+            f'<div><div class="il">2× leverage below</div><div class="iv" style="color:#dc2626">{st_str}</div></div>'
+            f'</div>'
+            f'{row2}'
+            f'</div>')
 
 def holding_card(h, prices):
     ticker   = h.get("ticker", "")
