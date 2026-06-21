@@ -406,18 +406,73 @@ def fetch_prices(tickers: list) -> dict:
             print(f"  ⚠ {t}: {e}")
     return prices
 
-def fetch_close_prices(tickers: list) -> dict:
+def fetch_close_prices(tickers: list):
     """Fetch last confirmed daily closing prices (updates only after market close).
-    Used to determine accumulator KO — intraday price spikes above KO don't count."""
+    Returns (prices_dict, dates_dict) — dates_dict maps ticker → YYYY-MM-DD of that close."""
     closes = {}
+    dates  = {}
     for t in tickers:
         try:
             hist = yf.Ticker(t).history(period="5d", interval="1d")
             if not hist.empty:
                 closes[t] = round(float(hist["Close"].iloc[-1]), 4)
+                dates[t]  = hist.index[-1].date().isoformat()
         except Exception as e:
             print(f"  ⚠ close price {t}: {e}")
-    return closes
+    return closes, dates
+
+# ── Double-up day logging ──────────────────────────────────────────────────────
+# Persists to accumulator_double_up_log.json in the same directory as the script.
+# Records every date a confirmed closing price was BELOW strike for each accumulator.
+# These extra shares are permanent — even if price recovers, the 2× obligation remains.
+
+import json as _json
+
+_DU_LOG_FILE = Path(__file__).parent / "accumulator_double_up_log.json"
+
+def _load_du_log():
+    try:
+        if _DU_LOG_FILE.exists():
+            return _json.loads(_DU_LOG_FILE.read_text())
+    except Exception:
+        pass
+    return {}
+
+def _save_du_log(log):
+    try:
+        _DU_LOG_FILE.write_text(_json.dumps(log, indent=2))
+    except Exception as e:
+        print(f"  ⚠ Could not save double-up log: {e}")
+
+def _update_du_log(closes, close_dates):
+    """Log any new dates where a confirmed close was below strike (2× leverage day)."""
+    log     = _load_du_log()
+    changed = False
+    for acc in ACCUMULATOR_POSITIONS:
+        aid    = acc["id"]
+        t      = acc.get("underlying_ticker", "")
+        strike = acc.get("strike_price")
+        ko     = acc.get("knockout_price")
+        close  = closes.get(t)
+        cdate  = close_dates.get(t)
+        if not (strike and close and cdate):
+            continue
+        # Don't log once knocked out (accumulation has stopped)
+        if ko and close >= ko:
+            continue
+        # Only log within the accumulator's active period
+        start = acc.get("start_date", "")
+        end   = acc.get("end_date", "9999-12-31")
+        if not (start <= cdate <= end):
+            continue
+        if aid not in log:
+            log[aid] = {"double_up_dates": []}
+        if close < strike and cdate not in log[aid]["double_up_dates"]:
+            log[aid]["double_up_dates"].append(cdate)
+            print(f"  📝 Logged 2× day for {aid}: {cdate} (close {close:.2f} < strike {strike:.2f})")
+            changed = True
+    if changed:
+        _save_du_log(log)
 
 # ═════════════════════════════════════════════════════════════════════════════
 #  STATUS COMPUTATION
@@ -721,15 +776,18 @@ def _business_days_to_date(start_str, end_str):
 
 def _shares_accumulated(acc):
     """Shares accumulated from start_date to today (capped at end_date).
-    Guaranteed period always accumulates. Post-guarantee we count all business days
-    (exact leverage split requires per-day price history we don't have, so base count
-    used; double-up days add extra shares shown separately if currently in DOUBLE_UP)."""
+    Base: 1 share per business day. Extra: +1 share per logged 2× day (close < strike).
+    Returns (total_shares, base_shares, extra_shares, double_up_days_count)."""
     start  = acc.get("start_date", "")
     end    = acc.get("end_date", date.today().isoformat())
     spd    = acc.get("shares_per_day", 1)
     if not start:
-        return 0
-    return _business_days_to_date(start, end) * spd
+        return 0, 0, 0, 0
+    base      = _business_days_to_date(start, end) * spd
+    log       = _load_du_log()
+    du_dates  = log.get(acc["id"], {}).get("double_up_dates", [])
+    extra     = len(du_dates) * spd   # extra shares from 2× leverage days
+    return base + extra, base, extra, len(du_dates)
 
 def accum_card(acc, prices, closes=None):
     a  = accumulator_status(acc, prices, closes)
@@ -749,25 +807,26 @@ def accum_card(acc, prices, closes=None):
     pko      = (f'{a["current"]/acc["knockout_price"]*100:.1f}% of KO' if (a["current"] and acc.get("knockout_price")) else "—")
 
     # ── Equity / accumulated position ────────────────────────────────────────
-    shares       = _shares_accumulated(acc)
-    strike_px    = acc.get("strike_price")
-    current_px   = a["current"]
-    cost_basis   = shares * strike_px   if strike_px  else None
-    mkt_val      = shares * current_px  if current_px else None
-    pl           = mkt_val - cost_basis if (mkt_val is not None and cost_basis is not None) else None
-    pl_pct       = pl / cost_basis * 100 if (pl is not None and cost_basis) else None
-    pl_clr       = "#16a34a" if (pl is not None and pl >= 0) else "#dc2626"
-    pl_str       = (f'{"+" if pl >= 0 else ""}${pl:,.0f} ({pl_pct:+.1f}%)' if (pl is not None and pl_pct is not None) else "—")
-    mv_str       = f'${mkt_val:,.0f}' if mkt_val is not None else "—"
-    cb_str       = f'${cost_basis:,.0f}' if cost_basis is not None else "—"
+    total_sh, base_sh, extra_sh, du_days = _shares_accumulated(acc)
+    strike_px  = acc.get("strike_price")
+    current_px = a["current"]
+    cost_basis = total_sh * strike_px   if strike_px  else None
+    mkt_val    = total_sh * current_px  if current_px else None
+    pl         = mkt_val - cost_basis   if (mkt_val is not None and cost_basis is not None) else None
+    pl_pct     = pl / cost_basis * 100  if (pl is not None and cost_basis) else None
+    pl_clr     = "#16a34a" if (pl is not None and pl >= 0) else "#dc2626"
+    pl_str     = (f'{"+" if pl >= 0 else ""}${pl:,.0f} ({pl_pct:+.1f}%)' if (pl is not None and pl_pct is not None) else "—")
+    mv_str     = f'${mkt_val:,.0f}' if mkt_val is not None else "—"
+    cb_str     = f'${cost_basis:,.0f}' if cost_basis is not None else "—"
+    du_note    = (f' <span style="color:#ef4444;font-size:11px">(incl. {extra_sh} extra from {du_days} below-strike day{"s" if du_days!=1 else ""})</span>'
+                  if du_days > 0 else "")
 
     # Label changes based on status
     if a["status"] == "KNOCKED_OUT":
-        eq_label = "Equity owned (KO'd)"
         row2 = (f'<div style="margin-top:14px;padding-top:14px;border-top:1px solid #e2e8f0">'
                 f'<div style="font-weight:700;font-size:13px;margin-bottom:10px;color:#22c55e">Equity Position (accumulation stopped)</div>'
                 f'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">'
-                f'<div><div class="il">Shares owned</div><div class="iv">{shares:,}</div></div>'
+                f'<div><div class="il">Shares owned</div><div class="iv">{total_sh:,}{du_note}</div></div>'
                 f'<div><div class="il">Avg cost (strike)</div><div class="iv">{st_str}</div></div>'
                 f'<div><div class="il">Cost basis</div><div class="iv">{cb_str}</div></div>'
                 f'<div><div class="il">Market value</div><div class="iv">{mv_str}</div></div>'
@@ -778,7 +837,7 @@ def accum_card(acc, prices, closes=None):
         row2 = (f'<div style="margin-top:14px;padding-top:14px;border-top:1px solid #e2e8f0">'
                 f'<div style="font-weight:700;font-size:13px;margin-bottom:10px;color:#64748b">Accumulated so far</div>'
                 f'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">'
-                f'<div><div class="il">Shares so far</div><div class="iv">{shares:,}</div></div>'
+                f'<div><div class="il">Shares so far</div><div class="iv">{total_sh:,}{du_note}</div></div>'
                 f'<div><div class="il">Avg cost (strike)</div><div class="iv">{st_str}</div></div>'
                 f'<div><div class="il">Cost basis</div><div class="iv">{cb_str}</div></div>'
                 f'<div><div class="il">Mkt value</div><div class="iv">{mv_str}</div></div>'
@@ -1000,10 +1059,11 @@ def _background_refresh(tickers, interval=30):
             print(f"   ✓ Done")
             # Refresh closing prices every 5 min (used for accumulator KO checks)
             if time.time() - close_last > CLOSE_TTL_SEC:
-                c = fetch_close_prices(_accum_tickers)
+                c, cdates = fetch_close_prices(_accum_tickers)
                 with _cache_lock:
                     _close_cache["closes"].update(c)
                     _close_cache["ts"] = time.time()
+                _update_du_log(c, cdates)   # log any new 2× days
                 close_last = time.time()
         except Exception as e:
             print(f"  ⚠ Background refresh error: {e}")
@@ -1077,11 +1137,12 @@ def serve(port=None, open_browser=True):
             _price_cache["prices"].update(p)   # merge into manual-seeded cache
             _price_cache["ts"]     = time.time()
         print(f"   ✓ Live prices loaded — {len(p)} tickers")
-        # Also fetch closing prices for accumulator KO checks
-        c = fetch_close_prices(_accum_tickers)
+        # Also fetch closing prices for accumulator KO checks + 2× logging
+        c, cdates = fetch_close_prices(_accum_tickers)
         with _cache_lock:
             _close_cache["closes"].update(c)
             _close_cache["ts"] = time.time()
+        _update_du_log(c, cdates)
         print(f"   ✓ Close prices loaded — {c}")
 
     init_t = threading.Thread(target=_initial_live_fetch, daemon=True)
@@ -1109,7 +1170,8 @@ def main():
     print(f"{'═'*52}\n")
 
     prices            = _fetch_with_fallback(_all_tickers())
-    closes            = fetch_close_prices(_accum_tickers)
+    closes, cdates    = fetch_close_prices(_accum_tickers)
+    _update_du_log(closes, cdates)
     fcn_stats, alerts = _compute_alerts(prices, closes)
     print(f"\n  Prices: {prices}\n")
 
