@@ -461,7 +461,7 @@ def underlying_status(u: dict, prices: dict) -> dict:
         "missing_data": (init is None or ki_pct is None),
     }
 
-def accumulator_status(acc: dict, prices: dict, closes: dict | None = None) -> dict:
+def accumulator_status(acc: dict, prices: dict, closes=None) -> dict:
     t       = acc.get("underlying_ticker", "")
     current = prices.get(t)
     close   = (closes or {}).get(t)   # last confirmed daily close
