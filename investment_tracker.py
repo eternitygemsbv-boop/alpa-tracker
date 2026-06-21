@@ -406,6 +406,19 @@ def fetch_prices(tickers: list) -> dict:
             print(f"  ⚠ {t}: {e}")
     return prices
 
+def fetch_close_prices(tickers: list) -> dict:
+    """Fetch last confirmed daily closing prices (updates only after market close).
+    Used to determine accumulator KO — intraday price spikes above KO don't count."""
+    closes = {}
+    for t in tickers:
+        try:
+            hist = yf.Ticker(t).history(period="5d", interval="1d")
+            if not hist.empty:
+                closes[t] = round(float(hist["Close"].iloc[-1]), 4)
+        except Exception as e:
+            print(f"  ⚠ close price {t}: {e}")
+    return closes
+
 # ═════════════════════════════════════════════════════════════════════════════
 #  STATUS COMPUTATION
 # ═════════════════════════════════════════════════════════════════════════════
@@ -448,26 +461,31 @@ def underlying_status(u: dict, prices: dict) -> dict:
         "missing_data": (init is None or ki_pct is None),
     }
 
-def accumulator_status(acc: dict, prices: dict) -> dict:
+def accumulator_status(acc: dict, prices: dict, closes: dict | None = None) -> dict:
     t       = acc.get("underlying_ticker", "")
     current = prices.get(t)
+    close   = (closes or {}).get(t)   # last confirmed daily close
     strike  = acc.get("strike_price")
     ko      = acc.get("knockout_price")
     g_end   = acc.get("guaranteed_end")
     today   = date.today().isoformat()
 
-    knocked_out    = bool(current and ko and current >= ko)
-    in_guaranteed  = bool(g_end and today <= g_end)
-    below_strike   = bool(current and strike and current < strike)
+    # KO confirmed only if last CLOSING price >= KO barrier (intraday spikes don't count)
+    knocked_out   = bool(close and ko and close >= ko)
+    near_ko       = bool(not knocked_out and current and ko and current >= ko)  # intraday warning
+    in_guaranteed = bool(g_end and today <= g_end)
+    below_strike  = bool(current and strike and current < strike)
 
     if knocked_out:          status = "KNOCKED_OUT"
+    elif near_ko:            status = "NEAR_KO"
     elif in_guaranteed:      status = "GUARANTEED"
     elif below_strike:       status = "DOUBLE_UP"
     elif current:            status = "ACCUMULATING"
     else:                    status = "UNKNOWN"
 
-    return {**acc, "current": current, "status": status,
-            "knocked_out": knocked_out, "in_guaranteed": in_guaranteed, "below_strike": below_strike}
+    return {**acc, "current": current, "close": close, "status": status,
+            "knocked_out": knocked_out, "near_ko": near_ko,
+            "in_guaranteed": in_guaranteed, "below_strike": below_strike}
 
 # ═════════════════════════════════════════════════════════════════════════════
 #  HTML DASHBOARD
@@ -686,11 +704,12 @@ def bond_card(b):
             f'<div class="is"><div style="font-weight:700;font-size:13px;margin-bottom:8px">Coupon Income</div>{coupon_html}</div>'
             f'</div>')
 
-def accum_card(acc, prices):
-    a = accumulator_status(acc, prices)
+def accum_card(acc, prices, closes=None):
+    a = accumulator_status(acc, prices, closes)
     t = acc.get("underlying_ticker", "?")
     STATUS_AC = {
         "KNOCKED_OUT":  ("#22c55e",  "✓ KNOCKED OUT — accumulation stopped"),
+        "NEAR_KO":      ("#f97316",  "⚠ ABOVE KO INTRADAY — watch closing price"),
         "GUARANTEED":   ("#3b82f6",  "📅 In guaranteed period"),
         "DOUBLE_UP":    ("#ef4444",  "✖ BELOW STRIKE — 2× leverage active"),
         "ACCUMULATING": ("#f59e0b",  "Accumulating (above strike)"),
@@ -710,7 +729,7 @@ def accum_card(acc, prices):
             f'</div></div>'
             f'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">'
             f'<div><div class="il">Current price</div><div class="iv">{pr}</div></div>'
-            f'<div><div class="il">vs. Knockout</div><div class="iv">{pko}</div></div>'
+            f'<div><div class="il">vs. KO (close only)</div><div class="iv">{pko}</div></div>'
             f'<div><div class="il">2× leverage below</div><div class="iv" style="color:#dc2626">{st}</div></div>'
             f'</div></div>')
 
@@ -742,12 +761,12 @@ def holding_card(h, prices):
             f'<div><div class="il">Market value</div><div class="iv">{mv_str}</div></div>'
             f'</div></div>')
 
-def build_html(prices, fcn_stats, alerts, live_mode=False):
+def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None):
     now = datetime.now().strftime("%d %b %Y, %H:%M")
 
     fcn_cards   = "".join(fcn_card(f, prices) for f in FCN_POSITIONS)
     bond_cards  = "".join(bond_card(b) for b in BOND_POSITIONS)
-    accum_cards   = "".join(accum_card(a, prices) for a in ACCUMULATOR_POSITIONS)
+    accum_cards   = "".join(accum_card(a, prices, closes) for a in ACCUMULATOR_POSITIONS)
     accum_sec     = (f'<div class="sec">Accumulator Positions</div>{accum_cards}' if ACCUMULATOR_POSITIONS else "")
     holding_cards = "".join(holding_card(h, prices) for h in DIRECT_HOLDINGS)
     holding_sec   = (f'<div class="sec">Direct Holdings (ETFs &amp; Bond Funds)</div>{holding_cards}' if DIRECT_HOLDINGS else "")
@@ -857,7 +876,7 @@ def _fetch_with_fallback(tickers):
     _merge_manual_prices(prices)
     return prices
 
-def _compute_alerts(prices):
+def _compute_alerts(prices, closes=None):
     alerts    = []
     fcn_stats = []
     for f in FCN_POSITIONS:
@@ -874,11 +893,13 @@ def _compute_alerts(prices):
             st = "UNKNOWN"
         fcn_stats.append(st)
     for a in ACCUMULATOR_POSITIONS:
-        s = accumulator_status(a, prices)
+        s = accumulator_status(a, prices, closes)
         if s["status"] == "DOUBLE_UP":
             alerts.append(("error", f'🔴 2× LEVERAGE: {a.get("name","Accumulator")} — {a.get("underlying_ticker")} is BELOW strike price!'))
         elif s["status"] == "KNOCKED_OUT":
-            alerts.append(("info", f'✓ KNOCKED OUT: {a.get("name","Accumulator")} — accumulation has stopped.'))
+            alerts.append(("info", f'✓ KNOCKED OUT: {a.get("name","Accumulator")} — closing price confirmed KO barrier breached.'))
+        elif s["status"] == "NEAR_KO":
+            alerts.append(("warn", f'⚠ ABOVE KO INTRADAY: {a.get("name","Accumulator")} — {a.get("underlying_ticker")} is above KO barrier intraday. KO confirmed only at market close.'))
     if not alerts:
         alerts.append(("info", "✓ All clear — no barrier breaches detected across all positions."))
     return fcn_stats, alerts
@@ -888,14 +909,19 @@ def _compute_alerts(prices):
 # ═════════════════════════════════════════════════════════════════════════════
 
 _price_cache  = {"prices": {}, "ts": 0.0}
+_close_cache  = {"closes": {}, "ts": 0.0}   # last confirmed daily closes (for KO check)
 _cache_lock   = threading.Lock()
 CACHE_TTL_SEC = 30
+CLOSE_TTL_SEC = 300  # refresh closing prices every 5 min (they only change at market close)
+
+_accum_tickers = list({a["underlying_ticker"] for a in ACCUMULATOR_POSITIONS})
 
 def _background_refresh(tickers, interval=30):
     """Silently refresh prices every `interval` seconds in a background thread.
     HTTP requests always return from cache instantly — no browser timeouts.
     Uses .update() (merge) not full replacement so manual-only entries
     (e.g. bond fund ISINs) seeded at startup are never evicted."""
+    close_last = 0.0
     while True:
         try:
             time.sleep(interval)
@@ -904,8 +930,14 @@ def _background_refresh(tickers, interval=30):
             with _cache_lock:
                 _price_cache["prices"].update(p)   # merge, not replace
                 _price_cache["ts"]     = time.time()
-                _ci = {k: _price_cache["prices"].get(k) for k in ["IE00039W6MB8","IE000KEXCUV1"]}
-            print(f"   ✓ Done. ISINs in cache: {_ci}")
+            print(f"   ✓ Done")
+            # Refresh closing prices every 5 min (used for accumulator KO checks)
+            if time.time() - close_last > CLOSE_TTL_SEC:
+                c = fetch_close_prices(_accum_tickers)
+                with _cache_lock:
+                    _close_cache["closes"].update(c)
+                    _close_cache["ts"] = time.time()
+                close_last = time.time()
         except Exception as e:
             print(f"  ⚠ Background refresh error: {e}")
 
@@ -913,6 +945,11 @@ def _cached_prices():
     """Return cached prices instantly (never blocks on network)."""
     with _cache_lock:
         return dict(_price_cache["prices"])
+
+def _cached_closes():
+    """Return cached daily closing prices (for accumulator KO checks)."""
+    with _cache_lock:
+        return dict(_close_cache["closes"])
 
 class _Handler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -935,10 +972,9 @@ class _Handler(BaseHTTPRequestHandler):
             self.send_response(404); self.end_headers(); return
 
         prices            = _cached_prices()
-        _ri = {k: prices.get(k) for k in ["IE00039W6MB8","IE000KEXCUV1"]}
-        print(f"📋 GET /: ISINs in prices: {_ri}")
-        fcn_stats, alerts = _compute_alerts(prices)
-        html              = build_html(prices, fcn_stats, alerts, live_mode=True)
+        closes            = _cached_closes()
+        fcn_stats, alerts = _compute_alerts(prices, closes)
+        html              = build_html(prices, fcn_stats, alerts, live_mode=True, closes=closes)
 
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -966,7 +1002,7 @@ def serve(port=None, open_browser=True):
 
     tickers = _all_tickers()
 
-    # Fetch live prices in a background thread — server stays responsive during fetch
+    # Fetch live prices AND closing prices in a background thread
     def _initial_live_fetch():
         print(f"📡 [{datetime.now().strftime('%H:%M:%S')}] Fetching live prices...")
         p = _fetch_with_fallback(tickers)
@@ -974,6 +1010,12 @@ def serve(port=None, open_browser=True):
             _price_cache["prices"].update(p)   # merge into manual-seeded cache
             _price_cache["ts"]     = time.time()
         print(f"   ✓ Live prices loaded — {len(p)} tickers")
+        # Also fetch closing prices for accumulator KO checks
+        c = fetch_close_prices(_accum_tickers)
+        with _cache_lock:
+            _close_cache["closes"].update(c)
+            _close_cache["ts"] = time.time()
+        print(f"   ✓ Close prices loaded — {c}")
 
     init_t = threading.Thread(target=_initial_live_fetch, daemon=True)
     init_t.start()
@@ -1000,10 +1042,11 @@ def main():
     print(f"{'═'*52}\n")
 
     prices            = _fetch_with_fallback(_all_tickers())
-    fcn_stats, alerts = _compute_alerts(prices)
+    closes            = fetch_close_prices(_accum_tickers)
+    fcn_stats, alerts = _compute_alerts(prices, closes)
     print(f"\n  Prices: {prices}\n")
 
-    html = build_html(prices, fcn_stats, alerts, live_mode=False)
+    html = build_html(prices, fcn_stats, alerts, live_mode=False, closes=closes)
     out  = Path(__file__).parent / "investment_dashboard.html"
     out.write_text(html, encoding="utf-8")
     print(f"✅ Dashboard saved: {out}")
