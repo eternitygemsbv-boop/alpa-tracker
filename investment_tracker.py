@@ -385,10 +385,8 @@ MANUAL_PRICES_DATE = "2026-06-11"
 # ═════════════════════════════════════════════════════════════════════════════
 
 def _fetch_man_fund_navs() -> dict:
-    """Try to fetch live NAVs for Man Group bond funds from public sources.
-    Falls back silently — MANUAL_PRICES will be used if all sources fail."""
+    """Fetch live NAVs for Man Group bond funds via FT.com."""
     import urllib.request, re
-    from datetime import timedelta
     navs = {}
 
     FUNDS = {
@@ -400,58 +398,17 @@ def _fetch_man_fund_navs() -> dict:
         "User-Agent": ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
                        "AppleWebKit/537.36 (KHTML, like Gecko) "
                        "Chrome/124.0.0.0 Safari/537.36"),
-        "Accept": "application/json, text/html, */*",
+        "Accept": "text/html, */*",
         "Accept-Language": "en-US,en;q=0.9",
+        "Referer": "https://markets.ft.com/",
     }
-    start = (date.today() - timedelta(days=14)).isoformat()
 
     for isin, name in FUNDS.items():
-        fetched = False
-
-        # ── Source 1: Morningstar search → chart (semi-public key) ──────────
         try:
-            search_url = (f"https://www.morningstar.com/api/v2/search/securities"
-                          f"?q={isin}&limit=1")
-            req = urllib.request.Request(search_url,
-                                         headers={**hdrs,
-                                                  "Referer": "https://www.morningstar.com/"})
-            with urllib.request.urlopen(req, timeout=8) as r:
-                resp = json.loads(r.read().decode())
-            results = resp.get("results") or []
-            if results:
-                sec_id = results[0].get("id") or results[0].get("secId", "")
-                if sec_id:
-                    chart_url = (f"https://lt.morningstar.com/api/rest.svc/klr5zyak8x"
-                                 f"/security_v3/chart/?id={sec_id}"
-                                 f"&currencyId=USD&idtype=Morningstar&priceType="
-                                 f"&startDate={start}&frequency=d&outputType=JSON")
-                    req2 = urllib.request.Request(
-                        chart_url,
-                        headers={**hdrs, "Referer": "https://www.morningstar.com/"})
-                    with urllib.request.urlopen(req2, timeout=8) as r2:
-                        data = json.loads(r2.read().decode())
-                    series = data.get("d") or []
-                    if series:
-                        last  = series[-1]
-                        price = last.get("Value") or last.get("v")
-                        if price and float(price) > 0:
-                            navs[isin] = round(float(price), 4)
-                            print(f"  📊 {name}: ${navs[isin]} (Morningstar)")
-                            fetched = True
-        except Exception as e:
-            print(f"  ⚠ Man fund {name} Morningstar: {e}")
-
-        if fetched:
-            continue
-
-        # ── Source 2: FT.com fund page (scrape embedded price) ──────────────
-        try:
-            ft_url = f"https://markets.ft.com/data/funds/tearsheet/summary?s={isin}"
-            req = urllib.request.Request(
-                ft_url, headers={**hdrs, "Referer": "https://markets.ft.com/"})
+            url = f"https://markets.ft.com/data/funds/tearsheet/summary?s={isin}"
+            req = urllib.request.Request(url, headers=hdrs)
             with urllib.request.urlopen(req, timeout=8) as r:
                 html = r.read().decode(errors="replace")
-            # FT embeds price JSON in a <script> block
             m = re.search(r'"price"\s*:\s*\{\s*"value"\s*:\s*"?([\d.]+)"?', html)
             if not m:
                 m = re.search(r'class="mod-ui-data-list__value"[^>]*>([\d.]+)<', html)
@@ -462,9 +419,8 @@ def _fetch_man_fund_navs() -> dict:
                 if price > 0:
                     navs[isin] = round(price, 4)
                     print(f"  📊 {name}: ${navs[isin]} (FT.com)")
-                    fetched = True
             else:
-                print(f"  ⚠ Man fund {name} FT.com: price not found in HTML")
+                print(f"  ⚠ Man fund {name}: price not found on FT.com")
         except Exception as e:
             print(f"  ⚠ Man fund {name} FT.com: {e}")
 
