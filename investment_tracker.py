@@ -1051,14 +1051,24 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None):
         cost    = n * pct
         usd     = cost * AUDUSD if b.get("currency") == "AUD" else cost
         bond_deployed_usd += usd
-    cash_deployed   = total_fcn_notional + bond_deployed_usd + total_hold_cost
+    # cash_deployed includes:
+    #   • FCN notionals (static)
+    #   • Bond purchase cost (static)
+    #   • Direct holdings cost basis (static — updates when you add/change positions)
+    #   • Accumulator shares purchased so far (auto-updates daily; freezes on KO)
+    cash_deployed   = total_fcn_notional + bond_deployed_usd + total_hold_cost + total_accum_cost
     available_cash  = TOTAL_CASH_DEPOSITED - cash_deployed
     cash_pct_used   = cash_deployed / TOTAL_CASH_DEPOSITED * 100 if TOTAL_CASH_DEPOSITED else 0
-    # Accumulator total future obligation (worst case: all shares at strike, full term)
+    # Remaining accumulator obligation = shares still to be purchased at strike (if no KO)
     accum_future_obligation = sum(
-        (_business_days_to_date(a["start_date"], a["end_date"]) * a.get("shares_per_day", 1)
-         * a.get("strike_price", 0))
+        (
+            max(0,
+                _business_days_to_date(a["start_date"], a["end_date"])
+                - _business_days_to_date(a["start_date"], date.today().isoformat())
+            ) * a.get("shares_per_day", 1) * a.get("strike_price", 0)
+        )
         for a in ACCUMULATOR_POSITIONS
+        if accumulator_status(a, prices, closes).get("status") != "KNOCKED_OUT"
     )
     cash_clr = "#16a34a" if available_cash >= 0 else "#dc2626"
 
@@ -1119,9 +1129,9 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None):
           <div style="font-size:11px;color:#64748b;margin-top:2px">Est. uninvested balance</div>
         </div>
         <div>
-          <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">Accum. obligation (full term)</div>
+          <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">Remaining accum. obligation</div>
           <div style="font-size:20px;font-weight:700;margin-top:3px;color:#f59e0b">${accum_future_obligation:,.0f}</div>
-          <div style="font-size:11px;color:#64748b;margin-top:2px">Forward — not upfront cash</div>
+          <div style="font-size:11px;color:#64748b;margin-top:2px">Shares still to buy at strike · excl. KO'd</div>
         </div>
       </div>
       <!-- Cash bar -->
@@ -1136,7 +1146,7 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None):
     <div style="margin-top:14px;padding-top:14px;border-top:1px solid #f1f5f9;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;font-size:12px;color:#64748b">
       <div><span style="font-weight:600;color:#334155">FCNs</span> &nbsp;${total_fcn_notional:,.0f} notional</div>
       <div><span style="font-weight:600;color:#334155">Bonds/AT1</span> &nbsp;${bond_deployed_usd:,.0f} deployed</div>
-      <div><span style="font-weight:600;color:#334155">Accumulators</span> &nbsp;cost ${total_accum_cost:,.0f} → mkt ${total_accum_mkt:,.0f}</div>
+      <div><span style="font-weight:600;color:#334155">Accumulators</span> &nbsp;deployed ${total_accum_cost:,.0f} (shares×strike) → mkt ${total_accum_mkt:,.0f}</div>
       <div><span style="font-weight:600;color:#334155">Direct holdings</span> &nbsp;cost ${total_hold_cost:,.0f} → mkt ${total_hold_mkt:,.0f}</div>
     </div>
   </div>
