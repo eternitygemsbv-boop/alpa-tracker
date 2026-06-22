@@ -943,7 +943,7 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None):
         cls = "ab-e" if level == "error" else "ab-w" if level == "warn" else "ab-g"
         alert_html += f'<div class="ab {cls}">{msg}</div>'
 
-    # Summary stats
+    # ── Income summary ──────────────────────────────────────────────────────────
     total_monthly_usd = 0.0
     total_annual_usd  = 0.0
     for f in FCN_POSITIONS:
@@ -963,6 +963,62 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None):
     n_watch  = sum(1 for s in fcn_stats if s == "WATCH")
     n_breach = sum(1 for s in fcn_stats if s == "BREACH")
 
+    # ── Portfolio value & P&L ───────────────────────────────────────────────────
+    # FCNs & bonds: held at par (no secondary market price available)
+    total_fcn_notional = sum((f.get("notional_usd") or 0) for f in FCN_POSITIONS)
+    total_bond_usd = 0.0
+    for b in BOND_POSITIONS:
+        n   = b.get("notional", 0)
+        usd = n * AUDUSD if b.get("currency") == "AUD" else n
+        total_bond_usd += usd
+
+    # Accumulators: cost basis = shares × strike; market value = shares × live price
+    total_accum_cost = 0.0
+    total_accum_mkt  = 0.0
+    accum_pl_computable = True
+    for acc in ACCUMULATOR_POSITIONS:
+        a_st = accumulator_status(acc, prices, closes)
+        tot_sh, _, _, _ = _shares_accumulated(acc)
+        sp   = acc.get("strike_price") or 0
+        cp   = a_st.get("current") or 0
+        total_accum_cost += tot_sh * sp
+        if cp:
+            total_accum_mkt += tot_sh * cp
+        else:
+            accum_pl_computable = False
+    total_accum_pl = total_accum_mkt - total_accum_cost if accum_pl_computable else None
+
+    # Direct holdings: cost basis = shares × purchase price; market value = shares × live price
+    total_hold_cost = 0.0
+    total_hold_mkt  = 0.0
+    hold_pl_computable = True
+    for h in DIRECT_HOLDINGS:
+        cur = prices.get(h.get("ticker", "")) or 0
+        sh  = h.get("shares", 0)
+        pp  = h.get("purchase_price", 0)
+        total_hold_cost += sh * pp
+        if cur:
+            total_hold_mkt += sh * cur
+        else:
+            hold_pl_computable = False
+    total_hold_pl = total_hold_mkt - total_hold_cost if hold_pl_computable else None
+
+    # Totals
+    # Portfolio value = FCN notional (at par) + bond notional (at par) + accum mkt + holdings mkt
+    portfolio_value = (total_fcn_notional + total_bond_usd
+                       + total_accum_mkt + total_hold_mkt)
+    # Unrealised P&L only on the positions we can price (accumulators + direct holdings)
+    priceable_cost  = total_accum_cost + total_hold_cost
+    priceable_mkt   = total_accum_mkt  + total_hold_mkt
+    unrealised_pl   = priceable_mkt - priceable_cost if (accum_pl_computable and hold_pl_computable) else None
+    unrealised_pct  = unrealised_pl / priceable_cost * 100 if (unrealised_pl is not None and priceable_cost) else None
+
+    pv_str  = f'${portfolio_value:,.0f}'
+    pl_sign = "+" if (unrealised_pl is not None and unrealised_pl >= 0) else ""
+    pl_str_portfolio = (f'{pl_sign}${unrealised_pl:,.0f} ({unrealised_pct:+.1f}%)'
+                        if unrealised_pl is not None else '—')
+    pl_clr_portfolio = "#16a34a" if (unrealised_pl is not None and unrealised_pl >= 0) else "#dc2626"
+
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -975,19 +1031,53 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None):
 </div>
 <div class="wrap">
   {alert_html}
+  <!-- Portfolio overview banner -->
+  <div style="background:#fff;border-radius:14px;padding:22px 28px;margin-bottom:18px;box-shadow:0 1px 4px rgba(0,0,0,.09)">
+    <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">Portfolio Overview</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px">
+      <div>
+        <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">Total Value</div>
+        <div style="font-size:26px;font-weight:700;margin-top:4px">{pv_str}</div>
+        <div style="font-size:11px;color:#64748b;margin-top:3px">FCNs+Bonds at par · Accum+Holdings live</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">Unrealised P&amp;L</div>
+        <div style="font-size:26px;font-weight:700;margin-top:4px;color:{pl_clr_portfolio}">{pl_str_portfolio}</div>
+        <div style="font-size:11px;color:#64748b;margin-top:3px">Accumulators + direct holdings</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">Annual income (est.)</div>
+        <div style="font-size:26px;font-weight:700;margin-top:4px;color:#16a34a">${total_annual_usd:,.0f}</div>
+        <div style="font-size:11px;color:#64748b;margin-top:3px">${total_monthly_usd:,.0f}/month · FCNs &amp; bonds</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">Coupons received</div>
+        <div style="font-size:26px;font-weight:700;margin-top:4px">${total_rcvd:,.0f}</div>
+        <div style="font-size:11px;color:#64748b;margin-top:3px">FCN coupons logged to date</div>
+      </div>
+    </div>
+    <!-- Breakdown bar -->
+    <div style="margin-top:18px;padding-top:14px;border-top:1px solid #f1f5f9;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;font-size:12px;color:#64748b">
+      <div><span style="font-weight:600;color:#334155">FCNs</span> &nbsp;${total_fcn_notional:,.0f} notional</div>
+      <div><span style="font-weight:600;color:#334155">Bonds/AT1</span> &nbsp;${total_bond_usd:,.0f} notional</div>
+      <div><span style="font-weight:600;color:#334155">Accumulators</span> &nbsp;cost ${total_accum_cost:,.0f} → mkt ${total_accum_mkt:,.0f}</div>
+      <div><span style="font-weight:600;color:#334155">Direct holdings</span> &nbsp;cost ${total_hold_cost:,.0f} → mkt ${total_hold_mkt:,.0f}</div>
+    </div>
+  </div>
+  <!-- FCN stats row -->
   <div class="sg">
     <div class="sc"><div class="sl">FCN Positions</div>
       <div class="sv">{len(FCN_POSITIONS)}</div>
       <div class="ss">{n_safe} safe · {n_watch} watch · {n_breach} breach</div></div>
-    <div class="sc"><div class="sl">Monthly income (est.)</div>
-      <div class="sv" style="color:#16a34a">${total_monthly_usd:,.0f}</div>
-      <div class="ss">USD equivalent</div></div>
-    <div class="sc"><div class="sl">Annual income (est.)</div>
-      <div class="sv" style="color:#16a34a">${total_annual_usd:,.0f}</div>
-      <div class="ss">USD equivalent</div></div>
-    <div class="sc"><div class="sl">Total received</div>
-      <div class="sv">${total_rcvd:,.0f}</div>
-      <div class="ss">FCN coupons logged</div></div>
+    <div class="sc"><div class="sl">Accumulator positions</div>
+      <div class="sv">{len(ACCUMULATOR_POSITIONS)}</div>
+      <div class="ss">Active contracts</div></div>
+    <div class="sc"><div class="sl">Bond / AT1 positions</div>
+      <div class="sv">{len(BOND_POSITIONS)}</div>
+      <div class="ss">Fixed income</div></div>
+    <div class="sc"><div class="sl">Direct holdings</div>
+      <div class="sv">{len(DIRECT_HOLDINGS)}</div>
+      <div class="ss">ETFs &amp; bond funds</div></div>
   </div>
   <div class="sec">Fixed Coupon Note (FCN) Positions</div>
   {fcn_cards}
