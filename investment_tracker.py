@@ -388,54 +388,86 @@ def _fetch_man_fund_navs() -> dict:
     """Try to fetch live NAVs for Man Group bond funds from public sources.
     Falls back silently — MANUAL_PRICES will be used if all sources fail."""
     import urllib.request, re
+    from datetime import timedelta
     navs = {}
-    # Map ISIN → (Man Group product slug, Morningstar fund ID)
-    FUND_SOURCES = {
-        "IE00039W6MB8": {
-            "ms_id": "F00001IG3K",   # Man Dynamic Income D USD on Morningstar UK
-            "name":  "Man Dynamic Income",
-        },
-        "IE000KEXCUV1": {
-            "ms_id": "F0GBR06PSR",   # Man Global InvGrade Opp on Morningstar UK (approx)
-            "name":  "Man Global InvGrade",
-        },
+
+    FUNDS = {
+        "IE00039W6MB8": "Man Dynamic Income",
+        "IE000KEXCUV1": "Man Global InvGrade",
     }
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-        "Accept": "application/json, text/html",
+
+    hdrs = {
+        "User-Agent": ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                       "AppleWebKit/537.36 (KHTML, like Gecko) "
+                       "Chrome/124.0.0.0 Safari/537.36"),
+        "Accept": "application/json, text/html, */*",
+        "Accept-Language": "en-US,en;q=0.9",
     }
-    for isin, meta in FUND_SOURCES.items():
+    start = (date.today() - timedelta(days=14)).isoformat()
+
+    for isin, name in FUNDS.items():
+        fetched = False
+
+        # ── Source 1: Morningstar search → chart (semi-public key) ──────────
         try:
-            # Morningstar snapshot JSON (unofficial but public)
-            url = (f"https://api.morningstar.com/service/mf/Price/securityprice"
-                   f"?ticker=ISIN:{isin}&currency=USD")
-            req = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(req, timeout=6) as r:
-                data = json.loads(r.read().decode())
-                price = data.get("Price") or data.get("nav") or data.get("price")
-                if price and float(price) > 0:
-                    navs[isin] = round(float(price), 4)
-                    print(f"  📊 {meta['name']}: ${navs[isin]} (Morningstar)")
-                    continue
-        except Exception:
-            pass
+            search_url = (f"https://www.morningstar.com/api/v2/search/securities"
+                          f"?q={isin}&limit=1")
+            req = urllib.request.Request(search_url,
+                                         headers={**hdrs,
+                                                  "Referer": "https://www.morningstar.com/"})
+            with urllib.request.urlopen(req, timeout=8) as r:
+                resp = json.loads(r.read().decode())
+            results = resp.get("results") or []
+            if results:
+                sec_id = results[0].get("id") or results[0].get("secId", "")
+                if sec_id:
+                    chart_url = (f"https://lt.morningstar.com/api/rest.svc/klr5zyak8x"
+                                 f"/security_v3/chart/?id={sec_id}"
+                                 f"&currencyId=USD&idtype=Morningstar&priceType="
+                                 f"&startDate={start}&frequency=d&outputType=JSON")
+                    req2 = urllib.request.Request(
+                        chart_url,
+                        headers={**hdrs, "Referer": "https://www.morningstar.com/"})
+                    with urllib.request.urlopen(req2, timeout=8) as r2:
+                        data = json.loads(r2.read().decode())
+                    series = data.get("d") or []
+                    if series:
+                        last  = series[-1]
+                        price = last.get("Value") or last.get("v")
+                        if price and float(price) > 0:
+                            navs[isin] = round(float(price), 4)
+                            print(f"  📊 {name}: ${navs[isin]} (Morningstar)")
+                            fetched = True
+        except Exception as e:
+            print(f"  ⚠ Man fund {name} Morningstar: {e}")
+
+        if fetched:
+            continue
+
+        # ── Source 2: FT.com fund page (scrape embedded price) ──────────────
         try:
-            # Try Morningstar UK quote page for the fund ID
-            ms_id = meta["ms_id"]
-            url = (f"https://global.morningstar.com/api/investments/v1/funds/{ms_id}"
-                   f"/quote?currencyId=USD")
-            req = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(req, timeout=6) as r:
-                data = json.loads(r.read().decode())
-                # Nav is nested differently per response shape
-                for key in ("nav", "NAV", "price", "Price", "lastPrice"):
-                    v = data.get(key) or (data.get("Quote") or {}).get(key)
-                    if v and float(v) > 0:
-                        navs[isin] = round(float(v), 4)
-                        print(f"  📊 {meta['name']}: ${navs[isin]} (Morningstar UK)")
-                        break
-        except Exception:
-            pass
+            ft_url = f"https://markets.ft.com/data/funds/tearsheet/summary?s={isin}"
+            req = urllib.request.Request(
+                ft_url, headers={**hdrs, "Referer": "https://markets.ft.com/"})
+            with urllib.request.urlopen(req, timeout=8) as r:
+                html = r.read().decode(errors="replace")
+            # FT embeds price JSON in a <script> block
+            m = re.search(r'"price"\s*:\s*\{\s*"value"\s*:\s*"?([\d.]+)"?', html)
+            if not m:
+                m = re.search(r'class="mod-ui-data-list__value"[^>]*>([\d.]+)<', html)
+            if not m:
+                m = re.search(r'"lastPrice"\s*:\s*([\d.]+)', html)
+            if m:
+                price = float(m.group(1))
+                if price > 0:
+                    navs[isin] = round(price, 4)
+                    print(f"  📊 {name}: ${navs[isin]} (FT.com)")
+                    fetched = True
+            else:
+                print(f"  ⚠ Man fund {name} FT.com: price not found in HTML")
+        except Exception as e:
+            print(f"  ⚠ Man fund {name} FT.com: {e}")
+
     return navs
 
 def fetch_prices(tickers: list) -> dict:
