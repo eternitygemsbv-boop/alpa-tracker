@@ -320,19 +320,18 @@ ACCUMULATOR_POSITIONS = [
         "shares_per_day": 1,
         "leverage_below_strike": 2,
     },
-    # META Accumulator — trade date 20 Jun 2026
-    # ⚠ Counterparty, tenor, guaranteed periods not yet confirmed
+    # META Accumulator — Bank of Singapore, trade date 18 Jun 2026 (SYACDC2617000116)
     {
         "id": "meta_accumulator",
         "name": "META Accumulator",
-        "issuer": "BOS",                    # ⚠ Update counterparty when confirmed
+        "issuer": "Bank of Singapore (SYACDC2617000116)",
         "underlying_ticker": "META",
-        "underlying_name": "Meta Platforms",
-        "start_date": "2026-06-20",
-        "end_date": "2027-05-20",           # assumed 23-month tenor
-        "strike_price": 464.0166,           # ~81.0% of spot 572.86
-        "knockout_price": 590.0458,         # ~103.0% of spot 572.86
-        "guaranteed_end": "2026-07-18",     # ⚠ assumed 4 weeks — update if different
+        "underlying_name": "Meta Platforms Ord Shs Class A",
+        "start_date": "2026-06-22",         # effective date
+        "end_date": "2028-05-18",           # last period end date (482 fixing dates)
+        "strike_price": 464.0166,           # 81% of spot 572.86
+        "knockout_price": 590.0458,         # 103% of spot 572.86
+        "guaranteed_end": "2026-08-13",     # guaranteed period: 18 Jun – 13 Aug 2026
         "shares_per_day": 1,
         "leverage_below_strike": 2,
     },
