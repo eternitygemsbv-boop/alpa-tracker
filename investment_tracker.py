@@ -384,6 +384,60 @@ MANUAL_PRICES_DATE = "2026-06-11"
 #  PRICE FETCHING
 # ═════════════════════════════════════════════════════════════════════════════
 
+def _fetch_man_fund_navs() -> dict:
+    """Try to fetch live NAVs for Man Group bond funds from public sources.
+    Falls back silently — MANUAL_PRICES will be used if all sources fail."""
+    import urllib.request, re
+    navs = {}
+    # Map ISIN → (Man Group product slug, Morningstar fund ID)
+    FUND_SOURCES = {
+        "IE00039W6MB8": {
+            "ms_id": "F00001IG3K",   # Man Dynamic Income D USD on Morningstar UK
+            "name":  "Man Dynamic Income",
+        },
+        "IE000KEXCUV1": {
+            "ms_id": "F0GBR06PSR",   # Man Global InvGrade Opp on Morningstar UK (approx)
+            "name":  "Man Global InvGrade",
+        },
+    }
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+        "Accept": "application/json, text/html",
+    }
+    for isin, meta in FUND_SOURCES.items():
+        try:
+            # Morningstar snapshot JSON (unofficial but public)
+            url = (f"https://api.morningstar.com/service/mf/Price/securityprice"
+                   f"?ticker=ISIN:{isin}&currency=USD")
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=6) as r:
+                data = json.loads(r.read().decode())
+                price = data.get("Price") or data.get("nav") or data.get("price")
+                if price and float(price) > 0:
+                    navs[isin] = round(float(price), 4)
+                    print(f"  📊 {meta['name']}: ${navs[isin]} (Morningstar)")
+                    continue
+        except Exception:
+            pass
+        try:
+            # Try Morningstar UK quote page for the fund ID
+            ms_id = meta["ms_id"]
+            url = (f"https://global.morningstar.com/api/investments/v1/funds/{ms_id}"
+                   f"/quote?currencyId=USD")
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=6) as r:
+                data = json.loads(r.read().decode())
+                # Nav is nested differently per response shape
+                for key in ("nav", "NAV", "price", "Price", "lastPrice"):
+                    v = data.get(key) or (data.get("Quote") or {}).get(key)
+                    if v and float(v) > 0:
+                        navs[isin] = round(float(v), 4)
+                        print(f"  📊 {meta['name']}: ${navs[isin]} (Morningstar UK)")
+                        break
+        except Exception:
+            pass
+    return navs
+
 def fetch_prices(tickers: list) -> dict:
     prices = {}
     if not tickers:
@@ -997,8 +1051,13 @@ def _fetch_with_fallback(tickers):
             src = "manual prices" if not prices else f"manual fallback for {', '.join(filled)}"
             print(f"  📋 Using {src} (as of {MANUAL_PRICES_DATE})")
         prices.update(filled)
-    # Always re-merge manual-only prices (bond funds etc.) after every fetch
-    _merge_manual_prices(prices)
+    # Try live Man fund NAVs — overwrite manual prices if successful
+    man_navs = _fetch_man_fund_navs()
+    if man_navs:
+        prices.update(man_navs)
+    else:
+        # Always re-merge manual-only prices (bond funds etc.) after every fetch
+        _merge_manual_prices(prices)
     return prices
 
 def _compute_alerts(prices, closes=None):
