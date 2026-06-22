@@ -37,6 +37,27 @@ OWNER  = "Alpa Parag Gandhi"
 BANK   = "Bank of Singapore"
 AUDUSD = 0.705  # AUD → USD rate (updated Jun 2026)
 
+# ─── Cash / Transfers ────────────────────────────────────────────────────────
+# All inward SWIFT transfers to BOS account 1000400774-1 (as of 22 Jun 2026)
+CASH_TRANSFERS = [
+    {"date": "07 MAY 26", "amount_usd": 130_000.00},
+    {"date": "08 MAY 26", "amount_usd": 129_990.00},
+    {"date": "08 MAY 26", "amount_usd": 129_990.00},
+    {"date": "20 MAY 26", "amount_usd": 130_000.00},
+    {"date": "21 MAY 26", "amount_usd": 130_000.00},
+    {"date": "21 MAY 26", "amount_usd": 129_990.00},
+    {"date": "22 MAY 26", "amount_usd": 129_990.00},
+    {"date": "26 MAY 26", "amount_usd": 129_990.00},
+    {"date": "05 JUN 26", "amount_usd": 130_000.00},
+    {"date": "05 JUN 26", "amount_usd": 129_990.00},
+    {"date": "05 JUN 26", "amount_usd": 129_990.00},
+    {"date": "08 JUN 26", "amount_usd": 130_000.00},
+    {"date": "11 JUN 26", "amount_usd": 130_000.00},
+    {"date": "12 JUN 26", "amount_usd": 129_990.00},
+    {"date": "12 JUN 26", "amount_usd": 129_990.00},
+]
+TOTAL_CASH_DEPOSITED = sum(t["amount_usd"] for t in CASH_TRANSFERS)  # $1,949,910
+
 # ─── FCN Positions ────────────────────────────────────────────────────────────
 # currency field on underlyings: "USD" (default), "GBP", "EUR", "CHF"
 # For non-USD tickers, Yahoo Finance returns local-currency prices — barriers
@@ -1019,6 +1040,28 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None):
                         if unrealised_pl is not None else '—')
     pl_clr_portfolio = "#16a34a" if (unrealised_pl is not None and unrealised_pl >= 0) else "#dc2626"
 
+    # ── Cash position ───────────────────────────────────────────────────────────
+    # Deployed = FCN notionals + bond purchase cost (notional × purchase_price_pct/100, USD equiv)
+    #            + direct holdings cost basis
+    # Accumulators are forward obligations (not upfront cash) — shown separately
+    bond_deployed_usd = 0.0
+    for b in BOND_POSITIONS:
+        n       = b.get("notional", 0)
+        pct     = b.get("purchase_price_pct", 100) / 100
+        cost    = n * pct
+        usd     = cost * AUDUSD if b.get("currency") == "AUD" else cost
+        bond_deployed_usd += usd
+    cash_deployed   = total_fcn_notional + bond_deployed_usd + total_hold_cost
+    available_cash  = TOTAL_CASH_DEPOSITED - cash_deployed
+    cash_pct_used   = cash_deployed / TOTAL_CASH_DEPOSITED * 100 if TOTAL_CASH_DEPOSITED else 0
+    # Accumulator total future obligation (worst case: all shares at strike, full term)
+    accum_future_obligation = sum(
+        (_business_days_to_date(a["start_date"], a["end_date"]) * a.get("shares_per_day", 1)
+         * a.get("strike_price", 0))
+        for a in ACCUMULATOR_POSITIONS
+    )
+    cash_clr = "#16a34a" if available_cash >= 0 else "#dc2626"
+
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -1056,10 +1099,43 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None):
         <div style="font-size:11px;color:#64748b;margin-top:3px">FCN coupons logged to date</div>
       </div>
     </div>
-    <!-- Breakdown bar -->
-    <div style="margin-top:18px;padding-top:14px;border-top:1px solid #f1f5f9;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;font-size:12px;color:#64748b">
+    <!-- Cash position row -->
+    <div style="margin-top:18px;padding-top:16px;border-top:1px solid #f1f5f9">
+      <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">Cash Position</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px">
+        <div>
+          <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">Total deposited</div>
+          <div style="font-size:20px;font-weight:700;margin-top:3px">${TOTAL_CASH_DEPOSITED:,.0f}</div>
+          <div style="font-size:11px;color:#64748b;margin-top:2px">15 SWIFT transfers</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">Deployed in positions</div>
+          <div style="font-size:20px;font-weight:700;margin-top:3px">${cash_deployed:,.0f}</div>
+          <div style="font-size:11px;color:#64748b;margin-top:2px">FCNs · AT1 · ETFs &amp; funds ({cash_pct_used:.0f}% of deposits)</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">Available cash</div>
+          <div style="font-size:20px;font-weight:700;margin-top:3px;color:{cash_clr}">${available_cash:,.0f}</div>
+          <div style="font-size:11px;color:#64748b;margin-top:2px">Est. uninvested balance</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">Accum. obligation (full term)</div>
+          <div style="font-size:20px;font-weight:700;margin-top:3px;color:#f59e0b">${accum_future_obligation:,.0f}</div>
+          <div style="font-size:11px;color:#64748b;margin-top:2px">Forward — not upfront cash</div>
+        </div>
+      </div>
+      <!-- Cash bar -->
+      <div style="margin-top:14px;background:#f1f5f9;border-radius:6px;height:8px;overflow:hidden">
+        <div style="height:100%;width:{min(cash_pct_used,100):.1f}%;background:#3b82f6;border-radius:6px"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;margin-top:4px">
+        <span>Deployed {cash_pct_used:.0f}%</span><span>Available {100-cash_pct_used:.0f}%</span>
+      </div>
+    </div>
+    <!-- Asset breakdown -->
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid #f1f5f9;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;font-size:12px;color:#64748b">
       <div><span style="font-weight:600;color:#334155">FCNs</span> &nbsp;${total_fcn_notional:,.0f} notional</div>
-      <div><span style="font-weight:600;color:#334155">Bonds/AT1</span> &nbsp;${total_bond_usd:,.0f} notional</div>
+      <div><span style="font-weight:600;color:#334155">Bonds/AT1</span> &nbsp;${bond_deployed_usd:,.0f} deployed</div>
       <div><span style="font-weight:600;color:#334155">Accumulators</span> &nbsp;cost ${total_accum_cost:,.0f} → mkt ${total_accum_mkt:,.0f}</div>
       <div><span style="font-weight:600;color:#334155">Direct holdings</span> &nbsp;cost ${total_hold_cost:,.0f} → mkt ${total_hold_mkt:,.0f}</div>
     </div>
