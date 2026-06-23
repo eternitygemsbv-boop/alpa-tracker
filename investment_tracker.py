@@ -58,6 +58,13 @@ CASH_TRANSFERS = [
 ]
 TOTAL_CASH_DEPOSITED = sum(t["amount_usd"] for t in CASH_TRANSFERS)  # $1,949,910
 
+# Cash balance direct from BOS statement (update whenever you download a fresh statement).
+# This is the source of truth — more accurate than the formula-derived figure because it
+# captures exact FX rates paid, commissions, dividends, interest, and any unsettled items.
+# Last updated: 23 Jun 2026 (BOS valuation date 23-06-2026)
+CASH_BALANCE_BOS    = 578_359.00
+CASH_BALANCE_DATE   = "23 Jun 2026"
+
 # ─── Known Accumulator KO Events ─────────────────────────────────────────────
 # Add an entry here whenever an accumulator is knocked out.
 # This is the source of truth for Render (no persistent filesystem there).
@@ -1215,8 +1222,8 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None):
     #   • Direct holdings cost basis (static — updates when you add/change positions)
     #   • Accumulator shares purchased so far (auto-updates daily; freezes on KO)
     cash_deployed   = total_fcn_notional + bond_deployed_usd + total_hold_cost + total_accum_cost
-    available_cash  = TOTAL_CASH_DEPOSITED - cash_deployed
-    cash_pct_used   = cash_deployed / TOTAL_CASH_DEPOSITED * 100 if TOTAL_CASH_DEPOSITED else 0
+    available_cash  = CASH_BALANCE_BOS   # use BOS statement balance (more accurate than formula)
+    cash_pct_used   = (TOTAL_CASH_DEPOSITED - CASH_BALANCE_BOS) / TOTAL_CASH_DEPOSITED * 100 if TOTAL_CASH_DEPOSITED else 0
     # Remaining accumulator obligation = shares still to be purchased at strike (if no KO)
     # Use _business_days_between for total (no today cap), minus days already done up to today
     from datetime import timedelta as _timedelta
@@ -1285,7 +1292,7 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None):
         <div>
           <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">Available cash</div>
           <div style="font-size:20px;font-weight:700;margin-top:3px;color:{cash_clr}">${available_cash:,.0f}</div>
-          <div style="font-size:11px;color:#64748b;margin-top:2px">Est. uninvested balance</div>
+          <div style="font-size:11px;color:#64748b;margin-top:2px">BOS balance · as of {CASH_BALANCE_DATE}</div>
         </div>
         <div>
           <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">Remaining accum. obligation</div>
