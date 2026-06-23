@@ -896,8 +896,48 @@ def bond_card(b):
             f'<div class="is"><div style="font-weight:700;font-size:13px;margin-bottom:8px">Coupon Income</div>{coupon_html}</div>'
             f'</div>')
 
+# NYSE market holidays 2025-2027 (Mon-Fri only; observed dates when holiday falls on weekend)
+_NYSE_HOLIDAYS = {
+    # 2025
+    date(2025,  1,  1),  # New Year's Day
+    date(2025,  1, 20),  # MLK Day
+    date(2025,  2, 17),  # Presidents' Day
+    date(2025,  4, 18),  # Good Friday
+    date(2025,  5, 26),  # Memorial Day
+    date(2025,  6, 19),  # Juneteenth
+    date(2025,  7,  4),  # Independence Day
+    date(2025,  9,  1),  # Labor Day
+    date(2025, 11, 27),  # Thanksgiving
+    date(2025, 12, 25),  # Christmas
+    # 2026
+    date(2026,  1,  1),  # New Year's Day
+    date(2026,  1, 19),  # MLK Day
+    date(2026,  2, 16),  # Presidents' Day
+    date(2026,  4,  3),  # Good Friday
+    date(2026,  5, 25),  # Memorial Day
+    date(2026,  6, 19),  # Juneteenth
+    date(2026,  7,  3),  # Independence Day (observed; Jul 4 is Saturday)
+    date(2026,  9,  7),  # Labor Day
+    date(2026, 11, 26),  # Thanksgiving
+    date(2026, 12, 25),  # Christmas
+    # 2027
+    date(2027,  1,  1),  # New Year's Day
+    date(2027,  1, 18),  # MLK Day
+    date(2027,  2, 15),  # Presidents' Day
+    date(2027,  3, 26),  # Good Friday
+    date(2027,  5, 31),  # Memorial Day
+    date(2027,  6, 18),  # Juneteenth (observed; Jun 19 is Saturday)
+    date(2027,  7,  5),  # Independence Day (observed; Jul 4 is Sunday)
+    date(2027,  9,  6),  # Labor Day
+    date(2027, 11, 25),  # Thanksgiving
+    date(2027, 12, 24),  # Christmas (observed; Dec 25 is Saturday)
+}
+
+def _is_trading_day(d):
+    return d.weekday() < 5 and d not in _NYSE_HOLIDAYS
+
 def _business_days_to_date(start_str, end_str):
-    """Count Mon-Fri business days from start_str up to and including end_str (or today if earlier)."""
+    """Count NYSE trading days from start_str up to end_str (or today if earlier)."""
     from datetime import timedelta
     s = date.fromisoformat(start_str)
     e = min(date.fromisoformat(end_str), date.today())
@@ -906,7 +946,22 @@ def _business_days_to_date(start_str, end_str):
     total = 0
     d = s
     while d <= e:
-        if d.weekday() < 5:
+        if _is_trading_day(d):
+            total += 1
+        d += timedelta(days=1)
+    return total
+
+def _business_days_between(start_str, end_str):
+    """Count NYSE trading days between two dates inclusive, NO today cap (for future periods)."""
+    from datetime import timedelta
+    s = date.fromisoformat(start_str)
+    e = date.fromisoformat(end_str)
+    if e < s:
+        return 0
+    total = 0
+    d = s
+    while d <= e:
+        if _is_trading_day(d):
             total += 1
         d += timedelta(days=1)
     return total
@@ -1163,12 +1218,13 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None):
     available_cash  = TOTAL_CASH_DEPOSITED - cash_deployed
     cash_pct_used   = cash_deployed / TOTAL_CASH_DEPOSITED * 100 if TOTAL_CASH_DEPOSITED else 0
     # Remaining accumulator obligation = shares still to be purchased at strike (if no KO)
+    # Use _business_days_between for total (no today cap), minus days already done up to today
+    from datetime import timedelta as _timedelta
+    _tomorrow = (date.today() + _timedelta(days=1)).isoformat()
     accum_future_obligation = sum(
         (
-            max(0,
-                _business_days_to_date(a["start_date"], a["end_date"])
-                - _business_days_to_date(a["start_date"], date.today().isoformat())
-            ) * a.get("shares_per_day", 1) * a.get("strike_price", 0)
+            _business_days_between(_tomorrow, a["end_date"])
+            * a.get("shares_per_day", 1) * a.get("strike_price", 0)
         )
         for a in ACCUMULATOR_POSITIONS
         if accumulator_status(a, prices, closes).get("status") != "KNOCKED_OUT"
