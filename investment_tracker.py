@@ -305,6 +305,15 @@ DIRECT_HOLDINGS = [
         "currency": "USD",
         "manual_price_only": True,
     },
+    {
+        "id": "shld",
+        "name": "Global X Defense Tech ETF",
+        "ticker": "SHLD",
+        "isin": "US37960A5294",
+        "shares": 390,
+        "purchase_price": 61.46,    # trade price 22 Jun 2026; net $24,209.09 incl. $239.69 commission
+        "currency": "USD",
+    },
 ]
 
 # ─── Accumulator Positions ────────────────────────────────────────────────────
