@@ -491,6 +491,7 @@ def fetch_close_prices(tickers: list):
 import json as _json
 
 _DU_LOG_FILE = Path(__file__).parent / "accumulator_double_up_log.json"
+_KO_LOG_FILE = Path(__file__).parent / "accumulator_ko_log.json"
 
 def _load_du_log():
     try:
@@ -506,21 +507,63 @@ def _save_du_log(log):
     except Exception as e:
         print(f"  ⚠ Could not save double-up log: {e}")
 
+def _load_ko_log():
+    try:
+        if _KO_LOG_FILE.exists():
+            return _json.loads(_KO_LOG_FILE.read_text())
+    except Exception:
+        pass
+    return {}
+
+def _save_ko_log(log):
+    try:
+        _KO_LOG_FILE.write_text(_json.dumps(log, indent=2))
+    except Exception as e:
+        print(f"  ⚠ Could not save KO log: {e}")
+
+def _update_ko_log(closes, close_dates):
+    """Permanently record KO events. Once closing price >= KO barrier, always KO — even if
+    price later recovers. Returns the current KO log dict."""
+    log     = _load_ko_log()
+    changed = False
+    for acc in ACCUMULATOR_POSITIONS:
+        aid   = acc["id"]
+        if aid in log:
+            continue  # already permanently knocked out
+        t     = acc.get("underlying_ticker", "")
+        ko    = acc.get("knockout_price")
+        close = closes.get(t)
+        cdate = close_dates.get(t, date.today().isoformat())
+        if not (ko and close and cdate):
+            continue
+        if float(close) >= float(ko):
+            log[aid] = {
+                "ko_date":          cdate,
+                "ko_price":         round(float(close), 4),
+                "ticker":           t,
+                "knockout_barrier": ko,
+            }
+            print(f"  🔴 KO CONFIRMED: {acc.get('name')} @ ${close:.2f} on {cdate} (barrier ${ko:.4f})")
+            changed = True
+    if changed:
+        _save_ko_log(log)
+    return log
+
 def _update_du_log(closes, close_dates):
-    """Log any new dates where a confirmed close was below strike (2× leverage day)."""
+    """Log any new dates where a confirmed close was below strike (2× leverage day).
+    Does not log once the accumulator is permanently KO'd."""
+    ko_log  = _load_ko_log()
     log     = _load_du_log()
     changed = False
     for acc in ACCUMULATOR_POSITIONS:
         aid    = acc["id"]
+        if aid in ko_log:
+            continue  # KO'd — accumulation stopped, no more 2× days
         t      = acc.get("underlying_ticker", "")
         strike = acc.get("strike_price")
-        ko     = acc.get("knockout_price")
         close  = closes.get(t)
         cdate  = close_dates.get(t)
         if not (strike and close and cdate):
-            continue
-        # Don't log once knocked out (accumulation has stopped)
-        if ko and close >= ko:
             continue
         # Only log within the accumulator's active period
         start = acc.get("start_date", "")
@@ -587,11 +630,16 @@ def accumulator_status(acc: dict, prices: dict, closes=None) -> dict:
     g_end   = acc.get("guaranteed_end")
     today   = date.today().isoformat()
 
-    # KO confirmed only if last CLOSING price >= KO barrier (intraday spikes don't count)
-    knocked_out   = bool(close and ko and close >= ko)
+    # Permanent KO: once logged, always KO — even if price later recovers
+    ko_log    = _load_ko_log()
+    ko_record = ko_log.get(acc.get("id", ""))
+    knocked_out   = bool(ko_record)
+    # Also check current close in case today is the first KO day (log updated separately)
+    if not knocked_out:
+        knocked_out = bool(close and ko and close >= ko)
     near_ko       = bool(not knocked_out and current and ko and current >= ko)  # intraday warning
     in_guaranteed = bool(g_end and today <= g_end)
-    below_strike  = bool(current and strike and current < strike)
+    below_strike  = bool(not knocked_out and current and strike and current < strike)
 
     if knocked_out:          status = "KNOCKED_OUT"
     elif near_ko:            status = "NEAR_KO"
@@ -602,7 +650,8 @@ def accumulator_status(acc: dict, prices: dict, closes=None) -> dict:
 
     return {**acc, "current": current, "close": close, "status": status,
             "knocked_out": knocked_out, "near_ko": near_ko,
-            "in_guaranteed": in_guaranteed, "below_strike": below_strike}
+            "in_guaranteed": in_guaranteed, "below_strike": below_strike,
+            "ko_record": ko_record}
 
 # ═════════════════════════════════════════════════════════════════════════════
 #  HTML DASHBOARD
@@ -838,17 +887,29 @@ def _business_days_to_date(start_str, end_str):
 
 def _shares_accumulated(acc):
     """Shares accumulated from start_date to today (capped at end_date).
-    Base: 1 share per business day. Extra: +1 share per logged 2× day (close < strike).
+    If KO'd: accumulation stops at max(ko_date, guaranteed_end) — guaranteed shares still received.
     Returns (total_shares, base_shares, extra_shares, double_up_days_count)."""
-    start  = acc.get("start_date", "")
-    end    = acc.get("end_date", date.today().isoformat())
-    spd    = acc.get("shares_per_day", 1)
+    start = acc.get("start_date", "")
+    end   = acc.get("end_date", date.today().isoformat())
+    g_end = acc.get("guaranteed_end", "")
+    spd   = acc.get("shares_per_day", 1)
     if not start:
         return 0, 0, 0, 0
+    # If KO'd, cap accumulation at max(ko_date, guaranteed_end)
+    ko_log    = _load_ko_log()
+    ko_record = ko_log.get(acc.get("id", ""))
+    if ko_record:
+        ko_date      = ko_record["ko_date"]
+        # Still receive guaranteed-period shares even if KO happened before g_end
+        effective_end = max(ko_date, g_end) if g_end else ko_date
+        end = effective_end
     base      = _business_days_to_date(start, end) * spd
     log       = _load_du_log()
     du_dates  = log.get(acc["id"], {}).get("double_up_dates", [])
-    extra     = len(du_dates) * spd   # extra shares from 2× leverage days
+    # Only count 2× days within the effective accumulation window
+    if ko_record:
+        du_dates = [d for d in du_dates if d <= end]
+    extra     = len(du_dates) * spd
     return base + extra, base, extra, len(du_dates)
 
 def accum_card(acc, prices, closes=None):
@@ -884,16 +945,32 @@ def accum_card(acc, prices, closes=None):
                   if du_days > 0 else "")
 
     # Label changes based on status
+    ko_record  = a.get("ko_record") or {}
+    ko_date    = ko_record.get("ko_date", "—")
+    ko_px      = ko_record.get("ko_price")
+    ko_px_str  = f'${ko_px:,.2f}' if ko_px else "—"
+    g_end_acc  = acc.get("guaranteed_end", "")
+    today_str  = date.today().isoformat()
+    still_in_g = bool(g_end_acc and today_str <= g_end_acc)
+
     if a["status"] == "KNOCKED_OUT":
+        ko_info = (f'<div style="margin-bottom:10px;padding:8px 12px;background:#f0fdf4;'
+                   f'border:1px solid #bbf7d0;border-radius:7px;font-size:12px;color:#15803d">'
+                   f'🔴 Knocked out on <strong>{ko_date}</strong> at <strong>{ko_px_str}</strong> '
+                   f'(barrier {ko_str})'
+                   + (f' · Still accumulating through guaranteed period until <strong>{g_end_acc}</strong>'
+                      if still_in_g else '') +
+                   f'</div>')
         row2 = (f'<div style="margin-top:14px;padding-top:14px;border-top:1px solid #e2e8f0">'
-                f'<div style="font-weight:700;font-size:13px;margin-bottom:10px;color:#22c55e">Equity Position (accumulation stopped)</div>'
+                f'<div style="font-weight:700;font-size:13px;margin-bottom:10px;color:#22c55e">Equity Position</div>'
+                f'{ko_info}'
                 f'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">'
                 f'<div><div class="il">Shares owned</div><div class="iv">{total_sh:,}{du_note}</div></div>'
                 f'<div><div class="il">Avg cost (strike)</div><div class="iv">{st_str}</div></div>'
                 f'<div><div class="il">Cost basis</div><div class="iv">{cb_str}</div></div>'
                 f'<div><div class="il">Market value</div><div class="iv">{mv_str}</div></div>'
                 f'</div>'
-                f'<div style="margin-top:10px;font-size:15px;font-weight:700;color:{pl_clr}">P&amp;L: {pl_str} &nbsp;<span style="font-size:12px;font-weight:400;color:#64748b">@ ${current_px:,.2f} live price</span></div>'
+                f'<div style="margin-top:10px;font-size:15px;font-weight:700;color:{pl_clr}">P&amp;L: {pl_str} &nbsp;<span style="font-size:12px;font-weight:400;color:#64748b">@ {pr} live</span></div>'
                 f'</div>')
     else:
         row2 = (f'<div style="margin-top:14px;padding-top:14px;border-top:1px solid #e2e8f0">'
@@ -1285,7 +1362,8 @@ def _background_refresh(tickers, interval=30):
                 with _cache_lock:
                     _close_cache["closes"].update(c)
                     _close_cache["ts"] = time.time()
-                _update_du_log(c, cdates)   # log any new 2× days
+                _update_ko_log(c, cdates)   # permanent KO check first
+                _update_du_log(c, cdates)   # then log any new 2× days
                 close_last = time.time()
         except Exception as e:
             print(f"  ⚠ Background refresh error: {e}")
@@ -1364,6 +1442,7 @@ def serve(port=None, open_browser=True):
         with _cache_lock:
             _close_cache["closes"].update(c)
             _close_cache["ts"] = time.time()
+        _update_ko_log(c, cdates)
         _update_du_log(c, cdates)
         print(f"   ✓ Close prices loaded — {c}")
 
@@ -1393,6 +1472,7 @@ def main():
 
     prices            = _fetch_with_fallback(_all_tickers())
     closes, cdates    = fetch_close_prices(_accum_tickers)
+    _update_ko_log(closes, cdates)
     _update_du_log(closes, cdates)
     fcn_stats, alerts = _compute_alerts(prices, closes)
     print(f"\n  Prices: {prices}\n")
