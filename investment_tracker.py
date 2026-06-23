@@ -58,6 +58,19 @@ CASH_TRANSFERS = [
 ]
 TOTAL_CASH_DEPOSITED = sum(t["amount_usd"] for t in CASH_TRANSFERS)  # $1,949,910
 
+# ─── Known Accumulator KO Events ─────────────────────────────────────────────
+# Add an entry here whenever an accumulator is knocked out.
+# This is the source of truth for Render (no persistent filesystem there).
+# The local file-based KO log merges with this at runtime.
+KNOWN_KO_EVENTS = {
+    "googl_accumulator": {
+        "ko_date":          "2026-06-20",
+        "ko_price":         368.03,
+        "ticker":           "GOOGL",
+        "knockout_barrier": 367.0611,
+    },
+}
+
 # ─── FCN Positions ────────────────────────────────────────────────────────────
 # currency field on underlyings: "USD" (default), "GBP", "EUR", "CHF"
 # For non-USD tickers, Yahoo Finance returns local-currency prices — barriers
@@ -508,12 +521,16 @@ def _save_du_log(log):
         print(f"  ⚠ Could not save double-up log: {e}")
 
 def _load_ko_log():
+    """Load KO log: hardcoded KNOWN_KO_EVENTS (works everywhere) merged with
+    the local file log (auto-updated on Mac/local, not available on Render)."""
+    log = dict(KNOWN_KO_EVENTS)   # start from hardcoded config
     try:
         if _KO_LOG_FILE.exists():
-            return _json.loads(_KO_LOG_FILE.read_text())
+            file_log = _json.loads(_KO_LOG_FILE.read_text())
+            log.update(file_log)  # file entries override/extend hardcoded ones
     except Exception:
         pass
-    return {}
+    return log
 
 def _save_ko_log(log):
     try:
