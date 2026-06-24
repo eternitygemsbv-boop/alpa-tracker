@@ -401,6 +401,21 @@ ACCUMULATOR_POSITIONS = [
         "shares_per_day": 1,
         "leverage_below_strike": 2,
     },
+    # LLY Accumulator — Bank of Singapore, trade date 22 Jun 2026 (SYACDC2617400100)
+    {
+        "id": "lly_accumulator",
+        "name": "LLY Accumulator",
+        "issuer": "Bank of Singapore (SYACDC2617400100)",
+        "underlying_ticker": "LLY",
+        "underlying_name": "Eli Lilly and Co",
+        "start_date": "2026-06-23",         # effective date
+        "end_date": "2028-05-22",           # period 50 end date (483 fixing dates)
+        "strike_price": 919.746,            # 82.86% of spot $1,110
+        "knockout_price": 1143.30,          # 103% of spot $1,110
+        "guaranteed_end": "2026-08-17",     # guaranteed period: 22 Jun – 17 Aug 2026
+        "shares_per_day": 1,
+        "leverage_below_strike": 2,
+    },
 ]
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -412,6 +427,7 @@ MANUAL_PRICES = {
     # USD ETFs
     "SPY":   725.43,
     "QQQ":   693.69,
+    "LLY":   1110.00,   # Eli Lilly — initial spot from accu term sheet (22 Jun 2026)
     "DIA":   500.25,
     # US Tech
     "META":  570.98,
