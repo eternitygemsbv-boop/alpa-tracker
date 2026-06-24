@@ -71,6 +71,12 @@ TOTAL_CASH_DEPOSITED = sum(t["amount_usd"] for t in CASH_TRANSFERS)  # $2,079,91
 # Available cash = CASH_BALANCE_BOS - sum(TRADES_SINCE_STATEMENT costs)
 # Accumulators are NOT listed here — they're a forward equity delivery, not a cash debit.
 
+# ─── Dashboard Password (HTTP Basic Auth) ────────────────────────────────────
+# Change these to whatever you like. Anyone visiting the Render URL will be
+# prompted for username + password before they can see the dashboard.
+DASHBOARD_USER     = "alpa"
+DASHBOARD_PASSWORD = "invest2026"
+
 CASH_BALANCE_BOS    = 578_359.00
 CASH_BALANCE_DATE   = "23 Jun 2026"   # BOS statement valuation date
 
@@ -1500,7 +1506,32 @@ def _cached_closes():
         return dict(_close_cache["closes"])
 
 class _Handler(BaseHTTPRequestHandler):
+    def _check_auth(self):
+        """Return True if request has valid Basic Auth credentials."""
+        import base64
+        auth = self.headers.get("Authorization", "")
+        if not auth.startswith("Basic "):
+            return False
+        try:
+            decoded = base64.b64decode(auth[6:]).decode("utf-8")
+            user, _, pwd = decoded.partition(":")
+            return user == DASHBOARD_USER and pwd == DASHBOARD_PASSWORD
+        except Exception:
+            return False
+
+    def _require_auth(self):
+        """Send 401 and return False so caller can bail out."""
+        self.send_response(401)
+        self.send_header("WWW-Authenticate", 'Basic realm="ALPA Portfolio"')
+        self.send_header("Content-Type", "text/plain")
+        self.end_headers()
+        self.wfile.write(b"Unauthorised")
+        return False
+
     def do_GET(self):
+        if not self._check_auth():
+            self._require_auth(); return
+
         if self.path == "/favicon.ico":
             self.send_response(204); self.end_headers(); return
 
