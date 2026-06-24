@@ -55,8 +55,9 @@ CASH_TRANSFERS = [
     {"date": "11 JUN 26", "amount_usd": 130_000.00},
     {"date": "12 JUN 26", "amount_usd": 129_990.00},
     {"date": "12 JUN 26", "amount_usd": 129_990.00},
+    {"date": "24 JUN 26", "amount_usd": 130_000.00},   # FT26175K06N8
 ]
-TOTAL_CASH_DEPOSITED = sum(t["amount_usd"] for t in CASH_TRANSFERS)  # $1,949,910
+TOTAL_CASH_DEPOSITED = sum(t["amount_usd"] for t in CASH_TRANSFERS)  # $2,079,910
 
 # ─── Cash Balance ─────────────────────────────────────────────────────────────
 # HOW TO MAINTAIN:
@@ -76,8 +77,7 @@ CASH_BALANCE_DATE   = "23 Jun 2026"   # BOS statement valuation date
 # New trades / deposits since the last BOS statement.
 # cost_usd: positive = cash in (deposit/dividend), negative = cash out (purchase).
 TRADES_SINCE_STATEMENT = [
-    # Example — remove once incorporated into next BOS statement:
-    # {"date": "24 Jun 26", "description": "Example ETF purchase", "cost_usd": -10_000.00},
+    {"date": "24 Jun 26", "description": "Inward SWIFT deposit (FT26175K06N8)", "cost_usd": +130_000.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
