@@ -536,16 +536,23 @@ def fetch_prices(tickers: list) -> dict:
     return prices
 
 def fetch_close_prices(tickers: list):
-    """Fetch last confirmed daily closing prices (updates only after market close).
+    """Fetch last CONFIRMED daily closing prices — prior sessions only, never today's intraday bar.
+    During market hours yfinance includes today's incomplete session in daily history, which would
+    cause false KO triggers on intraday moves. We exclude any bar dated today so KO is only ever
+    confirmed from a fully completed session's closing price.
     Returns (prices_dict, dates_dict) — dates_dict maps ticker → YYYY-MM-DD of that close."""
     closes = {}
     dates  = {}
+    today  = date.today()
     for t in tickers:
         try:
             hist = yf.Ticker(t).history(period="5d", interval="1d")
             if not hist.empty:
-                closes[t] = round(float(hist["Close"].iloc[-1]), 4)
-                dates[t]  = hist.index[-1].date().isoformat()
+                # Drop today's row — it may be intraday, not a confirmed official close
+                prior = hist[hist.index.date < today]
+                row   = prior if not prior.empty else hist   # fallback: weekend / no prior data
+                closes[t] = round(float(row["Close"].iloc[-1]), 4)
+                dates[t]  = row.index[-1].date().isoformat()
         except Exception as e:
             print(f"  ⚠ close price {t}: {e}")
     return closes, dates
