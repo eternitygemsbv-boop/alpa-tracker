@@ -98,6 +98,12 @@ KNOWN_KO_EVENTS = {
         "ticker":           "GOOGL",
         "knockout_barrier": 367.0611,
     },
+    "lly_accumulator": {
+        "ko_date":          "2026-06-24",
+        "ko_price":         1208.12,
+        "ticker":           "LLY",
+        "knockout_barrier": 1143.30,
+    },
 }
 
 # ─── FCN Positions ────────────────────────────────────────────────────────────
@@ -535,24 +541,45 @@ def fetch_prices(tickers: list) -> dict:
             print(f"  ⚠ {t}: {e}")
     return prices
 
+def _nyse_is_closed():
+    """Return True if NYSE is currently closed (before 9:30am ET, after 4:00pm ET, or weekend).
+    Uses zoneinfo (Python 3.9+) with UTC-4 fallback."""
+    import datetime as _dt
+    try:
+        from zoneinfo import ZoneInfo
+        et = ZoneInfo("America/New_York")
+    except Exception:
+        et = _dt.timezone(_dt.timedelta(hours=-4))   # EDT approximation
+    now = _dt.datetime.now(et)
+    if now.weekday() >= 5:   # Saturday / Sunday
+        return True
+    open_  = now.replace(hour=9,  minute=30, second=0, microsecond=0)
+    close_ = now.replace(hour=16, minute=0,  second=0, microsecond=0)
+    return now < open_ or now >= close_
+
 def fetch_close_prices(tickers: list):
-    """Fetch last CONFIRMED daily closing prices — prior sessions only, never today's intraday bar.
-    During market hours yfinance includes today's incomplete session in daily history, which would
-    cause false KO triggers on intraday moves. We exclude any bar dated today so KO is only ever
-    confirmed from a fully completed session's closing price.
+    """Fetch last CONFIRMED daily closing prices for KO checks.
+    - During market hours (9:30–16:00 ET): exclude today's bar — it's incomplete/intraday.
+    - After market close / weekend: include today's bar — it's the official confirmed close.
     Returns (prices_dict, dates_dict) — dates_dict maps ticker → YYYY-MM-DD of that close."""
-    closes = {}
-    dates  = {}
-    today  = date.today()
+    closes        = {}
+    dates         = {}
+    today         = date.today()
+    mkt_closed    = _nyse_is_closed()
     for t in tickers:
         try:
             hist = yf.Ticker(t).history(period="5d", interval="1d")
             if not hist.empty:
-                # Drop today's row — it may be intraday, not a confirmed official close
-                prior = hist[hist.index.date < today]
-                row   = prior if not prior.empty else hist   # fallback: weekend / no prior data
+                if mkt_closed:
+                    # Market closed — today's bar (if present) IS the confirmed official close
+                    row = hist
+                else:
+                    # Market open — drop today's incomplete intraday bar
+                    prior = hist[hist.index.date < today]
+                    row   = prior if not prior.empty else hist
                 closes[t] = round(float(row["Close"].iloc[-1]), 4)
                 dates[t]  = row.index[-1].date().isoformat()
+                print(f"  📅 {t} close: ${closes[t]} ({dates[t]}) [mkt {'closed' if mkt_closed else 'open'}]")
         except Exception as e:
             print(f"  ⚠ close price {t}: {e}")
     return closes, dates
