@@ -83,7 +83,8 @@ CASH_BALANCE_DATE   = "23 Jun 2026"   # BOS statement valuation date
 # New trades / deposits since the last BOS statement.
 # cost_usd: positive = cash in (deposit/dividend), negative = cash out (purchase).
 TRADES_SINCE_STATEMENT = [
-    {"date": "24 Jun 26", "description": "Inward SWIFT deposit (FT26175K06N8)", "cost_usd": +130_000.00},
+    {"date": "24 Jun 26", "description": "Inward SWIFT deposit (FT26175K06N8)",       "cost_usd": +130_000.00},
+    {"date": "09 Jul 26", "description": "HSBC FCN AIR/GE/SAF (XS3377025971) settle", "cost_usd": -100_000.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -262,6 +263,27 @@ FCN_POSITIONS = [
             {"ticker": "EWY",  "name": "iShares MSCI South Korea ETF", "initial": 214.14, "ki_pct": 55, "strike_pct": 65, "ac_pct": 95},
             {"ticker": "EWJ",  "name": "iShares MSCI Japan ETF",        "initial": 94.25,  "ki_pct": 55, "strike_pct": 65, "ac_pct": 95},
             {"ticker": "CQQQ", "name": "Invesco China Technology ETF",   "initial": 53.82,  "ki_pct": 55, "strike_pct": 65, "ac_pct": 95},
+        ],
+        "coupons_received": [],
+    },
+
+    # ── 8. Aerospace Worst-of FCN — AIR.PA / GE / SAF.PA  (HSBC, XS3377025971) ──
+    {
+        "id": "air_ge_saf",
+        "name": "Aerospace Worst-of FCN",
+        "issuer": "HSBC (ISIN: XS3377025971)",
+        "notional_usd": 100_000,
+        "coupon_monthly_pct": 1.02167,   # 12.26% / 12
+        "coupon_annual_pct": 12.26,
+        "issue_date": "2026-07-09",
+        "maturity_date": "2027-07-13",
+        "first_autocall_date": "2026-10-09",
+        "autocall_freq": "Monthly (from 9 Oct 2026)",
+        "ki_type": "European — KI at 65% of initial; checked ONLY at Final Valuation Date (9 Jul 2027)",
+        "underlyings": [
+            {"ticker": "AIR.PA", "name": "Airbus SE",        "initial": 193.28, "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "EUR"},
+            {"ticker": "GE",     "name": "General Electric", "initial": 356.84, "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "SAF.PA", "name": "Safran SA",        "initial": 336.20, "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "EUR"},
         ],
         "coupons_received": [],
     },
@@ -471,6 +493,10 @@ MANUAL_PRICES = {
     "UBS":     46.77,     # USD (NYSE) — confirmed ticker from GS term sheet
     "SU.PA":   261.50,    # EUR
     "SIE.DE":  279.10,    # EUR — confirmed from HSBC term sheet
+    # Aerospace FCN underlyings (added 24 Jun 2026 — HSBC XS3377025971)
+    "AIR.PA":  193.28,    # EUR — Airbus SE initial price
+    "GE":      356.84,    # USD — General Electric initial price
+    "SAF.PA":  336.20,    # EUR — Safran SA initial price
 }
 MANUAL_PRICES_DATE = "2026-06-11"
 
