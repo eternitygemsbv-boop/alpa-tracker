@@ -83,8 +83,9 @@ CASH_BALANCE_DATE   = "23 Jun 2026"   # BOS statement valuation date
 # New trades / deposits since the last BOS statement.
 # cost_usd: positive = cash in (deposit/dividend), negative = cash out (purchase).
 TRADES_SINCE_STATEMENT = [
-    {"date": "24 Jun 26", "description": "Inward SWIFT deposit (FT26175K06N8)",       "cost_usd": +130_000.00},
-    {"date": "09 Jul 26", "description": "HSBC FCN AIR/GE/SAF (XS3377025971) settle", "cost_usd": -100_000.00},
+    {"date": "24 Jun 26", "description": "Inward SWIFT deposit (FT26175K06N8)",         "cost_usd": +130_000.00},
+    {"date": "25 Jun 26", "description": "SPY Accumulator — 9 shares delivered @ strike","cost_usd":  -5_596.46},
+    {"date": "09 Jul 26", "description": "HSBC FCN AIR/GE/SAF (XS3377025971) settle",   "cost_usd": -100_000.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -347,8 +348,8 @@ DIRECT_HOLDINGS = [
         "name": "Man Dynamic Income Fund (Bond Fund)",
         "ticker": "IE00039W6MB8",   # ISIN used as price-dict key
         "isin": "IE00039W6MB8",
-        "shares": 990,
-        "purchase_price": 102.0806,
+        "shares": 1_480,            # 990 units (26 May) + 490 units (4 Jun) confirmed BOS statement
+        "purchase_price": 102.00,   # blended avg: ($101,059.89 + $49,900.77) / 1,480
         "currency": "USD",
         "manual_price_only": True,
     },
@@ -398,7 +399,7 @@ ACCUMULATOR_POSITIONS = [
         "underlying_ticker": "SPY",
         "underlying_name": "SPDR S&P 500 ETF Trust",
         "start_date": "2026-06-11",
-        "end_date": "2027-05-11",           # 23-month tenor
+        "end_date": "2028-05-11",           # confirmed from BOS statement (SYACDC2616300154)
         "strike_price": 621.8292,           # 85.32% of spot 728.82
         "knockout_price": 765.2610,         # 105.00% of spot 728.82
         "guaranteed_end": "2026-07-09",     # 4 weeks guaranteed
@@ -413,7 +414,7 @@ ACCUMULATOR_POSITIONS = [
         "underlying_ticker": "GOOGL",
         "underlying_name": "Alphabet Inc",
         "start_date": "2026-06-11",
-        "end_date": "2027-05-11",           # 23-month tenor
+        "end_date": "2028-05-11",           # confirmed from BOS statement (SYACDC2616300192)
         "strike_price": 298.1035,           # 83.65% of spot 356.37
         "knockout_price": 367.0611,         # 103.00% of spot 356.37
         "guaranteed_end": "2026-08-06",     # 8 weeks guaranteed
