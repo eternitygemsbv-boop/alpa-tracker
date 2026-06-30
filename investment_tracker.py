@@ -83,9 +83,10 @@ CASH_BALANCE_DATE   = "23 Jun 2026"   # BOS statement valuation date
 # New trades / deposits since the last BOS statement.
 # cost_usd: positive = cash in (deposit/dividend), negative = cash out (purchase).
 TRADES_SINCE_STATEMENT = [
-    {"date": "24 Jun 26", "description": "Inward SWIFT deposit (FT26175K06N8)",         "cost_usd": +130_000.00},
-    {"date": "25 Jun 26", "description": "SPY Accumulator — 9 shares delivered @ strike","cost_usd":  -5_596.46},
-    {"date": "09 Jul 26", "description": "HSBC FCN AIR/GE/SAF (XS3377025971) settle",   "cost_usd": -100_000.00},
+    {"date": "24 Jun 26", "description": "Inward SWIFT deposit (FT26175K06N8)",          "cost_usd": +130_000.00},
+    {"date": "25 Jun 26", "description": "SPY Accumulator — 9 shares delivered @ strike", "cost_usd":  -5_596.46},
+    {"date": "30 Jun 26", "description": "Microsoft Corp (MSFT) — 65 shares",             "cost_usd": -24_700.81},
+    {"date": "09 Jul 26", "description": "HSBC FCN AIR/GE/SAF (XS3377025971) settle",    "cost_usd": -100_000.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -372,6 +373,15 @@ DIRECT_HOLDINGS = [
         "purchase_price": 61.46,    # trade price 22 Jun 2026; net $24,209.09 incl. $239.69 commission
         "currency": "USD",
     },
+    {
+        "id": "msft",
+        "name": "Microsoft Corporation",
+        "ticker": "MSFT",
+        "isin": "US5949181045",
+        "shares": 65,
+        "purchase_price": 380.0125,  # net $24,700.81 / 65 shares (incl. $244.56 commission); trade 29 Jun 2026
+        "currency": "USD",
+    },
 ]
 
 # ─── Accumulator Positions ────────────────────────────────────────────────────
@@ -498,6 +508,8 @@ MANUAL_PRICES = {
     "AIR.PA":  193.28,    # EUR — Airbus SE initial price
     "GE":      356.84,    # USD — General Electric initial price
     "SAF.PA":  336.20,    # EUR — Safran SA initial price
+    # Direct equity purchases
+    "MSFT":    376.25,    # USD — Microsoft; purchase price 29 Jun 2026
 }
 MANUAL_PRICES_DATE = "2026-06-11"
 
