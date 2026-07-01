@@ -410,26 +410,10 @@ DIRECT_HOLDINGS = [
         "currency": "USD",
         "note": "Guaranteed period delivery from LLY Accu (KO 24 Jun 2026); confirmed BOS 30 Jun statement",
     },
-    {
-        "id": "qqq_shares",
-        "name": "Invesco QQQ Trust (accumulator delivery)",
-        "ticker": "QQQ",
-        "isin": "US46090E1038",
-        "shares": 9,
-        "purchase_price": 573.9766,  # 9 shares delivered to date @ strike; $5,165.79 total; confirmed BOS 30 Jun statement
-        "currency": "USD",
-        "note": "Shares delivered to date from active QQQ Accumulator; update after each BOS statement",
-    },
-    {
-        "id": "spy_shares",
-        "name": "SPDR S&P 500 ETF Trust (accumulator delivery)",
-        "ticker": "SPY",
-        "isin": "US78462F1030",
-        "shares": 9,
-        "purchase_price": 621.8288,  # 9 shares delivered to date @ strike; $5,596.46 total; confirmed BOS 30 Jun statement
-        "currency": "USD",
-        "note": "Shares delivered to date from active SPY Accumulator; update after each BOS statement",
-    },
+    # NOTE: QQQ and SPY shares (delivered in periodic batches from active accumulators) are NOT
+    # listed here — they are already tracked in ACCUMULATOR_POSITIONS via _shares_accumulated().
+    # Adding them here would double-count both the cost basis and portfolio value.
+    # They will be added here only if/when those accumulators are KO'd and settled.
 ]
 
 # ─── Accumulator Positions ────────────────────────────────────────────────────
@@ -1462,7 +1446,7 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None):
             * a.get("shares_per_day", 1) * a.get("strike_price", 0)
         )
         for a in ACCUMULATOR_POSITIONS
-        if accumulator_status(a, prices, closes).get("status") != "KNOCKED_OUT"
+        if accumulator_status(a, prices, closes).get("status") not in ("KNOCKED_OUT", "SETTLED")
     )
     cash_clr = "#16a34a" if available_cash >= 0 else "#dc2626"
 
