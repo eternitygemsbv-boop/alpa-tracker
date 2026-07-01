@@ -85,8 +85,9 @@ CASH_BALANCE_DATE   = "23 Jun 2026"   # BOS statement valuation date
 TRADES_SINCE_STATEMENT = [
     {"date": "24 Jun 26", "description": "Inward SWIFT deposit (FT26175K06N8)",          "cost_usd": +130_000.00},
     {"date": "25 Jun 26", "description": "SPY Accumulator — 9 shares delivered @ strike", "cost_usd":  -5_596.46},
-    {"date": "30 Jun 26", "description": "Microsoft Corp (MSFT) — 65 shares",             "cost_usd": -24_700.81},
-    {"date": "09 Jul 26", "description": "HSBC FCN AIR/GE/SAF (XS3377025971) settle",    "cost_usd": -100_000.00},
+    {"date": "30 Jun 26", "description": "Microsoft Corp (MSFT) — 65 shares",                        "cost_usd": -24_700.81},
+    {"date": "13 Jul 26", "description": "GOOGL Accu #2 — 18 guaranteed shares @ $285.26 strike (KO day-1)", "cost_usd": -5_134.68},
+    {"date": "09 Jul 26", "description": "HSBC FCN AIR/GE/SAF (XS3377025971) settle",                "cost_usd": -100_000.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -100,6 +101,12 @@ KNOWN_KO_EVENTS = {
         "ko_price":         368.03,
         "ticker":           "GOOGL",
         "knockout_barrier": 367.0611,
+    },
+    "googl_accumulator_2": {
+        "ko_date":          "2026-06-29",
+        "ko_price":         353.65,
+        "ticker":           "GOOGL",
+        "knockout_barrier": 352.7647,
     },
     "lly_accumulator": {
         "ko_date":          "2026-06-24",
@@ -444,6 +451,23 @@ ACCUMULATOR_POSITIONS = [
         "knockout_price": 590.0458,         # 103% of spot 572.86
         "guaranteed_end": "2026-08-13",     # guaranteed period: 18 Jun – 13 Aug 2026
         "shares_per_day": 1,
+        "leverage_below_strike": 2,
+    },
+    # GOOGL Accumulator #2 — Bank of Singapore, trade date 29 Jun 2026 (SYACDC2618100004)
+    # KO'd on trade date itself — GOOGL closed $353.65 vs KO barrier $352.7647
+    # Guaranteed period 29 Jun – 13 Jul 2026: 18 shares @ $285.26 strike still to be delivered
+    {
+        "id": "googl_accumulator_2",
+        "name": "GOOGL Accumulator #2",
+        "issuer": "Bank of Singapore (SYACDC2618100004)",
+        "underlying_ticker": "GOOGL",
+        "underlying_name": "Alphabet Inc Class A",
+        "start_date": "2026-06-30",         # effective date
+        "end_date": "2027-06-23",           # 250 fixing dates (KO'd day 1, moot)
+        "strike_price": 285.2599,           # 83.29% of spot $342.49
+        "knockout_price": 352.7647,         # 103% of spot $342.49
+        "guaranteed_end": "2026-07-13",     # guaranteed period: 29 Jun – 13 Jul 2026
+        "shares_per_day": 2,
         "leverage_below_strike": 2,
     },
     # LLY Accumulator — Bank of Singapore, trade date 22 Jun 2026 (SYACDC2617400100)
