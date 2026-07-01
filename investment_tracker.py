@@ -465,6 +465,7 @@ ACCUMULATOR_POSITIONS = [
         "leverage_below_strike": 2,
     },
     # GOOGL Accumulator — MS, trade date 11 Jun 2026
+    # SETTLED: 38 shares delivered (lump sum on KO date); now in DIRECT_HOLDINGS as part of 56 GOOGL shares
     {
         "id": "googl_accumulator",
         "name": "GOOGL Accumulator",
@@ -478,6 +479,8 @@ ACCUMULATOR_POSITIONS = [
         "guaranteed_end": "2026-08-06",     # 8 weeks guaranteed
         "shares_per_day": 1,
         "leverage_below_strike": 2,
+        "settled": True,                    # all 38 shares delivered; tracked in DIRECT_HOLDINGS
+        "shares_delivered": 38,             # confirmed BOS 30 Jun 2026 statement
     },
     # META Accumulator — Bank of Singapore, trade date 18 Jun 2026 (SYACDC2617000116)
     {
@@ -496,7 +499,7 @@ ACCUMULATOR_POSITIONS = [
     },
     # GOOGL Accumulator #2 — Bank of Singapore, trade date 29 Jun 2026 (SYACDC2618100004)
     # KO'd on trade date itself — GOOGL closed $353.65 vs KO barrier $352.7647
-    # Guaranteed period 29 Jun – 13 Jul 2026: 18 shares @ $285.26 strike still to be delivered
+    # SETTLED: 18 guaranteed shares delivered in lump sum on 29 Jun; now in DIRECT_HOLDINGS as part of 56 GOOGL shares
     {
         "id": "googl_accumulator_2",
         "name": "GOOGL Accumulator #2",
@@ -510,8 +513,11 @@ ACCUMULATOR_POSITIONS = [
         "guaranteed_end": "2026-07-13",     # guaranteed period: 29 Jun – 13 Jul 2026
         "shares_per_day": 2,
         "leverage_below_strike": 2,
+        "settled": True,                    # all 18 shares delivered in one lump sum; tracked in DIRECT_HOLDINGS
+        "shares_delivered": 18,             # confirmed BOS 30 Jun 2026 statement ($5,134.68 debit)
     },
     # LLY Accumulator — Bank of Singapore, trade date 22 Jun 2026 (SYACDC2617400100)
+    # SETTLED: 39 shares (full guaranteed period 24 Jun–17 Aug) delivered as lump sum on KO date; now in DIRECT_HOLDINGS
     {
         "id": "lly_accumulator",
         "name": "LLY Accumulator",
@@ -525,6 +531,8 @@ ACCUMULATOR_POSITIONS = [
         "guaranteed_end": "2026-08-17",     # guaranteed period: 22 Jun – 17 Aug 2026
         "shares_per_day": 1,
         "leverage_below_strike": 2,
+        "settled": True,                    # all 39 shares delivered in one lump sum; tracked in DIRECT_HOLDINGS
+        "shares_delivered": 39,             # confirmed BOS 30 Jun 2026 statement ($35,870.09 total)
     },
 ]
 
@@ -838,6 +846,15 @@ def accumulator_status(acc: dict, prices: dict, closes=None) -> dict:
     ko      = acc.get("knockout_price")
     g_end   = acc.get("guaranteed_end")
     today   = date.today().isoformat()
+
+    # Settled: shares fully delivered and moved to DIRECT_HOLDINGS — no longer an open position
+    if acc.get("settled"):
+        ko_log    = _load_ko_log()
+        ko_record = ko_log.get(acc.get("id", ""))
+        return {**acc, "current": current, "close": close, "status": "SETTLED",
+                "knocked_out": True, "near_ko": False,
+                "in_guaranteed": False, "below_strike": False,
+                "ko_record": ko_record}
 
     # Permanent KO: once logged, always KO — even if price later recovers
     ko_log    = _load_ko_log()
@@ -1179,6 +1196,33 @@ def _shares_accumulated(acc):
 def accum_card(acc, prices, closes=None):
     a  = accumulator_status(acc, prices, closes)
     t  = acc.get("underlying_ticker", "?")
+
+    # ── SETTLED: fully delivered, shares moved to Direct Holdings ────────────
+    if a["status"] == "SETTLED":
+        ko_record  = a.get("ko_record") or {}
+        ko_date    = ko_record.get("ko_date") or KNOWN_KO_EVENTS.get(acc.get("id",""), {}).get("ko_date", "—")
+        ko_px      = ko_record.get("ko_price") or KNOWN_KO_EVENTS.get(acc.get("id",""), {}).get("ko_price")
+        ko_px_str  = f'${ko_px:,.2f}' if ko_px else "—"
+        ko_bar     = acc.get("knockout_price")
+        ko_bar_str = f'${ko_bar:,.4f}' if ko_bar else "—"
+        sh_del     = acc.get("shares_delivered", "—")
+        st_str     = f'${acc.get("strike_price",0):,.4f}' if acc.get("strike_price") else "—"
+        cost       = (acc.get("shares_delivered", 0) * acc.get("strike_price", 0)) if acc.get("shares_delivered") else None
+        cost_str   = f'${cost:,.2f}' if cost else "—"
+        return (f'<div class="card" style="opacity:0.65;border-left:4px solid #94a3b8">'
+                f'<div class="ch"><div>'
+                f'<div class="ct">{acc.get("name","Accumulator")} &nbsp;'
+                f'<span class="badge" style="background:#64748b">✓ SETTLED — shares in Direct Holdings</span></div>'
+                f'<div class="cm">{acc.get("underlying_name","—")} ({t}) · {acc.get("issuer","")}</div>'
+                f'<div class="cm">{acc.get("start_date","—")} → KO {ko_date} · Strike {st_str} · KO barrier {ko_bar_str}</div>'
+                f'</div></div>'
+                f'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;font-size:12px;color:#64748b">'
+                f'<div><div class="il">KO price</div><div class="iv" style="font-size:13px">{ko_px_str}</div></div>'
+                f'<div><div class="il">Shares delivered</div><div class="iv" style="font-size:13px">{sh_del}</div></div>'
+                f'<div><div class="il">Delivery cost basis</div><div class="iv" style="font-size:13px">{cost_str}</div></div>'
+                f'<div><div class="il">Now tracked as</div><div class="iv" style="font-size:13px;color:#2563eb">Direct Holding ({t})</div></div>'
+                f'</div></div>')
+
     STATUS_AC = {
         "KNOCKED_OUT":  ("#22c55e",  "✓ KNOCKED OUT — accumulation stopped"),
         "NEAR_KO":      ("#f97316",  "⚠ ABOVE KO INTRADAY — watch closing price"),
@@ -1295,8 +1339,13 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None):
 
     fcn_cards   = "".join(fcn_card(f, prices) for f in FCN_POSITIONS)
     bond_cards  = "".join(bond_card(b) for b in BOND_POSITIONS)
-    accum_cards   = "".join(accum_card(a, prices, closes) for a in ACCUMULATOR_POSITIONS)
-    accum_sec     = (f'<div class="sec">Accumulator Positions</div>{accum_cards}' if ACCUMULATOR_POSITIONS else "")
+    active_accums  = [a for a in ACCUMULATOR_POSITIONS if not a.get("settled")]
+    settled_accums = [a for a in ACCUMULATOR_POSITIONS if a.get("settled")]
+    accum_cards        = "".join(accum_card(a, prices, closes) for a in active_accums)
+    settled_accum_cards= "".join(accum_card(a, prices, closes) for a in settled_accums)
+    accum_sec     = (f'<div class="sec">Accumulator Positions</div>{accum_cards}' if active_accums else "")
+    settled_sec   = (f'<div class="sec" style="color:#94a3b8">Completed Accumulators (shares in Direct Holdings)</div>{settled_accum_cards}'
+                     if settled_accums else "")
     holding_cards = "".join(holding_card(h, prices) for h in DIRECT_HOLDINGS)
     holding_sec   = (f'<div class="sec">Direct Holdings (ETFs &amp; Bond Funds)</div>{holding_cards}' if DIRECT_HOLDINGS else "")
 
@@ -1335,10 +1384,13 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None):
         total_bond_usd += usd
 
     # Accumulators: cost basis = shares × strike; market value = shares × live price
+    # NOTE: settled accumulators are excluded here — their shares are already in DIRECT_HOLDINGS
     total_accum_cost = 0.0
     total_accum_mkt  = 0.0
     accum_pl_computable = True
     for acc in ACCUMULATOR_POSITIONS:
+        if acc.get("settled"):
+            continue  # shares already counted in DIRECT_HOLDINGS — skip to avoid double-count
         a_st = accumulator_status(acc, prices, closes)
         tot_sh, _, _, _ = _shares_accumulated(acc)
         sp   = acc.get("strike_price") or 0
@@ -1498,8 +1550,8 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None):
       <div class="sv">{len(FCN_POSITIONS)}</div>
       <div class="ss">{n_safe} safe · {n_watch} watch · {n_breach} breach</div></div>
     <div class="sc"><div class="sl">Accumulator positions</div>
-      <div class="sv">{len(ACCUMULATOR_POSITIONS)}</div>
-      <div class="ss">Active contracts</div></div>
+      <div class="sv">{len(active_accums)}</div>
+      <div class="ss">Active · {len(settled_accums)} settled</div></div>
     <div class="sc"><div class="sl">Bond / AT1 positions</div>
       <div class="sv">{len(BOND_POSITIONS)}</div>
       <div class="ss">Fixed income</div></div>
@@ -1513,6 +1565,7 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None):
   {bond_cards}
   {accum_sec}
   {holding_sec}
+  {settled_sec}
 </div>
 <footer>Generated {now} · Live prices via Yahoo Finance{"" if not live_mode else " · Auto-refreshing every 30s"}</footer>
 {"<script>(function(){{var m=location.hash.match(/#sy=([0-9]+)/);if(m){{var sy=+m[1];history.replaceState(null,'',location.pathname);setTimeout(function(){{window.scrollTo(0,sy);}},80);}}var s=30,el=document.getElementById('cds');var iv=setInterval(function(){{s--;if(!el)el=document.getElementById('cds');if(el)el.textContent=s;if(s<=0){{clearInterval(iv);history.replaceState(null,'','#sy='+Math.round(window.scrollY));location.reload();}}}},1000);}})();</script>" if live_mode else ""}
