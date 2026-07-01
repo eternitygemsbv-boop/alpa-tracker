@@ -35,7 +35,7 @@ except ImportError:
 
 OWNER  = "Alpa Parag Gandhi"
 BANK   = "Bank of Singapore"
-AUDUSD = 0.705  # AUD → USD rate (updated Jun 2026)
+AUDUSD = 0.6878  # AUD → USD rate (updated 30 Jun 2026 from BOS statement)
 
 # ─── Cash / Transfers ────────────────────────────────────────────────────────
 # All inward SWIFT transfers to BOS account 1000400774-1 (as of 22 Jun 2026)
@@ -77,17 +77,17 @@ TOTAL_CASH_DEPOSITED = sum(t["amount_usd"] for t in CASH_TRANSFERS)  # $2,079,91
 DASHBOARD_USER     = "alpa"
 DASHBOARD_PASSWORD = "invest2026"
 
-CASH_BALANCE_BOS    = 578_359.00
-CASH_BALANCE_DATE   = "23 Jun 2026"   # BOS statement valuation date
+CASH_BALANCE_BOS    = 537_367.46
+CASH_BALANCE_DATE   = "30 Jun 2026"   # BOS ad-hoc statement (generated 1 Jul 2026 19:32)
+# Note: $537,367.46 already includes pending items:
+#   − $100,000 HSBC FCN AIR/GE/SAF settlement (value date 9 Jul 2026)
+#   + $1,192.78 interest credit (value date 1 Jul 2026)
 
 # New trades / deposits since the last BOS statement.
 # cost_usd: positive = cash in (deposit/dividend), negative = cash out (purchase).
 TRADES_SINCE_STATEMENT = [
-    {"date": "24 Jun 26", "description": "Inward SWIFT deposit (FT26175K06N8)",          "cost_usd": +130_000.00},
-    {"date": "25 Jun 26", "description": "SPY Accumulator — 9 shares delivered @ strike", "cost_usd":  -5_596.46},
-    {"date": "30 Jun 26", "description": "Microsoft Corp (MSFT) — 65 shares",                        "cost_usd": -24_700.81},
-    {"date": "13 Jul 26", "description": "GOOGL Accu #2 — 18 guaranteed shares @ $285.26 strike (KO day-1)", "cost_usd": -5_134.68},
-    {"date": "09 Jul 26", "description": "HSBC FCN AIR/GE/SAF (XS3377025971) settle",                "cost_usd": -100_000.00},
+    # All activity through 30 Jun 2026 is baked into $537,367.46 above.
+    # Add new trades here as they occur after the statement date.
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -389,6 +389,47 @@ DIRECT_HOLDINGS = [
         "purchase_price": 380.0125,  # net $24,700.81 / 65 shares (incl. $244.56 commission); trade 29 Jun 2026
         "currency": "USD",
     },
+    # ── Accumulator Deliveries (equity received from KO'd accumulators) ──────
+    {
+        "id": "googl_shares",
+        "name": "Alphabet Inc Class A (accumulator deliveries)",
+        "ticker": "GOOGL",
+        "isin": "US02079K3059",
+        "shares": 56,
+        "purchase_price": 293.9751,  # blended: 38 sh @ $298.1035 (Accu #1) + 18 sh @ $285.2599 (Accu #2) = $16,462.61 / 56
+        "currency": "USD",
+        "note": "38 sh from GOOGL Accu #1 (KO 20 Jun) + 18 sh from Accu #2 (KO 29 Jun); confirmed BOS 30 Jun statement",
+    },
+    {
+        "id": "lly_shares",
+        "name": "Eli Lilly and Company (accumulator delivery)",
+        "ticker": "LLY",
+        "isin": "US5324571083",
+        "shares": 39,
+        "purchase_price": 919.7458,  # full guaranteed period (24 Jun–17 Aug) delivered in one batch on KO date; $35,870.09 total
+        "currency": "USD",
+        "note": "Guaranteed period delivery from LLY Accu (KO 24 Jun 2026); confirmed BOS 30 Jun statement",
+    },
+    {
+        "id": "qqq_shares",
+        "name": "Invesco QQQ Trust (accumulator delivery)",
+        "ticker": "QQQ",
+        "isin": "US46090E1038",
+        "shares": 9,
+        "purchase_price": 573.9766,  # 9 shares delivered to date @ strike; $5,165.79 total; confirmed BOS 30 Jun statement
+        "currency": "USD",
+        "note": "Shares delivered to date from active QQQ Accumulator; update after each BOS statement",
+    },
+    {
+        "id": "spy_shares",
+        "name": "SPDR S&P 500 ETF Trust (accumulator delivery)",
+        "ticker": "SPY",
+        "isin": "US78462F1030",
+        "shares": 9,
+        "purchase_price": 621.8288,  # 9 shares delivered to date @ strike; $5,596.46 total; confirmed BOS 30 Jun statement
+        "currency": "USD",
+        "note": "Shares delivered to date from active SPY Accumulator; update after each BOS statement",
+    },
 ]
 
 # ─── Accumulator Positions ────────────────────────────────────────────────────
@@ -463,7 +504,7 @@ ACCUMULATOR_POSITIONS = [
         "underlying_ticker": "GOOGL",
         "underlying_name": "Alphabet Inc Class A",
         "start_date": "2026-06-30",         # effective date
-        "end_date": "2027-06-23",           # 250 fixing dates (KO'd day 1, moot)
+        "end_date": "2027-06-28",           # 250 fixing dates from derivative closure doc (KO'd day 1, moot)
         "strike_price": 285.2599,           # 83.29% of spot $342.49
         "knockout_price": 352.7647,         # 103% of spot $342.49
         "guaranteed_end": "2026-07-13",     # guaranteed period: 29 Jun – 13 Jul 2026
@@ -488,20 +529,21 @@ ACCUMULATOR_POSITIONS = [
 ]
 
 # ═════════════════════════════════════════════════════════════════════════════
-#  MANUAL PRICE FALLBACK  (updated 2026-06-10 via web search)
+#  MANUAL PRICE FALLBACK  (updated 30 Jun 2026 from BOS ad-hoc statement)
 #  These are used automatically if yfinance cannot connect.
 # ═════════════════════════════════════════════════════════════════════════════
 
 MANUAL_PRICES = {
-    # USD ETFs
-    "SPY":   725.43,
-    "QQQ":   693.69,
-    "LLY":   1110.00,   # Eli Lilly — initial spot from accu term sheet (22 Jun 2026)
+    # USD ETFs (30 Jun 2026 closing prices from BOS statement)
+    "SPY":   746.77,
+    "QQQ":   736.40,
+    "LLY":   1199.43,
     "DIA":   500.25,
     # US Tech
     "META":  570.98,
-    "GOOGL": 356.38,
+    "GOOGL": 357.37,
     "NVDA":  200.42,
+    "MSFT":  373.02,    # 30 Jun 2026 closing price from BOS statement
     # Semiconductors
     "INTC":  107.04,
     "TSM":   408.75,
@@ -516,12 +558,13 @@ MANUAL_PRICES = {
     "EWY":   179.00,
     "EWJ":   90.98,
     "CQQQ":  54.00,
-    # Direct ETF holdings
-    "GLD":   397.27,
-    "OIH":   429.81,
-    # Bond funds (Man Group) — update NAV from each BOS statement
-    "IE00039W6MB8": 101.15,   # Man Dynamic Income — NAV USD (BOS 31 May 2026)
-    "IE000KEXCUV1": 113.08,   # Man Global InvGrade Opps — NAV USD (BOS 31 May 2026)
+    # Direct ETF holdings (30 Jun 2026 from BOS statement)
+    "GLD":   368.38,
+    "OIH":   372.03,
+    "SHLD":  59.71,     # Global X Defense Tech ETF (BOS 30 Jun 2026)
+    # Bond funds (Man Group) — updated from BOS ad-hoc statement 30 Jun 2026
+    "IE00039W6MB8": 101.20,   # Man Dynamic Income — NAV USD (BOS 30 Jun 2026)
+    "IE000KEXCUV1": 113.65,   # Man Global InvGrade Opps — NAV USD (BOS 30 Jun 2026)
     # European (local currency)
     "HSBA.L":  1329.20,   # GBp
     "GLE.PA":  69.87,     # EUR
@@ -532,10 +575,8 @@ MANUAL_PRICES = {
     "AIR.PA":  193.28,    # EUR — Airbus SE initial price
     "GE":      356.84,    # USD — General Electric initial price
     "SAF.PA":  336.20,    # EUR — Safran SA initial price
-    # Direct equity purchases
-    "MSFT":    376.25,    # USD — Microsoft; purchase price 29 Jun 2026
 }
-MANUAL_PRICES_DATE = "2026-06-11"
+MANUAL_PRICES_DATE = "2026-06-30"
 
 # ═════════════════════════════════════════════════════════════════════════════
 #  PRICE FETCHING
