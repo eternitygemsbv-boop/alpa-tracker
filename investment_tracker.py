@@ -88,6 +88,7 @@ CASH_BALANCE_DATE   = "30 Jun 2026"   # BOS ad-hoc statement (generated 1 Jul 20
 TRADES_SINCE_STATEMENT = [
     # All activity through 30 Jun 2026 is baked into $537,367.46 above.
     # Add new trades here as they occur after the statement date.
+    {"date": "02 Jul 26", "description": "Polar Capital Global Technology Fund — 172.066 units", "cost_usd": -50_000.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -414,6 +415,16 @@ DIRECT_HOLDINGS = [
     # listed here — they are already tracked in ACCUMULATOR_POSITIONS via _shares_accumulated().
     # Adding them here would double-count both the cost basis and portfolio value.
     # They will be added here only if/when those accumulators are KO'd and settled.
+    {
+        "id": "polar_cap_tech",
+        "name": "Polar Capital Global Technology Fund (Dist - Cash)",
+        "ticker": "IE00B433M743",   # ISIN used as price-dict key
+        "isin": "IE00B433M743",
+        "shares": 172.066,          # units purchased 30 Jun 2026 (value date 2 Jul 2026)
+        "purchase_price": 289.1404, # USD 49,751.24 / 172.066 units (net $50,000 incl. $248.76 commission)
+        "currency": "USD",
+        "manual_price_only": True,  # OTC fund — no yfinance listing; update NAV from BOS statements
+    },
 ]
 
 # ─── Accumulator Positions ────────────────────────────────────────────────────
@@ -567,6 +578,8 @@ MANUAL_PRICES = {
     "AIR.PA":  193.28,    # EUR — Airbus SE initial price
     "GE":      356.84,    # USD — General Electric initial price
     "SAF.PA":  336.20,    # EUR — Safran SA initial price
+    # OTC fund — update NAV from BOS statements
+    "IE00B433M743": 289.14,  # Polar Capital Global Technology Fund — purchase NAV 30 Jun 2026
 }
 MANUAL_PRICES_DATE = "2026-06-30"
 
