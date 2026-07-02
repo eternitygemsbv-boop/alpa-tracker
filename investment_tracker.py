@@ -976,6 +976,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
 .ct2 th{text-align:left;color:#94a3b8;font-weight:600;padding:4px 8px;border-bottom:1px solid #f1f5f9}
 .ct2 td{padding:5px 8px;border-bottom:1px solid #f8fafc}
 .ec{color:#94a3b8;font-size:12px;font-style:italic;padding:6px 0}
+.cpay-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.cpay{border-radius:8px;padding:6px 10px;min-width:62px;text-align:center;font-size:11px;cursor:default}
+.cpay-m{font-weight:700;margin-bottom:2px;font-size:11px}
+.cpay-a{font-size:10px;opacity:0.9}
+.cpaid{background:#dcfce7;color:#15803d;border:1px solid #86efac}
+.cpend{background:#f8fafc;color:#94a3b8;border:1px solid #e2e8f0}
+.cnext{background:#fef9c3;color:#854d0e;border:1px solid #fde68a}
+.cmiss{background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5}
 .miss{background:#fafafa;border:1px dashed #cbd5e1;border-radius:7px;padding:11px 14px;
       color:#94a3b8;font-size:12px}
 .miss strong{color:#f59e0b}
@@ -1017,6 +1025,59 @@ def gauge(curr_pct, ki_pct, strike_pct, ac_pct):
 
 STATUS_COLOR = {"SAFE":"#22c55e","WATCH":"#f59e0b","BREACH":"#ef4444","UNKNOWN":"#94a3b8"}
 STATUS_LABEL = {"SAFE":"✓ SAFE","WATCH":"⚠ WATCH","BREACH":"✖ KI BREACHED","UNKNOWN":"Details needed"}
+
+def _expected_coupon_dates(fcn):
+    """
+    Return list of expected coupon observation dates for a monthly-pay FCN.
+    Formula: first coupon = first_autocall_date − 2 months (covers 3-month first-AC structure);
+    then monthly until maturity.
+    """
+    import calendar as _cal
+    first_ac_str = fcn.get("first_autocall_date", "")
+    maturity_str = fcn.get("maturity_date", "")
+    if not first_ac_str or not maturity_str:
+        return []
+    try:
+        first_ac = date.fromisoformat(first_ac_str)
+        maturity = date.fromisoformat(maturity_str)
+        # Step back 2 months to get first coupon date
+        m, y = first_ac.month - 2, first_ac.year
+        if m <= 0:
+            m += 12; y -= 1
+        d   = min(first_ac.day, _cal.monthrange(y, m)[1])
+        cur = date(y, m, d)
+        dates = []
+        while cur <= maturity:
+            dates.append(cur)
+            m, y = cur.month + 1, cur.year
+            if m > 12:
+                m = 1; y += 1
+            d   = min(cur.day, _cal.monthrange(y, m)[1])
+            cur = date(y, m, d)
+        return dates
+    except Exception:
+        return []
+
+def _match_coupons_to_schedule(received, expected_dates):
+    """
+    Match each received coupon to its nearest expected date (within 10 calendar days).
+    Returns dict: expected_date → coupon record.
+    """
+    matched = {}
+    pool    = list(received)
+    for exp in expected_dates:
+        best_i, best_delta = None, 999
+        for i, c in enumerate(pool):
+            try:
+                rec_d = date.fromisoformat(str(c["date"]))
+                delta = abs((rec_d - exp).days)
+                if delta <= 10 and delta < best_delta:
+                    best_i, best_delta = i, delta
+            except Exception:
+                pass
+        if best_i is not None:
+            matched[exp] = pool.pop(best_i)
+    return matched
 
 def fcn_card(fcn, prices):
     us = [underlying_status(u, prices) for u in fcn.get("underlyings", [])]
@@ -1067,13 +1128,64 @@ def fcn_card(fcn, prices):
                  f'<span class="badge" style="background:{b_clr}">{b_lbl}</span>'
                  f'</div>{body}</div>')
 
-    # Coupon table
-    if received:
-        trows = "".join(f"<tr><td>{c['date']}</td><td>${c.get('amount_usd',0):,.2f}</td><td>{c.get('note','')}</td></tr>" for c in received)
-        trows += f'<tr style="font-weight:700"><td>Total</td><td>${total_rcvd:,.2f}</td><td></td></tr>'
-        coupon_html = f'<table class="ct2"><tr><th>Date</th><th>Amount (USD)</th><th>Note</th></tr>{trows}</table>'
+    # Coupon payment schedule
+    today_d       = date.today()
+    expected_dates = _expected_coupon_dates(fcn)
+    matched        = _match_coupons_to_schedule(received, expected_dates)
+    n_exp          = len(expected_dates)
+    n_rcvd         = len(matched)
+
+    if expected_dates:
+        # Build chip grid — one chip per expected coupon period
+        chips = ""
+        for i, exp in enumerate(expected_dates):
+            rec       = matched.get(exp)
+            period_no = i + 1
+            label     = exp.strftime("%b '%y")
+            if rec:
+                amt_str  = f"${rec.get('amount_usd', 0):,.0f}"
+                note_tip = rec.get("note", f"Period {period_no}")
+                chips += (f'<div class="cpay cpaid" title="{note_tip}">'
+                          f'<div class="cpay-m">✓ {label}</div>'
+                          f'<div class="cpay-a">{amt_str}</div>'
+                          f'</div>')
+            elif exp <= today_d:
+                # Past — not yet in system (shouldn't normally occur)
+                chips += (f'<div class="cpay cmiss" title="Period {period_no} — not yet logged">'
+                          f'<div class="cpay-m">{label}</div>'
+                          f'<div class="cpay-a">—</div>'
+                          f'</div>')
+            elif (exp - today_d).days <= 30:
+                # Due within ~1 month — highlight
+                exp_amt  = f"${m_inc:,.0f}" if m_inc else "~"
+                due_str  = exp.strftime("%d %b %Y")
+                chips += (f'<div class="cpay cnext" title="Period {period_no} — due {due_str}">'
+                          f'<div class="cpay-m">{label}</div>'
+                          f'<div class="cpay-a">{exp_amt}</div>'
+                          f'</div>')
+            else:
+                exp_amt  = f"${m_inc:,.0f}" if m_inc else "~"
+                due_str  = exp.strftime("%d %b %Y")
+                chips += (f'<div class="cpay cpend" title="Period {period_no} — due {due_str}">'
+                          f'<div class="cpay-m">{label}</div>'
+                          f'<div class="cpay-a">{exp_amt}</div>'
+                          f'</div>')
+
+        total_expected = (m_inc or 0) * n_exp
+        summary = (f'<div style="font-size:12px;color:#64748b;margin-bottom:6px">'
+                   f'<span style="color:#15803d;font-weight:600">{n_rcvd} paid</span>'
+                   f' · {n_exp - n_rcvd} pending'
+                   f' · <span style="font-weight:600">${total_rcvd:,.2f} received</span>'
+                   f' of ${total_expected:,.2f} total'
+                   f'</div>')
+        coupon_html = summary + f'<div class="cpay-grid">{chips}</div>'
     else:
-        coupon_html = '<div class="ec">No coupons logged yet — add entries to coupons_received in the config.</div>'
+        if received:
+            trows = "".join(f"<tr><td>{c['date']}</td><td>${c.get('amount_usd',0):,.2f}</td><td>{c.get('note','')}</td></tr>" for c in received)
+            trows += f'<tr style="font-weight:700"><td>Total</td><td>${total_rcvd:,.2f}</td><td></td></tr>'
+            coupon_html = f'<table class="ct2"><tr><th>Date</th><th>Amount (USD)</th><th>Note</th></tr>{trows}</table>'
+        else:
+            coupon_html = '<div class="ec">No coupons logged yet.</div>'
 
     m_str   = f'${m_inc:,.2f}/month' if m_inc else "—"
     a_str   = f'${a_inc:,.2f}/year ({a_pct:.2f}% p.a.)' if a_inc else f'{a_pct:.2f}% p.a. (notional TBD)' if a_pct else "—"
