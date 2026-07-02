@@ -88,6 +88,9 @@ CASH_BALANCE_DATE   = "30 Jun 2026"   # BOS ad-hoc statement (generated 1 Jul 20
 TRADES_SINCE_STATEMENT = [
     # All activity through 30 Jun 2026 is baked into $537,367.46 above.
     # Add new trades here as they occur after the statement date.
+    {"date": "01 Jul 26", "description": "BNP US Index FCN coupon — Period 1 (SCTRSC spy_qqq_dia)", "cost_usd": +770.00},
+    {"date": "01 Jul 26", "description": "HSBC US Tech FCN coupon — Period 1 (meta_googl_nvda)", "cost_usd": +1_083.33},
+    {"date": "01 Jul 26", "description": "META accumulator guaranteed delivery — 38 sh @ strike $464.017 (SCTRSC2618361926)", "cost_usd": -17_632.63},
     {"date": "02 Jul 26", "description": "Polar Capital Global Technology Fund — 172.066 units", "cost_usd": -50_000.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
@@ -114,6 +117,12 @@ KNOWN_KO_EVENTS = {
         "ko_price":         1208.12,
         "ticker":           "LLY",
         "knockout_barrier": 1143.30,
+    },
+    "meta_accumulator": {
+        "ko_date":          "2026-07-01",
+        "ko_price":         612.91,
+        "ticker":           "META",
+        "knockout_barrier": 590.0458,
     },
 }
 
@@ -143,7 +152,7 @@ FCN_POSITIONS = [
             {"ticker": "DIA", "name": "SPDR Dow Jones ETF", "initial": 496.29, "ki_pct": 80, "strike_pct": 90, "ac_pct": 100},
         ],
         "coupons_received": [
-            # Add entries like: {"date": "2026-07-17", "amount_usd": 1938.75, "note": "Period 1"}
+            {"date": "2026-07-01", "amount_usd": 770.00, "note": "Period 1 — confirmed BOS transaction report 3 Jul 2026"},
         ],
     },
 
@@ -165,7 +174,9 @@ FCN_POSITIONS = [
             {"ticker": "GOOGL", "name": "Alphabet (Google)",  "initial": 385.34, "ki_pct": 60, "strike_pct": 70, "ac_pct": 100},
             {"ticker": "NVDA",  "name": "NVIDIA Corporation", "initial": 225.00, "ki_pct": 60, "strike_pct": 70, "ac_pct": 100},
         ],
-        "coupons_received": [],
+        "coupons_received": [
+            {"date": "2026-07-01", "amount_usd": 1083.33, "note": "Period 1 — confirmed BOS transaction report 3 Jul 2026"},
+        ],
     },
 
     # ── 3. European Banks Worst-of FCN — HSBA / GLE / UBS  (Goldman Sachs, XS3292699736) ──
@@ -411,6 +422,16 @@ DIRECT_HOLDINGS = [
         "currency": "USD",
         "note": "Guaranteed period delivery from LLY Accu (KO 24 Jun 2026); confirmed BOS 30 Jun statement",
     },
+    {
+        "id": "meta_shares",
+        "name": "Meta Platforms Class A (accumulator delivery)",
+        "ticker": "META",
+        "isin": "US30303M1027",
+        "shares": 38,
+        "purchase_price": 464.0166,  # strike price = cost basis; total $17,632.63 (SCTRSC2618361926)
+        "currency": "USD",
+        "note": "38 sh from META Accu (KO 1 Jul 2026, close $612.91 vs barrier $590.0458); guaranteed period 18 Jun–13 Aug 2026",
+    },
     # NOTE: QQQ and SPY shares (delivered in periodic batches from active accumulators) are NOT
     # listed here — they are already tracked in ACCUMULATOR_POSITIONS via _shares_accumulated().
     # Adding them here would double-count both the cost basis and portfolio value.
@@ -478,6 +499,8 @@ ACCUMULATOR_POSITIONS = [
         "shares_delivered": 38,             # confirmed BOS 30 Jun 2026 statement
     },
     # META Accumulator — Bank of Singapore, trade date 18 Jun 2026 (SYACDC2617000116)
+    # SETTLED: 38 shares delivered (lump sum on KO date 1 Jul); now in DIRECT_HOLDINGS as meta_shares
+    # KO'd at $612.91 vs barrier $590.0458 on 1 Jul 2026
     {
         "id": "meta_accumulator",
         "name": "META Accumulator",
@@ -491,6 +514,8 @@ ACCUMULATOR_POSITIONS = [
         "guaranteed_end": "2026-08-13",     # guaranteed period: 18 Jun – 13 Aug 2026
         "shares_per_day": 1,
         "leverage_below_strike": 2,
+        "settled": True,                    # all 38 shares delivered; tracked in DIRECT_HOLDINGS
+        "shares_delivered": 38,             # confirmed BOS transaction report 3 Jul 2026 (SCTRSC2618361926)
     },
     # GOOGL Accumulator #2 — Bank of Singapore, trade date 29 Jun 2026 (SYACDC2618100004)
     # KO'd on trade date itself — GOOGL closed $353.65 vs KO barrier $352.7647
@@ -543,7 +568,7 @@ MANUAL_PRICES = {
     "LLY":   1199.43,
     "DIA":   500.25,
     # US Tech
-    "META":  570.98,
+    "META":  612.91,    # 1 Jul 2026 close (KO date)
     "GOOGL": 357.37,
     "NVDA":  200.42,
     "MSFT":  373.02,    # 30 Jun 2026 closing price from BOS statement
