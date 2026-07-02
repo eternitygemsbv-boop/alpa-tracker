@@ -588,13 +588,15 @@ MANUAL_PRICES_DATE = "2026-06-30"
 # ═════════════════════════════════════════════════════════════════════════════
 
 def _fetch_man_fund_navs() -> dict:
-    """Fetch live NAVs for Man Group bond funds via FT.com."""
+    """Fetch live NAVs for OTC funds (Man Group + Polar Capital) via FT.com."""
     import urllib.request, re
     navs = {}
 
+    # All manual_price_only holdings keyed by ISIN → display name
     FUNDS = {
         "IE00039W6MB8": "Man Dynamic Income",
         "IE000KEXCUV1": "Man Global InvGrade",
+        "IE00B433M743": "Polar Capital Global Tech",
     }
 
     hdrs = {
@@ -623,9 +625,9 @@ def _fetch_man_fund_navs() -> dict:
                     navs[isin] = round(price, 4)
                     print(f"  📊 {name}: ${navs[isin]} (FT.com)")
             else:
-                print(f"  ⚠ Man fund {name}: price not found on FT.com")
+                print(f"  ⚠ Fund {name}: price not found on FT.com")
         except Exception as e:
-            print(f"  ⚠ Man fund {name} FT.com: {e}")
+            print(f"  ⚠ Fund {name} FT.com: {e}")
 
     return navs
 
