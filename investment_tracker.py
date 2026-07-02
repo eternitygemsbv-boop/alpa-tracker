@@ -631,15 +631,19 @@ def _fetch_man_fund_navs() -> dict:
 
     return navs
 
-def fetch_prices(tickers: list) -> dict:
-    prices = {}
+def fetch_prices(tickers: list) -> tuple:
+    """Returns (prices, prev_closes) dicts.
+    prev_closes maps ticker → previous session's closing price (for intraday % change)."""
+    prices      = {}
+    prev_closes = {}
     if not tickers:
-        return prices
+        return prices, prev_closes
     print(f"📡 Fetching live prices: {', '.join(tickers)}")
     for t in tickers:
         try:
             obj  = yf.Ticker(t)
-            p    = obj.fast_info.last_price
+            fi   = obj.fast_info
+            p    = fi.last_price
             if p and float(p) > 0:
                 prices[t] = round(float(p), 4)
             else:
@@ -648,9 +652,13 @@ def fetch_prices(tickers: list) -> dict:
                     prices[t] = round(float(hist["Close"].iloc[-1]), 4)
                 else:
                     print(f"  ⚠ {t}: no price data")
+            # Collect previous close for intraday % change on holding cards
+            pc = getattr(fi, "previous_close", None)
+            if pc and float(pc) > 0:
+                prev_closes[t] = round(float(pc), 4)
         except Exception as e:
             print(f"  ⚠ {t}: {e}")
-    return prices
+    return prices, prev_closes
 
 def _nyse_is_closed():
     """Return True if NYSE is currently closed (before 9:30am ET, after 4:00pm ET, or weekend).
@@ -1305,7 +1313,7 @@ def accum_card(acc, prices, closes=None):
             f'{row2}'
             f'</div>')
 
-def holding_card(h, prices):
+def holding_card(h, prices, prev_closes=None):
     ticker   = h.get("ticker", "")
     current  = prices.get(ticker)
     shares   = h.get("shares", 0)
@@ -1318,22 +1326,38 @@ def holding_card(h, prices):
     pr_str   = f'${current:,.2f}' if current else "—"
     mv_str   = f'${mkt_val:,.0f}' if mkt_val is not None else "—"
     pl_str   = (f'{"+" if pl >= 0 else ""}${pl:,.0f} ({pl_pct:+.1f}%)' if pl is not None else "—")
+
+    # ── Intraday % change vs previous session close ──────────────────────────
+    prev_c  = (prev_closes or {}).get(ticker)
+    if current and prev_c and prev_c > 0:
+        intra_pct = (current - prev_c) / prev_c * 100
+        intra_clr = "#16a34a" if intra_pct >= 0 else "#dc2626"
+        intra_arr = "▲" if intra_pct >= 0 else "▼"
+        intra_str = f'{intra_arr} {intra_pct:+.2f}% today'
+        intra_html = (f'<span style="display:inline-block;margin-left:8px;padding:2px 8px;'
+                      f'border-radius:12px;background:{"#f0fdf4" if intra_pct>=0 else "#fef2f2"};'
+                      f'color:{intra_clr};font-size:12px;font-weight:700">{intra_str}</span>')
+    else:
+        intra_html = '<span style="font-size:11px;color:#94a3b8;margin-left:8px">intraday —</span>'
+
     return (f'<div class="card">'
             f'<div class="ch"><div>'
             f'<div class="ct"><span class="tick">{ticker}</span>'
-            f'<span class="uname">{h.get("name","")}</span></div>'
-            f'<div class="cm">ISIN: {h.get("isin","—")} · {shares} shares · Purchased @ ${purchase:,.2f}</div>'
+            f'<span class="uname">{h.get("name","")}</span>'
+            f'{intra_html}</div>'
+            f'<div class="cm">ISIN: {h.get("isin","—")} · {shares:g} shares · Purchased @ ${purchase:,.2f}</div>'
             f'</div>'
             f'<div style="text-align:right"><div class="cprice">{pr_str}</div>'
             f'<div class="cpct" style="color:{pl_clr};font-weight:600">{pl_str}</div></div>'
             f'</div>'
-            f'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">'
-            f'<div><div class="il">Shares</div><div class="iv">{shares}</div></div>'
+            f'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">'
+            f'<div><div class="il">Shares / Units</div><div class="iv">{shares:g}</div></div>'
+            f'<div><div class="il">Prev close</div><div class="iv">{f"${prev_c:,.2f}" if prev_c else "—"}</div></div>'
             f'<div><div class="il">Cost basis</div><div class="iv">${cost:,.0f}</div></div>'
             f'<div><div class="il">Market value</div><div class="iv">{mv_str}</div></div>'
             f'</div></div>')
 
-def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None):
+def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None, prev_closes=None):
     now = datetime.now().strftime("%d %b %Y, %H:%M")
 
     fcn_cards   = "".join(fcn_card(f, prices) for f in FCN_POSITIONS)
@@ -1345,7 +1369,7 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None):
     accum_sec     = (f'<div class="sec">Accumulator Positions</div>{accum_cards}' if active_accums else "")
     settled_sec   = (f'<div class="sec" style="color:#94a3b8">Completed Accumulators (shares in Direct Holdings)</div>{settled_accum_cards}'
                      if settled_accums else "")
-    holding_cards = "".join(holding_card(h, prices) for h in DIRECT_HOLDINGS)
+    holding_cards = "".join(holding_card(h, prices, prev_closes) for h in DIRECT_HOLDINGS)
     holding_sec   = (f'<div class="sec">Direct Holdings (ETFs &amp; Bond Funds)</div>{holding_cards}' if DIRECT_HOLDINGS else "")
 
     alert_html = ""
@@ -1597,11 +1621,12 @@ def _merge_manual_prices(prices: dict) -> dict:
     return prices
 
 def _fetch_with_fallback(tickers):
+    """Returns (prices, prev_closes) — prev_closes maps ticker → previous session close."""
     try:
-        prices = fetch_prices(tickers)
+        prices, prev_closes = fetch_prices(tickers)
     except Exception as e:
         print(f"  ⚠ yfinance error ({e}), falling back to manual prices")
-        prices = {}
+        prices, prev_closes = {}, {}
     missing = [t for t in tickers if t not in prices]
     if missing:
         filled = {t: MANUAL_PRICES[t] for t in missing if t in MANUAL_PRICES}
@@ -1609,14 +1634,14 @@ def _fetch_with_fallback(tickers):
             src = "manual prices" if not prices else f"manual fallback for {', '.join(filled)}"
             print(f"  📋 Using {src} (as of {MANUAL_PRICES_DATE})")
         prices.update(filled)
-    # Try live Man fund NAVs — overwrite manual prices if successful
-    man_navs = _fetch_man_fund_navs()
-    if man_navs:
-        prices.update(man_navs)
+    # Try live fund NAVs (Man Group + Polar Capital) — overwrite manual prices if successful
+    fund_navs = _fetch_man_fund_navs()
+    if fund_navs:
+        prices.update(fund_navs)
     else:
         # Always re-merge manual-only prices (bond funds etc.) after every fetch
         _merge_manual_prices(prices)
-    return prices
+    return prices, prev_closes
 
 def _compute_alerts(prices, closes=None):
     alerts    = []
@@ -1650,9 +1675,10 @@ def _compute_alerts(prices, closes=None):
 #  LIVE SERVER  (default mode)
 # ═════════════════════════════════════════════════════════════════════════════
 
-_price_cache  = {"prices": {}, "ts": 0.0}
-_close_cache  = {"closes": {}, "ts": 0.0}   # last confirmed daily closes (for KO check)
-_cache_lock   = threading.Lock()
+_price_cache      = {"prices": {}, "ts": 0.0}
+_close_cache      = {"closes": {}, "ts": 0.0}   # last confirmed daily closes (for KO check)
+_prev_close_cache = {"closes": {}, "ts": 0.0}   # previous session close (for intraday % change)
+_cache_lock       = threading.Lock()
 CACHE_TTL_SEC = 30
 CLOSE_TTL_SEC = 300  # refresh closing prices every 5 min (they only change at market close)
 
@@ -1668,10 +1694,12 @@ def _background_refresh(tickers, interval=30):
         try:
             time.sleep(interval)
             print(f"📡 [{datetime.now().strftime('%H:%M:%S')}] Refreshing prices...")
-            p = _fetch_with_fallback(tickers)
+            p, pc = _fetch_with_fallback(tickers)
             with _cache_lock:
-                _price_cache["prices"].update(p)   # merge, not replace
-                _price_cache["ts"]     = time.time()
+                _price_cache["prices"].update(p)    # merge, not replace
+                _price_cache["ts"]      = time.time()
+                _prev_close_cache["closes"].update(pc)
+                _prev_close_cache["ts"] = time.time()
             print(f"   ✓ Done")
             # Refresh closing prices every 5 min (used for accumulator KO checks)
             if time.time() - close_last > CLOSE_TTL_SEC:
@@ -1694,6 +1722,11 @@ def _cached_closes():
     """Return cached daily closing prices (for accumulator KO checks)."""
     with _cache_lock:
         return dict(_close_cache["closes"])
+
+def _cached_prev_closes():
+    """Return cached previous-session closes (for intraday % change on holding cards)."""
+    with _cache_lock:
+        return dict(_prev_close_cache["closes"])
 
 class _Handler(BaseHTTPRequestHandler):
     def _check_auth(self):
@@ -1742,8 +1775,9 @@ class _Handler(BaseHTTPRequestHandler):
 
         prices            = _cached_prices()
         closes            = _cached_closes()
+        prev_closes       = _cached_prev_closes()
         fcn_stats, alerts = _compute_alerts(prices, closes)
-        html              = build_html(prices, fcn_stats, alerts, live_mode=True, closes=closes)
+        html              = build_html(prices, fcn_stats, alerts, live_mode=True, closes=closes, prev_closes=prev_closes)
 
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -1774,10 +1808,12 @@ def serve(port=None, open_browser=True):
     # Fetch live prices AND closing prices in a background thread
     def _initial_live_fetch():
         print(f"📡 [{datetime.now().strftime('%H:%M:%S')}] Fetching live prices...")
-        p = _fetch_with_fallback(tickers)
+        p, pc = _fetch_with_fallback(tickers)
         with _cache_lock:
-            _price_cache["prices"].update(p)   # merge into manual-seeded cache
-            _price_cache["ts"]     = time.time()
+            _price_cache["prices"].update(p)        # merge into manual-seeded cache
+            _price_cache["ts"]      = time.time()
+            _prev_close_cache["closes"].update(pc)
+            _prev_close_cache["ts"] = time.time()
         print(f"   ✓ Live prices loaded — {len(p)} tickers")
         # Also fetch closing prices for accumulator KO checks + 2× logging
         c, cdates = fetch_close_prices(_accum_tickers)
@@ -1812,14 +1848,14 @@ def main():
     print(f"  Investment Tracker — {OWNER}  [FILE MODE]")
     print(f"{'═'*52}\n")
 
-    prices            = _fetch_with_fallback(_all_tickers())
-    closes, cdates    = fetch_close_prices(_accum_tickers)
+    prices, prev_closes = _fetch_with_fallback(_all_tickers())
+    closes, cdates      = fetch_close_prices(_accum_tickers)
     _update_ko_log(closes, cdates)
     _update_du_log(closes, cdates)
-    fcn_stats, alerts = _compute_alerts(prices, closes)
+    fcn_stats, alerts   = _compute_alerts(prices, closes)
     print(f"\n  Prices: {prices}\n")
 
-    html = build_html(prices, fcn_stats, alerts, live_mode=False, closes=closes)
+    html = build_html(prices, fcn_stats, alerts, live_mode=False, closes=closes, prev_closes=prev_closes)
     out  = Path(__file__).parent / "investment_dashboard.html"
     out.write_text(html, encoding="utf-8")
     print(f"✅ Dashboard saved: {out}")
