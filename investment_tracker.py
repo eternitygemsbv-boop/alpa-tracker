@@ -92,6 +92,7 @@ TRADES_SINCE_STATEMENT = [
     {"date": "01 Jul 26", "description": "HSBC US Tech FCN coupon — Period 1 (meta_googl_nvda)", "cost_usd": +1_083.33},
     {"date": "01 Jul 26", "description": "META accumulator guaranteed delivery — 38 sh @ strike $464.017 (SCTRSC2618361926)", "cost_usd": -17_632.63},
     {"date": "02 Jul 26", "description": "Polar Capital Global Technology Fund — 172.066 units", "cost_usd": -50_000.00},
+    {"date": "16 Jul 26", "description": "Nomura AMZN/ORCL Worst-of FCN — 15 securities × $10,000 (XS3384042803)", "cost_usd": -150_000.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -305,6 +306,30 @@ FCN_POSITIONS = [
             {"ticker": "AIR.PA", "name": "Airbus SE",        "initial": 193.28, "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "EUR"},
             {"ticker": "GE",     "name": "General Electric", "initial": 356.84, "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
             {"ticker": "SAF.PA", "name": "Safran SA",        "initial": 336.20, "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "EUR"},
+        ],
+        "coupons_received": [],
+    },
+
+    # ── 9. AMZN/ORCL Worst-of FCN  (Nomura, XS3384042803) ──
+    # Term sheet dated 02-Jul-2026; issue date 16-Jul-2026; maturity 20-Jul-2027
+    # 15 securities × $10,000 = $150,000 notional
+    # KO starts Period 3 (16-Oct-2026); Periods 1-2 are coupon-only (no KO obs)
+    # KI: 50% of initial, European (checked ONLY at Final Valuation Date 16-Jul-2027)
+    {
+        "id": "amzn_orcl",
+        "name": "AMZN/ORCL Worst-of FCN",
+        "issuer": "Nomura International Funding Pte. Ltd. (ISIN: XS3384042803, Guarantor: Nomura Securities A-/S&P)",
+        "notional_usd": 150_000,
+        "coupon_monthly_pct": 1.1475,
+        "coupon_annual_pct": 13.77,
+        "issue_date": "2026-07-16",
+        "maturity_date": "2027-07-20",
+        "first_autocall_date": "2026-10-16",   # Period 3 — first KO observation date
+        "autocall_freq": "Monthly from Period 3 (16-Oct-2026); Periods 1–2 are coupon-only",
+        "ki_type": "European — KI at 50% of initial; checked ONLY at Final Valuation Date (16 Jul 2027); Strike at 60%",
+        "underlyings": [
+            {"ticker": "AMZN", "name": "Amazon.com Inc",    "initial": 241.70, "ki_pct": 50, "strike_pct": 60, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "ORCL", "name": "Oracle Corporation", "initial": 144.51, "ki_pct": 50, "strike_pct": 60, "ac_pct": 95, "currency": "USD"},
         ],
         "coupons_received": [],
     },
