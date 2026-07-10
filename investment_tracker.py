@@ -93,6 +93,12 @@ TRADES_SINCE_STATEMENT = [
     {"date": "01 Jul 26", "description": "META accumulator guaranteed delivery — 38 sh @ strike $464.017 (SCTRSC2618361926)", "cost_usd": -17_632.63},
     {"date": "02 Jul 26", "description": "Polar Capital Global Technology Fund — 172.066 units", "cost_usd": -50_000.00},
     {"date": "16 Jul 26", "description": "Nomura AMZN/ORCL Worst-of FCN — 15 securities × $10,000 (XS3384042803)", "cost_usd": -150_000.00},
+    {"date": "07 Jul 26", "description": "SHLD dividend (DIARSC2618009010)", "cost_usd": +50.95},
+    {"date": "08 Jul 26", "description": "GS European Banks FCN coupon — Period 1 (hsba_gle_ubs, XS3292699736)", "cost_usd": +1_114.17},
+    {"date": "08 Jul 26", "description": "Nomura Semiconductor FCN coupon — Period 1 (intc_tsm_asml, XS3361984373)", "cost_usd": +1_543.30},
+    {"date": "22 Jul 26", "description": "OCBC TMO/JNJ/LLY Worst-of FCN — $100,000 (XS3425415935)", "cost_usd": -100_000.00},
+    {"date": "09 Jul 26", "description": "Man Dynamic Income Fund dividend (DIARSC2618741318)", "cost_usd": +888.00},
+    {"date": "09 Jul 26", "description": "Man Global InvGrade Opps Fund dividend (DIARSC2618794052)", "cost_usd": +528.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -200,7 +206,9 @@ FCN_POSITIONS = [
             {"ticker": "GLE.PA", "name": "Société Générale",      "initial": 67.05,  "ki_pct": 65, "strike_pct": 75, "ac_pct": 100, "currency": "EUR"},
             {"ticker": "UBS",    "name": "UBS AG (USD/NYSE)",     "initial": 46.22,  "ki_pct": 65, "strike_pct": 75, "ac_pct": 100, "currency": "USD"},
         ],
-        "coupons_received": [],
+        "coupons_received": [
+            {"date": "2026-07-08", "amount_usd": 1114.17, "note": "Period 1 — confirmed BOS transaction report 10 Jul 2026"},
+        ],
     },
 
     # ── 4. Semiconductor Worst-of FCN — INTC / TSM / ASML  (Nomura, XS3361984373) ──
@@ -221,7 +229,9 @@ FCN_POSITIONS = [
             {"ticker": "TSM",  "name": "Taiwan Semiconductor (ADR)", "initial": 397.60,  "ki_pct": 50, "strike_pct": 60, "ac_pct": 95},
             {"ticker": "ASML", "name": "ASML Holding",               "initial": 1500.63, "ki_pct": 50, "strike_pct": 60, "ac_pct": 95},
         ],
-        "coupons_received": [],
+        "coupons_received": [
+            {"date": "2026-07-08", "amount_usd": 1543.30, "note": "Period 1 — confirmed BOS transaction report 10 Jul 2026"},
+        ],
     },
 
     # ── 5. Industrials Worst-of FCN — HON / SU / SIE  (HSBC, XS3376556539) ──
@@ -310,7 +320,30 @@ FCN_POSITIONS = [
         "coupons_received": [],
     },
 
-    # ── 9. AMZN/ORCL Worst-of FCN  (Nomura, XS3384042803) ──
+    # ── 9. TMO/JNJ/LLY Worst-of FCN  (OCBC, XS3425415935) ──
+    # Term sheet dated 08-Jul-2026; settlement 22-Jul-2026; maturity ~22-Jul-2027
+    # *** PLACEHOLDER — upload term sheet to fill in coupon rate, strike/KI/AC levels ***
+    {
+        "id": "tmo_jnj_lly",
+        "name": "TMO/JNJ/LLY Worst-of FCN",
+        "issuer": "OCBC (ISIN: XS3425415935)",
+        "notional_usd": 100_000,
+        "coupon_monthly_pct": None,   # ← fill from term sheet
+        "coupon_annual_pct": None,    # ← fill from term sheet
+        "issue_date": "2026-07-22",
+        "maturity_date": "2027-07-22",
+        "first_autocall_date": None,  # ← fill from term sheet
+        "autocall_freq": "Monthly (TBC from term sheet)",
+        "ki_type": "TBC from term sheet",
+        "underlyings": [
+            {"ticker": "TMO",  "name": "Thermo Fisher Scientific", "initial": None, "ki_pct": None, "strike_pct": None, "ac_pct": None, "currency": "USD"},
+            {"ticker": "JNJ",  "name": "Johnson & Johnson",         "initial": None, "ki_pct": None, "strike_pct": None, "ac_pct": None, "currency": "USD"},
+            {"ticker": "LLY",  "name": "Eli Lilly and Co",          "initial": None, "ki_pct": None, "strike_pct": None, "ac_pct": None, "currency": "USD"},
+        ],
+        "coupons_received": [],
+    },
+
+    # ── 10. AMZN/ORCL Worst-of FCN  (Nomura, XS3384042803) ──
     # Term sheet dated 02-Jul-2026; issue date 16-Jul-2026; maturity 20-Jul-2027
     # 15 securities × $10,000 = $150,000 notional
     # KO starts Period 3 (16-Oct-2026); Periods 1-2 are coupon-only (no KO obs)
