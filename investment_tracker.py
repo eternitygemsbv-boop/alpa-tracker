@@ -430,6 +430,10 @@ DIRECT_HOLDINGS = [
         "purchase_price": 102.00,   # blended avg: ($101,059.89 + $49,900.77) / 1,480
         "currency": "USD",
         "manual_price_only": True,
+        "dividends_received": [
+            {"date": "2026-06-10", "amount_usd": 524.70, "note": "Jun distribution (DIARSC2618741318 — BOS 30 Jun statement)"},
+            {"date": "2026-07-09", "amount_usd": 888.00, "note": "Jul distribution (DIARSC2618741318 — BOS 10 Jul report)"},
+        ],
     },
     {
         "id": "man_em_mkt_cor",
@@ -440,6 +444,10 @@ DIRECT_HOLDINGS = [
         "purchase_price": 113.0190,
         "currency": "USD",
         "manual_price_only": True,
+        "dividends_received": [
+            {"date": "2026-06-10", "amount_usd": 457.60, "note": "Jun distribution (DIARSC2618794052 — BOS 30 Jun statement)"},
+            {"date": "2026-07-09", "amount_usd": 528.00, "note": "Jul distribution (DIARSC2618794052 — BOS 10 Jul report)"},
+        ],
     },
     {
         "id": "shld",
@@ -449,6 +457,9 @@ DIRECT_HOLDINGS = [
         "shares": 390,
         "purchase_price": 61.46,    # trade price 22 Jun 2026; net $24,209.09 incl. $239.69 commission
         "currency": "USD",
+        "dividends_received": [
+            {"date": "2026-07-07", "amount_usd": 50.95, "note": "Dividend (DIARSC2618009010 — BOS 10 Jul report)"},
+        ],
     },
     {
         "id": "msft",
@@ -1535,6 +1546,27 @@ def holding_card(h, prices, prev_closes=None):
     else:
         intra_html = '<span style="font-size:11px;color:#94a3b8;margin-left:8px">intraday —</span>'
 
+    # ── Dividends received ───────────────────────────────────────────────────────
+    divs = h.get("dividends_received", [])
+    total_divs = sum(d.get("amount_usd", 0) for d in divs)
+    if divs:
+        div_chips = ""
+        for d in divs:
+            dt = d.get("date", "")
+            amt = d.get("amount_usd", 0)
+            note = d.get("note", "")
+            lbl = dt[5:] if len(dt) >= 7 else dt  # show MM-DD
+            div_chips += (f'<span title="{note}" style="display:inline-block;margin:2px 3px;padding:3px 9px;'
+                          f'border-radius:12px;background:#f0fdf4;color:#16a34a;font-size:11px;'
+                          f'font-weight:700;border:1px solid #bbf7d0">'
+                          f'{lbl} +${amt:,.2f}</span>')
+        div_section = (f'<div style="margin-top:12px;padding-top:10px;border-top:1px solid #f1f5f9">'
+                       f'<div style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:4px">'
+                       f'DIVIDENDS RECEIVED — Total: <span style="color:#16a34a">${total_divs:,.2f}</span></div>'
+                       f'<div>{div_chips}</div></div>')
+    else:
+        div_section = ""
+
     return (f'<div class="card">'
             f'<div class="ch"><div>'
             f'<div class="ct"><span class="tick">{ticker}</span>'
@@ -1550,7 +1582,9 @@ def holding_card(h, prices, prev_closes=None):
             f'<div><div class="il">Prev close</div><div class="iv">{f"${prev_c:,.2f}" if prev_c else "—"}</div></div>'
             f'<div><div class="il">Cost basis</div><div class="iv">${cost:,.0f}</div></div>'
             f'<div><div class="il">Market value</div><div class="iv">{mv_str}</div></div>'
-            f'</div></div>')
+            f'</div>'
+            f'{div_section}'
+            f'</div>')
 
 def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None, prev_closes=None):
     now = datetime.now().strftime("%d %b %Y, %H:%M")
@@ -1588,6 +1622,7 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None, prev_clo
         total_monthly_usd += usd / 12
 
     total_rcvd = sum(c.get("amount_usd", 0) for f in FCN_POSITIONS for c in f.get("coupons_received", []))
+    total_divs_rcvd = sum(d.get("amount_usd", 0) for h in DIRECT_HOLDINGS for d in h.get("dividends_received", []))
     n_safe   = sum(1 for s in fcn_stats if s == "SAFE")
     n_watch  = sum(1 for s in fcn_stats if s == "WATCH")
     n_breach = sum(1 for s in fcn_stats if s == "BREACH")
@@ -1719,6 +1754,11 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None, prev_clo
         <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">Coupons received</div>
         <div style="font-size:26px;font-weight:700;margin-top:4px">${total_rcvd:,.0f}</div>
         <div style="font-size:11px;color:#64748b;margin-top:3px">FCN coupons logged to date</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">Dividends received</div>
+        <div style="font-size:26px;font-weight:700;margin-top:4px;color:#16a34a">${total_divs_rcvd:,.0f}</div>
+        <div style="font-size:11px;color:#64748b;margin-top:3px">ETF &amp; fund distributions to date</div>
       </div>
     </div>
     <!-- Cash position row -->
