@@ -326,19 +326,19 @@ FCN_POSITIONS = [
     {
         "id": "tmo_jnj_lly",
         "name": "TMO/JNJ/LLY Worst-of FCN",
-        "issuer": "OCBC (ISIN: XS3425415935)",
+        "issuer": "OCBC (ISIN: XS3425415935, Aa1/Moody's, AA-/S&P, AA-/Fitch)",
         "notional_usd": 100_000,
-        "coupon_monthly_pct": None,   # ← fill from term sheet
-        "coupon_annual_pct": None,    # ← fill from term sheet
+        "coupon_monthly_pct": 0.9767,   # 0.9767% × $100k = $976.70/month
+        "coupon_annual_pct": 11.7204,   # 0.9767% × 12
         "issue_date": "2026-07-22",
-        "maturity_date": "2027-07-22",
-        "first_autocall_date": None,  # ← fill from term sheet
-        "autocall_freq": "Monthly (TBC from term sheet)",
-        "ki_type": "TBC from term sheet",
+        "maturity_date": "2027-07-26",  # Last Settlement Date (26 Jul 2027, 2 biz days after Final Valuation 22 Jul 2027)
+        "first_autocall_date": "2026-10-22",  # Valuation Date 3 (Periods 1–2 are coupon-only)
+        "autocall_freq": "Monthly from Period 3 (22-Oct-2026); Periods 1–2 are coupon-only",
+        "ki_type": "European — KI at 65% of initial; checked ONLY at Final Valuation Date (22 Jul 2027); Strike at 75%",
         "underlyings": [
-            {"ticker": "TMO",  "name": "Thermo Fisher Scientific", "initial": None, "ki_pct": None, "strike_pct": None, "ac_pct": None, "currency": "USD"},
-            {"ticker": "JNJ",  "name": "Johnson & Johnson",         "initial": None, "ki_pct": None, "strike_pct": None, "ac_pct": None, "currency": "USD"},
-            {"ticker": "LLY",  "name": "Eli Lilly and Co",          "initial": None, "ki_pct": None, "strike_pct": None, "ac_pct": None, "currency": "USD"},
+            {"ticker": "TMO",  "name": "Thermo Fisher Scientific Inc", "initial": 510.85,   "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "JNJ",  "name": "Johnson & Johnson",             "initial": 268.00,   "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "LLY",  "name": "Eli Lilly and Co",              "initial": 1_211.79, "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
         ],
         "coupons_received": [],
     },
