@@ -35,7 +35,7 @@ except ImportError:
 
 OWNER  = "Alpa Parag Gandhi"
 BANK   = "Bank of Singapore"
-AUDUSD = 0.6878  # AUD → USD rate (updated 30 Jun 2026 from BOS statement)
+AUDUSD = 0.6986  # AUD → USD rate (updated 15 Jul 2026 from BOS ad-hoc statement)
 
 # ─── Cash / Transfers ────────────────────────────────────────────────────────
 # All inward SWIFT transfers to BOS account 1000400774-1 (as of 22 Jun 2026)
@@ -77,28 +77,18 @@ TOTAL_CASH_DEPOSITED = sum(t["amount_usd"] for t in CASH_TRANSFERS)  # $2,079,91
 DASHBOARD_USER     = "alpa"
 DASHBOARD_PASSWORD = "invest2026"
 
-CASH_BALANCE_BOS    = 537_367.46
-CASH_BALANCE_DATE   = "30 Jun 2026"   # BOS ad-hoc statement (generated 1 Jul 2026 19:32)
-# Note: $537,367.46 already includes pending items:
-#   − $100,000 HSBC FCN AIR/GE/SAF settlement (value date 9 Jul 2026)
-#   + $1,192.78 interest credit (value date 1 Jul 2026)
+CASH_BALANCE_BOS    = 214_950.33
+CASH_BALANCE_DATE   = "15 Jul 2026"   # BOS ad-hoc statement (generated 16 Jul 2026 16:27)
+# Note: $214,950.33 already includes both pending debits:
+#   − $150,000 Nomura AMZN/ORCL FCN settlement (value date 16 Jul 2026)
+#   − $100,000 OCBC TMO/JNJ/LLY FCN settlement (value date 22 Jul 2026)
 
 # New trades / deposits since the last BOS statement.
 # cost_usd: positive = cash in (deposit/dividend), negative = cash out (purchase).
 TRADES_SINCE_STATEMENT = [
-    # All activity through 30 Jun 2026 is baked into $537,367.46 above.
-    # Add new trades here as they occur after the statement date.
-    {"date": "01 Jul 26", "description": "BNP US Index FCN coupon — Period 1 (SCTRSC spy_qqq_dia)", "cost_usd": +770.00},
-    {"date": "01 Jul 26", "description": "HSBC US Tech FCN coupon — Period 1 (meta_googl_nvda)", "cost_usd": +1_083.33},
-    {"date": "01 Jul 26", "description": "META accumulator guaranteed delivery — 38 sh @ strike $464.017 (SCTRSC2618361926)", "cost_usd": -17_632.63},
-    {"date": "02 Jul 26", "description": "Polar Capital Global Technology Fund — 172.066 units", "cost_usd": -50_000.00},
-    {"date": "16 Jul 26", "description": "Nomura AMZN/ORCL Worst-of FCN — 15 securities × $10,000 (XS3384042803)", "cost_usd": -150_000.00},
-    {"date": "07 Jul 26", "description": "SHLD dividend (DIARSC2618009010)", "cost_usd": +50.95},
-    {"date": "08 Jul 26", "description": "GS European Banks FCN coupon — Period 1 (hsba_gle_ubs, XS3292699736)", "cost_usd": +1_114.17},
-    {"date": "08 Jul 26", "description": "Nomura Semiconductor FCN coupon — Period 1 (intc_tsm_asml, XS3361984373)", "cost_usd": +1_543.30},
-    {"date": "22 Jul 26", "description": "OCBC TMO/JNJ/LLY Worst-of FCN — $100,000 (XS3425415935)", "cost_usd": -100_000.00},
-    {"date": "09 Jul 26", "description": "Man Dynamic Income Fund dividend (DIARSC2618741318)", "cost_usd": +888.00},
-    {"date": "09 Jul 26", "description": "Man Global InvGrade Opps Fund dividend (DIARSC2618794052)", "cost_usd": +528.00},
+    # All activity through 15 Jul 2026 (incl. pending FCN settlements) is baked
+    # into $214,950.33 above. Add new trades here as they occur after that date.
+    # OCBC TMO/JNJ/LLY FCN settlement (22 Jul 2026, $100k) is already in the balance.
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -321,8 +311,9 @@ FCN_POSITIONS = [
     },
 
     # ── 9. TMO/JNJ/LLY Worst-of FCN  (OCBC, XS3425415935) ──
-    # Term sheet dated 08-Jul-2026; settlement 22-Jul-2026; maturity ~22-Jul-2027
-    # *** PLACEHOLDER — upload term sheet to fill in coupon rate, strike/KI/AC levels ***
+    # Term sheet dated 08-Jul-2026; settlement 22-Jul-2026; maturity 26-Jul-2027
+    # Periods 1–2 are coupon-only; first autocall observation Period 3 (22 Oct 2026)
+    # KI: 65% of initial, European (checked ONLY at Final Valuation Date 22 Jul 2027)
     {
         "id": "tmo_jnj_lly",
         "name": "TMO/JNJ/LLY Worst-of FCN",
@@ -431,8 +422,8 @@ DIRECT_HOLDINGS = [
         "currency": "USD",
         "manual_price_only": True,
         "dividends_received": [
-            {"date": "2026-06-10", "amount_usd": 524.70, "note": "Jun distribution (DIARSC2618741318 — BOS 30 Jun statement)"},
-            {"date": "2026-07-09", "amount_usd": 888.00, "note": "Jul distribution (DIARSC2618741318 — BOS 10 Jul report)"},
+            {"date": "2026-06-10", "amount_usd": 524.70, "note": "Jun distribution (DIARSC2615690480 — BOS ad-hoc statement)"},
+            {"date": "2026-07-09", "amount_usd": 888.00, "note": "Jul distribution (DIARSC2618741318 — BOS ad-hoc statement)"},
         ],
     },
     {
@@ -445,8 +436,8 @@ DIRECT_HOLDINGS = [
         "currency": "USD",
         "manual_price_only": True,
         "dividends_received": [
-            {"date": "2026-06-10", "amount_usd": 457.60, "note": "Jun distribution (DIARSC2618794052 — BOS 30 Jun statement)"},
-            {"date": "2026-07-09", "amount_usd": 528.00, "note": "Jul distribution (DIARSC2618794052 — BOS 10 Jul report)"},
+            {"date": "2026-06-10", "amount_usd": 457.60, "note": "Jun distribution (DIARSC2615518074 — BOS ad-hoc statement)"},
+            {"date": "2026-07-09", "amount_usd": 528.00, "note": "Jul distribution (DIARSC2618794052 — BOS ad-hoc statement)"},
         ],
     },
     {
@@ -455,7 +446,7 @@ DIRECT_HOLDINGS = [
         "ticker": "SHLD",
         "isin": "US37960A5294",
         "shares": 390,
-        "purchase_price": 61.46,    # trade price 22 Jun 2026; net $24,209.09 incl. $239.69 commission
+        "purchase_price": 62.0746,  # $24,209.09 total settled / 390 sh (incl. $239.69 commission; matches BOS unit cost)
         "currency": "USD",
         "dividends_received": [
             {"date": "2026-07-07", "amount_usd": 50.95, "note": "Dividend (DIARSC2618009010 — BOS 10 Jul report)"},
@@ -511,7 +502,7 @@ DIRECT_HOLDINGS = [
         "ticker": "IE00B433M743",   # ISIN used as price-dict key
         "isin": "IE00B433M743",
         "shares": 172.066,          # units purchased 30 Jun 2026 (value date 2 Jul 2026)
-        "purchase_price": 289.1404, # USD 49,751.24 / 172.066 units (net $50,000 incl. $248.76 commission)
+        "purchase_price": 290.5861, # $50,000 total settled / 172.066 units (incl. $248.76 commission; matches BOS unit cost)
         "currency": "USD",
         "manual_price_only": True,  # OTC fund — no yfinance listing; update NAV from BOS statements
     },
@@ -626,56 +617,56 @@ ACCUMULATOR_POSITIONS = [
 ]
 
 # ═════════════════════════════════════════════════════════════════════════════
-#  MANUAL PRICE FALLBACK  (updated 30 Jun 2026 from BOS ad-hoc statement)
+#  MANUAL PRICE FALLBACK  (updated 15 Jul 2026 from BOS ad-hoc statement)
 #  These are used automatically if yfinance cannot connect.
 # ═════════════════════════════════════════════════════════════════════════════
 
 MANUAL_PRICES = {
-    # USD ETFs (30 Jun 2026 closing prices from BOS statement)
-    "SPY":   746.77,
-    "QQQ":   736.40,
-    "LLY":   1199.43,
-    "DIA":   500.25,
+    # USD ETFs (15 Jul 2026 prices from BOS ad-hoc statement)
+    "SPY":   754.81,
+    "QQQ":   717.74,
+    "LLY":   1156.63,
+    "DIA":   500.25,    # no update in this statement
     # US Tech
-    "META":  612.91,    # 1 Jul 2026 close (KO date)
-    "GOOGL": 357.37,
-    "NVDA":  200.42,
-    "MSFT":  373.02,    # 30 Jun 2026 closing price from BOS statement
+    "META":  681.31,    # 15 Jul 2026
+    "GOOGL": 370.92,    # 15 Jul 2026
+    "NVDA":  200.42,    # no update in this statement
+    "MSFT":  395.63,    # 15 Jul 2026
     # Semiconductors
-    "INTC":  107.04,
-    "TSM":   408.75,
-    "ASML":  1734.19,
+    "INTC":  107.04,    # no update in this statement
+    "TSM":   408.75,    # no update in this statement
+    "ASML":  1734.19,   # no update in this statement
     # Industrials (USD)
-    "HON":   205.88,
+    "HON":   205.88,    # no update in this statement
     # US Banks
-    "GS":    1001.29,
-    "JPM":   309.14,
-    "MS":    206.66,
+    "GS":    1001.29,   # no update in this statement
+    "JPM":   309.14,    # no update in this statement
+    "MS":    206.66,    # no update in this statement
     # Asia ETFs
-    "EWY":   179.00,
-    "EWJ":   90.98,
-    "CQQQ":  54.00,
-    # Direct ETF holdings (30 Jun 2026 from BOS statement)
-    "GLD":   368.38,
-    "OIH":   372.03,
-    "SHLD":  59.71,     # Global X Defense Tech ETF (BOS 30 Jun 2026)
-    # Bond funds (Man Group) — updated from BOS ad-hoc statement 30 Jun 2026
-    "IE00039W6MB8": 101.20,   # Man Dynamic Income — NAV USD (BOS 30 Jun 2026)
-    "IE000KEXCUV1": 113.65,   # Man Global InvGrade Opps — NAV USD (BOS 30 Jun 2026)
+    "EWY":   179.00,    # no update in this statement
+    "EWJ":   90.98,     # no update in this statement
+    "CQQQ":  54.00,     # no update in this statement
+    # Direct ETF holdings (15 Jul 2026 from BOS statement)
+    "GLD":   372.35,
+    "OIH":   382.06,
+    "SHLD":  60.26,     # Global X Defense Tech ETF (BOS 15 Jul 2026)
+    # Bond funds (Man Group) — updated from BOS ad-hoc statement 15 Jul 2026
+    "IE00039W6MB8": 100.85,   # Man Dynamic Income — NAV USD (BOS 15 Jul 2026)
+    "IE000KEXCUV1": 112.29,   # Man Global InvGrade Opps — NAV USD (BOS 15 Jul 2026)
     # European (local currency)
-    "HSBA.L":  1329.20,   # GBp
-    "GLE.PA":  69.87,     # EUR
-    "UBS":     46.77,     # USD (NYSE) — confirmed ticker from GS term sheet
-    "SU.PA":   261.50,    # EUR
-    "SIE.DE":  279.10,    # EUR — confirmed from HSBC term sheet
-    # Aerospace FCN underlyings (added 24 Jun 2026 — HSBC XS3377025971)
-    "AIR.PA":  193.28,    # EUR — Airbus SE initial price
-    "GE":      356.84,    # USD — General Electric initial price
-    "SAF.PA":  336.20,    # EUR — Safran SA initial price
-    # OTC fund — update NAV from BOS statements
-    "IE00B433M743": 289.14,  # Polar Capital Global Technology Fund — purchase NAV 30 Jun 2026
+    "HSBA.L":  1329.20,   # GBp — no update in this statement
+    "GLE.PA":  69.87,     # EUR — no update in this statement
+    "UBS":     46.77,     # USD (NYSE) — no update in this statement
+    "SU.PA":   261.50,    # EUR — no update in this statement
+    "SIE.DE":  279.10,    # EUR — no update in this statement
+    # Aerospace FCN underlyings (HSBC XS3377025971)
+    "AIR.PA":  193.28,    # EUR — Airbus SE initial price (no update)
+    "GE":      356.84,    # USD — General Electric initial price (no update)
+    "SAF.PA":  336.20,    # EUR — Safran SA initial price (no update)
+    # OTC fund — updated from BOS ad-hoc statement 15 Jul 2026
+    "IE00B433M743": 263.34,  # Polar Capital Global Technology Fund — NAV USD (BOS 15 Jul 2026)
 }
-MANUAL_PRICES_DATE = "2026-06-30"
+MANUAL_PRICES_DATE = "2026-07-15"
 
 # ═════════════════════════════════════════════════════════════════════════════
 #  PRICE FETCHING
