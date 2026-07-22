@@ -386,9 +386,9 @@ FCN_POSITIONS = [
         "autocall_freq": "TBC — confirm from term sheet",
         "ki_type": "TBC — confirm from term sheet",
         "underlyings": [
-            # DRAM.Z is the Reuters ticker; likely a semiconductor/memory-related stock or ETF.
-            # Confirm exact name and barriers from term sheet.
-            {"ticker": "DRAM", "name": "DRAM Underlying (TBC)", "initial": 0.0,
+            # DRAM.Z is the Reuters ticker; confirm name, initial price and barriers from term sheet.
+            # initial set to 1.0 as a safe placeholder (avoids ÷0 errors); update from term sheet.
+            {"ticker": "DRAM", "name": "DRAM Underlying (TBC — update from term sheet)", "initial": 1.0,
              "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
         ],
         "coupons_received": [],
@@ -701,8 +701,7 @@ MANUAL_PRICES = {
     "SAF.PA":  336.20,    # EUR — Safran SA initial price (no update)
     # OTC fund — updated from BOS ad-hoc statement 15 Jul 2026
     "IE00B433M743": 263.34,  # Polar Capital Global Technology Fund — NAV USD (BOS 15 Jul 2026)
-    # MS DRAM FCN underlying (XS3427736569, settles 3 Aug 2026) — confirm ticker from term sheet
-    "DRAM": 0.0,  # ← placeholder; update initial price and ticker from term sheet
+    # DRAM FCN underlying — ticker/price unknown; omitted to avoid ÷0 errors; update from term sheet
 }
 MANUAL_PRICES_DATE = "2026-07-15"
 
