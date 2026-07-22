@@ -87,8 +87,13 @@ CASH_BALANCE_DATE   = "15 Jul 2026"   # BOS ad-hoc statement (generated 16 Jul 2
 # cost_usd: positive = cash in (deposit/dividend), negative = cash out (purchase).
 TRADES_SINCE_STATEMENT = [
     # All activity through 15 Jul 2026 (incl. pending FCN settlements) is baked
-    # into $214,950.33 above. Add new trades here as they occur after that date.
-    # OCBC TMO/JNJ/LLY FCN settlement (22 Jul 2026, $100k) is already in the balance.
+    # into $214,950.33 above. Items below are all post-15-Jul-2026.
+    # OCBC TMO/JNJ/LLY FCN settlement (22 Jul 2026, $100k) already in the balance.
+    {"date": "20 Jul 26", "description": "SCB Banks FCN coupon — Period 1 (gs_jpm_ms, DIARSC2619685568)", "cost_usd": +1_791.60},
+    {"date": "20 Jul 26", "description": "HSBC Industrials FCN coupon — Period 1 (hon_su_sie, DIARSC2619697304)", "cost_usd": +1_014.17},
+    {"date": "20 Jul 26", "description": "QQQ accumulator delivery — 10 sh @ strike $573.977 (SCTRSC2620257535)", "cost_usd": -5_739.77},
+    {"date": "20 Jul 26", "description": "MS DRAM FCN — $100,000 (XS3427736569, pending settlement 03 Aug 2026)", "cost_usd": -100_000.00},
+    {"date": "21 Jul 26", "description": "MS Asia ETF FCN coupon — Period 1 (ms_asia_etf, DIARSC2619772044)", "cost_usd": +1_938.75},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -243,7 +248,9 @@ FCN_POSITIONS = [
             {"ticker": "SU.PA", "name": "Schneider Electric (EUR)", "initial": 282.10, "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "EUR"},
             {"ticker": "SIE.DE","name": "Siemens AG (EUR)",          "initial": 279.10, "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "EUR"},
         ],
-        "coupons_received": [],
+        "coupons_received": [
+            {"date": "2026-07-20", "amount_usd": 1014.17, "note": "Period 1 (DIARSC2619697304 — BOS tran report 22 Jul 2026)"},
+        ],
     },
 
     # ── 6. US Banks Worst-of FCN — GS / JPM / MS  (SCB, XS3341866369) ──
@@ -265,7 +272,9 @@ FCN_POSITIONS = [
             {"ticker": "JPM", "name": "JPMorgan Chase", "initial": 296.50,  "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
             {"ticker": "MS",  "name": "Morgan Stanley", "initial": 210.86,  "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
         ],
-        "coupons_received": [],
+        "coupons_received": [
+            {"date": "2026-07-20", "amount_usd": 1791.60, "note": "Period 1 (DIARSC2619685568 — BOS tran report 22 Jul 2026)"},
+        ],
     },
 
     # ── 7. Asia ETF Worst-of FCN — EWY / EWJ / CQQQ  (Morgan Stanley, XS3373201808) ──
@@ -286,7 +295,9 @@ FCN_POSITIONS = [
             {"ticker": "EWJ",  "name": "iShares MSCI Japan ETF",        "initial": 94.25,  "ki_pct": 55, "strike_pct": 65, "ac_pct": 95},
             {"ticker": "CQQQ", "name": "Invesco China Technology ETF",   "initial": 53.82,  "ki_pct": 55, "strike_pct": 65, "ac_pct": 95},
         ],
-        "coupons_received": [],
+        "coupons_received": [
+            {"date": "2026-07-21", "amount_usd": 1938.75, "note": "Period 1 (DIARSC2619772044 — BOS tran report 22 Jul 2026)"},
+        ],
     },
 
     # ── 8. Aerospace Worst-of FCN — AIR.PA / GE / SAF.PA  (HSBC, XS3377025971) ──
@@ -354,6 +365,31 @@ FCN_POSITIONS = [
         "underlyings": [
             {"ticker": "AMZN", "name": "Amazon.com Inc",    "initial": 241.70, "ki_pct": 50, "strike_pct": 60, "ac_pct": 95, "currency": "USD"},
             {"ticker": "ORCL", "name": "Oracle Corporation", "initial": 144.51, "ki_pct": 50, "strike_pct": 60, "ac_pct": 95, "currency": "USD"},
+        ],
+        "coupons_received": [],
+    },
+
+    # ── 11. DRAM Worst-of FCN  (Morgan Stanley, XS3427736569) ──
+    # Trade 20-Jul-2026; settlement (issue) date 03-Aug-2026; 6M term → maturity 03-Feb-2027
+    # BOS narrative: "6M USD MS FCN - DRAM.Z 030227 XS3427736569"
+    # *** PLACEHOLDER — upload term sheet to fill in coupon rate, KI/Strike/AC levels and underlying name ***
+    {
+        "id": "ms_dram",
+        "name": "DRAM Worst-of FCN",
+        "issuer": "Morgan Stanley (ISIN: XS3427736569)",
+        "notional_usd": 100_000,
+        "coupon_monthly_pct": 0.0,      # ← unknown; update from term sheet
+        "coupon_annual_pct":  0.0,      # ← unknown; update from term sheet
+        "issue_date":    "2026-08-03",  # value/settlement date (trade date 20 Jul 2026)
+        "maturity_date": "2027-02-03",  # 6M from issue (030227)
+        "first_autocall_date": "2026-11-03",  # assumed ~3M non-call; confirm from term sheet
+        "autocall_freq": "TBC — confirm from term sheet",
+        "ki_type": "TBC — confirm from term sheet",
+        "underlyings": [
+            # DRAM.Z is the Reuters ticker; likely a semiconductor/memory-related stock or ETF.
+            # Confirm exact name and barriers from term sheet.
+            {"ticker": "DRAM", "name": "DRAM Underlying (TBC)", "initial": 0.0,
+             "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
         ],
         "coupons_received": [],
     },
@@ -665,6 +701,8 @@ MANUAL_PRICES = {
     "SAF.PA":  336.20,    # EUR — Safran SA initial price (no update)
     # OTC fund — updated from BOS ad-hoc statement 15 Jul 2026
     "IE00B433M743": 263.34,  # Polar Capital Global Technology Fund — NAV USD (BOS 15 Jul 2026)
+    # MS DRAM FCN underlying (XS3427736569, settles 3 Aug 2026) — confirm ticker from term sheet
+    "DRAM": 0.0,  # ← placeholder; update initial price and ticker from term sheet
 }
 MANUAL_PRICES_DATE = "2026-07-15"
 
