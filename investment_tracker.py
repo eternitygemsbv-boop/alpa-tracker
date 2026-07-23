@@ -92,7 +92,7 @@ TRADES_SINCE_STATEMENT = [
     {"date": "20 Jul 26", "description": "SCB Banks FCN coupon — Period 1 (gs_jpm_ms, DIARSC2619685568)", "cost_usd": +1_791.60},
     {"date": "20 Jul 26", "description": "HSBC Industrials FCN coupon — Period 1 (hon_su_sie, DIARSC2619697304)", "cost_usd": +1_014.17},
     {"date": "20 Jul 26", "description": "QQQ accumulator delivery — 10 sh @ strike $573.977 (SCTRSC2620257535)", "cost_usd": -5_739.77},
-    {"date": "20 Jul 26", "description": "MS DRAM FCN — $100,000 (XS3427736569, pending settlement 03 Aug 2026)", "cost_usd": -100_000.00},
+    {"date": "20 Jul 26", "description": "MS Roundhill DRAM Memory ETF FCN — $100,000 (XS3427736569, settles 03 Aug 2026)", "cost_usd": -100_000.00},
     {"date": "21 Jul 26", "description": "MS Asia ETF FCN coupon — Period 1 (ms_asia_etf, DIARSC2619772044)", "cost_usd": +1_938.75},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
@@ -369,27 +369,26 @@ FCN_POSITIONS = [
         "coupons_received": [],
     },
 
-    # ── 11. DRAM Worst-of FCN  (Morgan Stanley, XS3427736569) ──
-    # Trade 20-Jul-2026; settlement (issue) date 03-Aug-2026; 6M term → maturity 03-Feb-2027
-    # BOS narrative: "6M USD MS FCN - DRAM.Z 030227 XS3427736569"
-    # *** PLACEHOLDER — upload term sheet to fill in coupon rate, KI/Strike/AC levels and underlying name ***
+    # ── 11. DRAM Single-ETF FCN — Roundhill DRAM Memory ETF  (Morgan Stanley, XS3427736569) ──
+    # Term sheet dated 22-Jul-2026 (MSI PLC). Single underlying ETF.
+    # Trade/Strike 20-Jul-2026; issue 03-Aug-2026; Final Valuation 03-Feb-2027; maturity 05-Feb-2027.
+    # Coupon 1.8392% per period × 6 periods = 11.04% over the 6M life (22.07% annualised).
+    # First autocall observation 03-Nov-2026 (Period 3); Periods 1–2 coupon-only.
     {
         "id": "ms_dram",
-        "name": "DRAM Worst-of FCN",
-        "issuer": "Morgan Stanley (ISIN: XS3427736569)",
+        "name": "Roundhill DRAM Memory ETF FCN",
+        "issuer": "Morgan Stanley (ISIN: XS3427736569, MSI PLC — Aa3/A+/AA)",
         "notional_usd": 100_000,
-        "coupon_monthly_pct": 0.0,      # ← unknown; update from term sheet
-        "coupon_annual_pct":  0.0,      # ← unknown; update from term sheet
-        "issue_date":    "2026-08-03",  # value/settlement date (trade date 20 Jul 2026)
-        "maturity_date": "2027-02-03",  # 6M from issue (030227)
-        "first_autocall_date": "2026-11-03",  # assumed ~3M non-call; confirm from term sheet
-        "autocall_freq": "TBC — confirm from term sheet",
-        "ki_type": "TBC — confirm from term sheet",
+        "coupon_monthly_pct": 1.8392,   # 1.8392% per observation period (monthly)
+        "coupon_annual_pct": 22.07,     # 1.8392% × 12
+        "issue_date": "2026-08-03",
+        "maturity_date": "2027-02-05",  # Maturity Date (2 biz days after Final Valuation 3 Feb 2027)
+        "first_autocall_date": "2026-11-03",  # Period 3 — first autocall observation; Periods 1–2 coupon-only
+        "autocall_freq": "Monthly from Period 3 (3-Nov-2026); Periods 1–2 are coupon-only",
+        "ki_type": "European — KI at 50% of initial; checked ONLY at Final Valuation Date (3 Feb 2027); Strike at 60%",
         "underlyings": [
-            # DRAM.Z is the Reuters ticker; confirm name, initial price and barriers from term sheet.
-            # initial set to 1.0 as a safe placeholder (avoids ÷0 errors); update from term sheet.
-            {"ticker": "DRAM", "name": "DRAM Underlying (TBC — update from term sheet)", "initial": 1.0,
-             "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "DRAM", "name": "Roundhill DRAM Memory ETF", "initial": 54.29,
+             "ki_pct": 50, "strike_pct": 60, "ac_pct": 100, "currency": "USD"},
         ],
         "coupons_received": [],
     },
@@ -701,7 +700,8 @@ MANUAL_PRICES = {
     "SAF.PA":  336.20,    # EUR — Safran SA initial price (no update)
     # OTC fund — updated from BOS ad-hoc statement 15 Jul 2026
     "IE00B433M743": 263.34,  # Polar Capital Global Technology Fund — NAV USD (BOS 15 Jul 2026)
-    # DRAM FCN underlying — ticker/price unknown; omitted to avoid ÷0 errors; update from term sheet
+    # Roundhill DRAM Memory ETF (MS FCN XS3427736569) — yfinance ticker "DRAM"; fallback = initial price
+    "DRAM": 54.29,   # Bats Z-exchange; initial price 20 Jul 2026 (fallback if live fetch fails)
 }
 MANUAL_PRICES_DATE = "2026-07-15"
 
