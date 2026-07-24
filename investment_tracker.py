@@ -94,6 +94,7 @@ TRADES_SINCE_STATEMENT = [
     {"date": "20 Jul 26", "description": "QQQ accumulator delivery — 10 sh @ strike $573.977 (SCTRSC2620257535)", "cost_usd": -5_739.77},
     {"date": "20 Jul 26", "description": "MS Roundhill DRAM Memory ETF FCN — $100,000 (XS3427736569, settles 03 Aug 2026)", "cost_usd": -100_000.00},
     {"date": "21 Jul 26", "description": "MS Asia ETF FCN coupon — Period 1 (ms_asia_etf, DIARSC2619772044)", "cost_usd": +1_938.75},
+    {"date": "22 Jul 26", "description": "BNP Gold Miners FCN — $100,000 (AAL.L/NEM/B, XS3433078295, settles 05 Aug 2026)", "cost_usd": -100_000.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -389,6 +390,33 @@ FCN_POSITIONS = [
         "underlyings": [
             {"ticker": "DRAM", "name": "Roundhill DRAM Memory ETF", "initial": 54.29,
              "ki_pct": 50, "strike_pct": 60, "ac_pct": 100, "currency": "USD"},
+        ],
+        "coupons_received": [],
+    },
+
+    # ── 12. Gold Miners Worst-of FCN — AAL.L / NEM / B  (BNP Paribas, XS3433078295) ──
+    # Term sheet dated 24-Jul-2026 (BNP Paribas HK Branch, A+/A1). 12M note.
+    # Trade 22-Jul-2026; issue 05-Aug-2026; Determination 05-Aug-2027; maturity 09-Aug-2027.
+    # Coupon 11.18% p.a. / 12 = 0.9317% per period ($931.67/month).
+    # Strike 65%, Knock-In Barrier 55% (European — checked at Determination Date only),
+    # Trigger (autocall) 95%; autocall from Observation Date 3 (05-Nov-2026) to final.
+    # NOTE: AAL.L quoted in GBp (pence) to match yfinance — initial 3524 = GBP 35.24.
+    {
+        "id": "aal_nem_b",
+        "name": "Gold Miners Worst-of FCN",
+        "issuer": "BNP Paribas HK Branch (ISIN: XS3433078295, A+/A1)",
+        "notional_usd": 100_000,
+        "coupon_monthly_pct": 0.9317,   # 11.18% p.a. ÷ 12
+        "coupon_annual_pct": 11.18,
+        "issue_date": "2026-08-05",
+        "maturity_date": "2027-08-09",  # final Interest Payment Date (Determination 5 Aug 2027)
+        "first_autocall_date": "2026-11-05",  # Observation Date 3 — first autocall; Obs 1–2 coupon-only
+        "autocall_freq": "Monthly from Observation Date 3 (5-Nov-2026); Obs 1–2 are coupon-only",
+        "ki_type": "European — KI at 55% of initial; checked ONLY at Determination Date (5 Aug 2027); Strike at 65%",
+        "underlyings": [
+            {"ticker": "AAL.L", "name": "Anglo American PLC",  "initial": 3524.00, "ki_pct": 55, "strike_pct": 65, "ac_pct": 95, "currency": "GBP"},
+            {"ticker": "NEM",   "name": "Newmont Corporation", "initial": 94.65,   "ki_pct": 55, "strike_pct": 65, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "B",     "name": "Barrick Mining Corp", "initial": 37.29,   "ki_pct": 55, "strike_pct": 65, "ac_pct": 95, "currency": "USD"},
         ],
         "coupons_received": [],
     },
@@ -702,6 +730,10 @@ MANUAL_PRICES = {
     "IE00B433M743": 263.34,  # Polar Capital Global Technology Fund — NAV USD (BOS 15 Jul 2026)
     # Roundhill DRAM Memory ETF (MS FCN XS3427736569) — yfinance ticker "DRAM"; fallback = initial price
     "DRAM": 54.29,   # Bats Z-exchange; initial price 20 Jul 2026 (fallback if live fetch fails)
+    # Gold Miners FCN underlyings (BNP XS3433078295) — fallback = initial price 22 Jul 2026
+    "AAL.L": 3524.00,   # GBp (pence) — Anglo American PLC (London); GBP 35.24 initial
+    "NEM":   94.65,     # USD — Newmont Corporation initial
+    "B":     37.29,     # USD — Barrick Mining Corp initial
 }
 MANUAL_PRICES_DATE = "2026-07-15"
 
