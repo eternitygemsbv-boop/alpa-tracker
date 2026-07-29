@@ -95,6 +95,7 @@ TRADES_SINCE_STATEMENT = [
     {"date": "20 Jul 26", "description": "MS Roundhill DRAM Memory ETF FCN — $100,000 (XS3427736569, settles 03 Aug 2026)", "cost_usd": -100_000.00},
     {"date": "21 Jul 26", "description": "MS Asia ETF FCN coupon — Period 1 (ms_asia_etf, DIARSC2619772044)", "cost_usd": +1_938.75},
     {"date": "22 Jul 26", "description": "BNP Gold Miners FCN — $100,000 (AAL.L/NEM/B, XS3433078295, settles 05 Aug 2026)", "cost_usd": -100_000.00},
+    {"date": "27 Jul 26", "description": "JPM AAPL/TSLA FCN — $100,000 (XS3407131419, settles 10 Aug 2026)", "cost_usd": -100_000.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -420,6 +421,31 @@ FCN_POSITIONS = [
         ],
         "coupons_received": [],
     },
+
+    # ── 13. AAPL/TSLA Worst-of FCN  (J.P. Morgan, XS3407131419) ──
+    # Term sheet dated 27-Jul-2026 (JPM Structured Products B.V., guaranteed by JPMorgan Chase Bank N.A. AA-/AA/Aa2). 12M note.
+    # Trade 27-Jul-2026; issue 10-Aug-2026; Final Valuation 10-Aug-2027; maturity 12-Aug-2027.
+    # Coupon 12.51% p.a. × 1/12 = 1.0425% per period ($1,042.50/month).
+    # Strike 70%, Barrier (autocall) 95%, Knock-in 60% (European — checked at Final Valuation Date only).
+    # Early redemption observed Observation Date 3–11 (10-Nov-2026 onward); Obs 1–2 coupon-only.
+    {
+        "id": "aapl_tsla",
+        "name": "AAPL/TSLA Worst-of FCN",
+        "issuer": "J.P. Morgan (ISIN: XS3407131419, Guarantor JPMorgan Chase Bank N.A. AA-/AA/Aa2)",
+        "notional_usd": 100_000,
+        "coupon_monthly_pct": 1.0425,   # 12.51% p.a. ÷ 12
+        "coupon_annual_pct": 12.51,
+        "issue_date": "2026-08-10",
+        "maturity_date": "2027-08-12",  # 2 biz days after Final Valuation 10 Aug 2027
+        "first_autocall_date": "2026-11-10",  # Observation Date 3 — first early-redemption obs; Obs 1–2 coupon-only
+        "autocall_freq": "Monthly from Observation Date 3 (10-Nov-2026); Obs 1–2 are coupon-only",
+        "ki_type": "European — KI at 60% of initial; checked ONLY at Final Valuation Date (10 Aug 2027); Strike at 70%",
+        "underlyings": [
+            {"ticker": "AAPL", "name": "Apple Inc.",  "initial": 335.00, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "TSLA", "name": "Tesla, Inc.", "initial": 312.73, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
+        ],
+        "coupons_received": [],
+    },
 ]
 
 # ─── Bond / AT1 Positions ─────────────────────────────────────────────────────
@@ -734,6 +760,9 @@ MANUAL_PRICES = {
     "AAL.L": 3524.00,   # GBp (pence) — Anglo American PLC (London); GBP 35.24 initial
     "NEM":   94.65,     # USD — Newmont Corporation initial
     "B":     37.29,     # USD — Barrick Mining Corp initial
+    # AAPL/TSLA FCN underlyings (JPM XS3407131419) — fallback = initial price 27 Jul 2026
+    "AAPL":  335.00,    # USD — Apple Inc. initial
+    "TSLA":  312.73,    # USD — Tesla, Inc. initial
 }
 MANUAL_PRICES_DATE = "2026-07-15"
 
