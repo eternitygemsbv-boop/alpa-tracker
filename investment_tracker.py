@@ -56,6 +56,7 @@ CASH_TRANSFERS = [
     {"date": "12 JUN 26", "amount_usd": 129_990.00},
     {"date": "12 JUN 26", "amount_usd": 129_990.00},
     {"date": "24 JUN 26", "amount_usd": 130_000.00},   # FT26175K06N8
+    {"date": "31 JUL 26", "amount_usd": 129_990.00},   # FT26211MPQDJ
 ]
 TOTAL_CASH_DEPOSITED = sum(t["amount_usd"] for t in CASH_TRANSFERS)  # $2,079,910
 
@@ -95,7 +96,13 @@ TRADES_SINCE_STATEMENT = [
     {"date": "20 Jul 26", "description": "MS Roundhill DRAM Memory ETF FCN — $100,000 (XS3427736569, settles 03 Aug 2026)", "cost_usd": -100_000.00},
     {"date": "21 Jul 26", "description": "MS Asia ETF FCN coupon — Period 1 (ms_asia_etf, DIARSC2619772044)", "cost_usd": +1_938.75},
     {"date": "22 Jul 26", "description": "BNP Gold Miners FCN — $100,000 (AAL.L/NEM/B, XS3433078295, settles 05 Aug 2026)", "cost_usd": -100_000.00},
+    {"date": "23 Jul 26", "description": "SPY accumulator delivery — 10 sh @ strike $621.829 (SCTRSC2620598671)", "cost_usd": -6_218.29},
     {"date": "27 Jul 26", "description": "JPM AAPL/TSLA FCN — $100,000 (XS3407131419, settles 10 Aug 2026)", "cost_usd": -100_000.00},
+    {"date": "29 Jul 26", "description": "BNP US Index FCN coupon — Period 2 (spy_qqq_dia, DIARSC2620505085)", "cost_usd": +770.00},
+    {"date": "29 Jul 26", "description": "Custody fee (01 Apr–30 Jun 2026, FT26210SLWCJ)", "cost_usd": -454.67},
+    {"date": "30 Jul 26", "description": "HSBC US Tech FCN coupon — Period 2 (meta_googl_nvda, DIARSC2620873375)", "cost_usd": +1_083.33},
+    {"date": "31 Jul 26", "description": "USD current-account interest credit (value 01 Aug 2026)", "cost_usd": +474.29},
+    {"date": "31 Jul 26", "description": "Inward SWIFT deposit (FT26211MPQDJ)", "cost_usd": +129_990.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -157,6 +164,7 @@ FCN_POSITIONS = [
         ],
         "coupons_received": [
             {"date": "2026-07-01", "amount_usd": 770.00, "note": "Period 1 — confirmed BOS transaction report 3 Jul 2026"},
+            {"date": "2026-07-29", "amount_usd": 770.00, "note": "Period 2 (DIARSC2620505085 — BOS tran report 4 Aug 2026)"},
         ],
     },
 
@@ -180,6 +188,7 @@ FCN_POSITIONS = [
         ],
         "coupons_received": [
             {"date": "2026-07-01", "amount_usd": 1083.33, "note": "Period 1 — confirmed BOS transaction report 3 Jul 2026"},
+            {"date": "2026-07-30", "amount_usd": 1083.33, "note": "Period 2 (DIARSC2620873375 — BOS tran report 4 Aug 2026)"},
         ],
     },
 
