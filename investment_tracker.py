@@ -57,6 +57,8 @@ CASH_TRANSFERS = [
     {"date": "12 JUN 26", "amount_usd": 129_990.00},
     {"date": "24 JUN 26", "amount_usd": 130_000.00},   # FT26175K06N8
     {"date": "31 JUL 26", "amount_usd": 129_990.00},   # FT26211MPQDJ
+    {"date": "05 AUG 26", "amount_usd": 90_000.00},    # FT26217279M3
+    {"date": "05 AUG 26", "amount_usd": 130_000.00},   # FT26217DW9Z6
 ]
 TOTAL_CASH_DEPOSITED = sum(t["amount_usd"] for t in CASH_TRANSFERS)  # $2,079,910
 
@@ -103,6 +105,9 @@ TRADES_SINCE_STATEMENT = [
     {"date": "30 Jul 26", "description": "HSBC US Tech FCN coupon — Period 2 (meta_googl_nvda, DIARSC2620873375)", "cost_usd": +1_083.33},
     {"date": "31 Jul 26", "description": "USD current-account interest credit (value 01 Aug 2026)", "cost_usd": +474.29},
     {"date": "31 Jul 26", "description": "Inward SWIFT deposit (FT26211MPQDJ)", "cost_usd": +129_990.00},
+    {"date": "04 Aug 26", "description": "SPY accumulator delivery — 7 sh @ strike $621.829 (SCTRSC2621774202)", "cost_usd": -4_352.80},
+    {"date": "05 Aug 26", "description": "Inward SWIFT deposit (FT26217279M3)", "cost_usd": +90_000.00},
+    {"date": "05 Aug 26", "description": "Inward SWIFT deposit (FT26217DW9Z6)", "cost_usd": +130_000.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
