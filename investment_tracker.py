@@ -244,6 +244,7 @@ FCN_POSITIONS = [
         ],
         "coupons_received": [
             {"date": "2026-07-08", "amount_usd": 1543.30, "note": "Period 1 — confirmed BOS transaction report 10 Jul 2026"},
+            {"date": "2026-08-05", "amount_usd": 1543.30, "note": "Period 2 — BOS tran report 8 Aug 2026"},
         ],
     },
 
