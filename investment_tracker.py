@@ -141,6 +141,12 @@ KNOWN_KO_EVENTS = {
         "ticker":           "META",
         "knockout_barrier": 590.0458,
     },
+    "spy_accumulator": {
+        "ko_date":          "2026-08-04",
+        "ko_price":         771.33,      # SPY close 4 Aug 2026 (vs barrier 765.261)
+        "ticker":           "SPY",
+        "knockout_barrier": 765.2610,
+    },
 }
 
 # ─── FCN Positions ────────────────────────────────────────────────────────────
@@ -622,10 +628,20 @@ DIRECT_HOLDINGS = [
         "currency": "USD",
         "note": "38 sh from META Accu (KO 1 Jul 2026, close $612.91 vs barrier $590.0458); guaranteed period 18 Jun–13 Aug 2026",
     },
-    # NOTE: QQQ and SPY shares (delivered in periodic batches from active accumulators) are NOT
-    # listed here — they are already tracked in ACCUMULATOR_POSITIONS via _shares_accumulated().
-    # Adding them here would double-count both the cost basis and portfolio value.
-    # They will be added here only if/when those accumulators are KO'd and settled.
+    # SPY Accumulator KO'd 4 Aug 2026 (close $771.33 vs barrier $765.261) → shares settled to equity here.
+    {
+        "id": "spy_shares",
+        "name": "SPDR S&P 500 ETF (accumulator delivery)",
+        "ticker": "SPY",
+        "isin": "US78462F1030",
+        "shares": 35,
+        "purchase_price": 621.8289,  # avg strike; 35 sh total $21,764.01 (9@25Jun + 9@9Jul + 10@23Jul + 7@4Aug)
+        "currency": "USD",
+        "note": "35 sh from SPY Accu (KO 4 Aug 2026, close $771.33 vs barrier $765.261); guaranteed period ended 9 Jul 2026",
+    },
+    # NOTE: QQQ shares (delivered in periodic batches from the still-active QQQ accumulator) are NOT
+    # listed here — they are tracked in ACCUMULATOR_POSITIONS via _shares_accumulated() to avoid
+    # double-counting. QQQ will be added here only if/when its accumulator is KO'd and settled.
     {
         "id": "polar_cap_tech",
         "name": "Polar Capital Global Technology Fund (Dist - Cash)",
@@ -656,6 +672,8 @@ ACCUMULATOR_POSITIONS = [
         "leverage_below_strike": 2,
     },
     # SPY Accumulator — HSBC, trade date 11 Jun 2026
+    # KO'd 4 Aug 2026 — SPY closed $771.33 vs KO barrier $765.261 (guaranteed period already ended 9 Jul).
+    # SETTLED: 35 shares accumulated @ strike $621.829 delivered; now in DIRECT_HOLDINGS as spy_shares.
     {
         "id": "spy_accumulator",
         "name": "SPY Accumulator",
@@ -669,6 +687,8 @@ ACCUMULATOR_POSITIONS = [
         "guaranteed_end": "2026-07-09",     # 4 weeks guaranteed
         "shares_per_day": 1,
         "leverage_below_strike": 2,
+        "settled": True,                    # KO'd 4 Aug 2026; 35 shares delivered, tracked in DIRECT_HOLDINGS
+        "shares_delivered": 35,             # 9 (25 Jun) + 9 (9 Jul) + 10 (23 Jul) + 7 (4 Aug); confirm final count vs BOS closure statement
     },
     # GOOGL Accumulator — MS, trade date 11 Jun 2026
     # SETTLED: 38 shares delivered (lump sum on KO date); now in DIRECT_HOLDINGS as part of 56 GOOGL shares
@@ -752,8 +772,8 @@ ACCUMULATOR_POSITIONS = [
 # ═════════════════════════════════════════════════════════════════════════════
 
 MANUAL_PRICES = {
-    # USD ETFs (15 Jul 2026 prices from BOS ad-hoc statement)
-    "SPY":   754.81,
+    # USD ETFs (15 Jul 2026 prices from BOS ad-hoc statement; SPY updated 5 Aug post-KO)
+    "SPY":   769.79,    # 5 Aug 2026 close (accumulator KO'd 4 Aug at $771.33)
     "QQQ":   717.74,
     "LLY":   1156.63,
     "DIA":   500.25,    # no update in this statement
