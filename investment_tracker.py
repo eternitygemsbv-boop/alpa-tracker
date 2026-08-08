@@ -108,6 +108,7 @@ TRADES_SINCE_STATEMENT = [
     {"date": "04 Aug 26", "description": "SPY accumulator delivery — 7 sh @ strike $621.829 (SCTRSC2621774202)", "cost_usd": -4_352.80},
     {"date": "05 Aug 26", "description": "Inward SWIFT deposit (FT26217279M3)", "cost_usd": +90_000.00},
     {"date": "05 Aug 26", "description": "Inward SWIFT deposit (FT26217DW9Z6)", "cost_usd": +130_000.00},
+    {"date": "06 Aug 26", "description": "Barclays Corning (GLW) FCN — $100,000 (XS3457845785, settles 20 Aug 2026)", "cost_usd": -100_000.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -219,6 +220,7 @@ FCN_POSITIONS = [
         ],
         "coupons_received": [
             {"date": "2026-07-08", "amount_usd": 1114.17, "note": "Period 1 — confirmed BOS transaction report 10 Jul 2026"},
+            {"date": "2026-08-05", "amount_usd": 1114.17, "note": "Period 2 — BOS tran report 8 Aug 2026"},
         ],
     },
 
@@ -457,6 +459,30 @@ FCN_POSITIONS = [
         "underlyings": [
             {"ticker": "AAPL", "name": "Apple Inc.",  "initial": 335.00, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
             {"ticker": "TSLA", "name": "Tesla, Inc.", "initial": 312.73, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
+        ],
+        "coupons_received": [],
+    },
+
+    # ── 14. Corning (GLW) Single-Stock FCN  (Barclays, XS3457845785) ──
+    # BOS narrative: "12M USD Barclays FCN - GLW.N 200827 XS3457845785"
+    # Trade 06-Aug-2026; settlement (issue) 20-Aug-2026; 12M term → maturity ~20-Aug-2027.
+    # *** PLACEHOLDER — upload term sheet to fill in coupon rate, KI/Strike/AC levels and initial price ***
+    {
+        "id": "barclays_glw",
+        "name": "Corning (GLW) Single-Stock FCN",
+        "issuer": "Barclays (ISIN: XS3457845785)",
+        "notional_usd": 100_000,
+        "coupon_monthly_pct": 0.0,      # ← unknown; update from term sheet
+        "coupon_annual_pct":  0.0,      # ← unknown; update from term sheet
+        "issue_date": "2026-08-20",     # value/settlement date (trade 06 Aug 2026)
+        "maturity_date": "2027-08-20",  # 12M from issue (200827); confirm from term sheet
+        "first_autocall_date": "2026-11-20",  # assumed ~3M non-call; confirm from term sheet
+        "autocall_freq": "TBC — confirm from term sheet",
+        "ki_type": "TBC — confirm from term sheet",
+        "underlyings": [
+            # GLW = Corning Inc (NYSE). initial set to 1.0 placeholder (avoids ÷0); update from term sheet.
+            {"ticker": "GLW", "name": "Corning Incorporated", "initial": 1.0,
+             "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
         ],
         "coupons_received": [],
     },
@@ -777,6 +803,8 @@ MANUAL_PRICES = {
     # AAPL/TSLA FCN underlyings (JPM XS3407131419) — fallback = initial price 27 Jul 2026
     "AAPL":  335.00,    # USD — Apple Inc. initial
     "TSLA":  312.73,    # USD — Tesla, Inc. initial
+    # Corning FCN underlying (Barclays XS3457845785) — yfinance ticker "GLW"; fallback pending term sheet
+    "GLW":   1.0,       # ← placeholder; update initial price from term sheet (yfinance fetches GLW live)
 }
 MANUAL_PRICES_DATE = "2026-07-15"
 
