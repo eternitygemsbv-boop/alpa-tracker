@@ -109,6 +109,9 @@ TRADES_SINCE_STATEMENT = [
     {"date": "05 Aug 26", "description": "Inward SWIFT deposit (FT26217279M3)", "cost_usd": +90_000.00},
     {"date": "05 Aug 26", "description": "Inward SWIFT deposit (FT26217DW9Z6)", "cost_usd": +130_000.00},
     {"date": "06 Aug 26", "description": "Barclays Corning (GLW) FCN — $100,000 (XS3457845785, settles 20 Aug 2026)", "cost_usd": -100_000.00},
+    {"date": "12 Aug 26", "description": "HSBC Aerospace FCN coupon — Period 1 (air_ge_saf, GE/SAF/AIR)", "cost_usd": +1_021.67},
+    {"date": "12 Aug 26", "description": "Man Dynamic Income Fund dividend — Aug distribution", "cost_usd": +858.40},
+    {"date": "12 Aug 26", "description": "Man Global InvGrade Opps Fund dividend — Aug distribution", "cost_usd": +492.80},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -343,7 +346,9 @@ FCN_POSITIONS = [
             {"ticker": "GE",     "name": "General Electric", "initial": 356.84, "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
             {"ticker": "SAF.PA", "name": "Safran SA",        "initial": 336.20, "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "EUR"},
         ],
-        "coupons_received": [],
+        "coupons_received": [
+            {"date": "2026-08-12", "amount_usd": 1021.67, "note": "Period 1 — BOS transactions 12 Aug 2026"},
+        ],
     },
 
     # ── 9. TMO/JNJ/LLY Worst-of FCN  (OCBC, XS3425415935) ──
@@ -565,6 +570,7 @@ DIRECT_HOLDINGS = [
         "dividends_received": [
             {"date": "2026-06-10", "amount_usd": 524.70, "note": "Jun distribution (DIARSC2615690480 — BOS ad-hoc statement)"},
             {"date": "2026-07-09", "amount_usd": 888.00, "note": "Jul distribution (DIARSC2618741318 — BOS ad-hoc statement)"},
+            {"date": "2026-08-12", "amount_usd": 858.40, "note": "Aug distribution (BOS transactions 12 Aug 2026)"},
         ],
     },
     {
@@ -579,6 +585,7 @@ DIRECT_HOLDINGS = [
         "dividends_received": [
             {"date": "2026-06-10", "amount_usd": 457.60, "note": "Jun distribution (DIARSC2615518074 — BOS ad-hoc statement)"},
             {"date": "2026-07-09", "amount_usd": 528.00, "note": "Jul distribution (DIARSC2618794052 — BOS ad-hoc statement)"},
+            {"date": "2026-08-12", "amount_usd": 492.80, "note": "Aug distribution (BOS transactions 12 Aug 2026)"},
         ],
     },
     {
