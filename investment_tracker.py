@@ -526,8 +526,9 @@ BOND_POSITIONS = [
             "Perpetual instrument — no guaranteed redemption date",
             "Subordinated: near bottom of capital stack in liquidation",
         ],
+        "coupon_freq": "Semi-annual",
         "coupons_received": [
-            # {"date": "2026-09-10", "amount_aud": 4453.13, "note": "Q1 coupon"}
+            {"date": "2026-08-13", "amount_aud": 8906.25, "note": "Semi-annual coupon (7.125% × A$250k ÷ 2) — BOS transactions 13 Aug 2026; paid to AUD account"},
         ],
     },
 ]
@@ -1786,6 +1787,9 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None, prev_clo
         total_monthly_usd += usd / 12
 
     total_rcvd = sum(c.get("amount_usd", 0) for f in FCN_POSITIONS for c in f.get("coupons_received", []))
+    # Include bond/AT1 coupons — may be paid in AUD; convert to USD for the income total.
+    total_rcvd += sum((c.get("amount_usd", 0) + c.get("amount_aud", 0) * AUDUSD)
+                      for b in BOND_POSITIONS for c in b.get("coupons_received", []))
     total_divs_rcvd = sum(d.get("amount_usd", 0) for h in DIRECT_HOLDINGS for d in h.get("dividends_received", []))
     n_safe   = sum(1 for s in fcn_stats if s == "SAFE")
     n_watch  = sum(1 for s in fcn_stats if s == "WATCH")
