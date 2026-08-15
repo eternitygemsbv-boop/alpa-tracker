@@ -1786,11 +1786,14 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None, prev_clo
         total_annual_usd  += usd
         total_monthly_usd += usd / 12
 
-    total_rcvd = sum(c.get("amount_usd", 0) for f in FCN_POSITIONS for c in f.get("coupons_received", []))
-    # Include bond/AT1 coupons — may be paid in AUD; convert to USD for the income total.
-    total_rcvd += sum((c.get("amount_usd", 0) + c.get("amount_aud", 0) * AUDUSD)
-                      for b in BOND_POSITIONS for c in b.get("coupons_received", []))
+    total_fcn_rcvd  = sum(c.get("amount_usd", 0) for f in FCN_POSITIONS for c in f.get("coupons_received", []))
+    # Bond/AT1 coupons — may be paid in AUD; convert to USD.
+    total_bond_aud  = sum(c.get("amount_aud", 0) for b in BOND_POSITIONS for c in b.get("coupons_received", []))
+    total_bond_rcvd = (sum(c.get("amount_usd", 0) for b in BOND_POSITIONS for c in b.get("coupons_received", []))
+                       + total_bond_aud * AUDUSD)
+    total_rcvd      = total_fcn_rcvd + total_bond_rcvd            # all coupons (FCN + bond), USD
     total_divs_rcvd = sum(d.get("amount_usd", 0) for h in DIRECT_HOLDINGS for d in h.get("dividends_received", []))
+    total_income_rcvd = total_rcvd + total_divs_rcvd             # coupons + dividends, USD
     n_safe   = sum(1 for s in fcn_stats if s == "SAFE")
     n_watch  = sum(1 for s in fcn_stats if s == "WATCH")
     n_breach = sum(1 for s in fcn_stats if s == "BREACH")
@@ -1919,14 +1922,24 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None, prev_clo
         <div style="font-size:11px;color:#64748b;margin-top:3px">${total_monthly_usd:,.0f}/month · FCNs &amp; bonds</div>
       </div>
       <div>
-        <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">Coupons received</div>
-        <div style="font-size:26px;font-weight:700;margin-top:4px">${total_rcvd:,.0f}</div>
+        <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">FCN coupons received</div>
+        <div style="font-size:26px;font-weight:700;margin-top:4px">${total_fcn_rcvd:,.0f}</div>
         <div style="font-size:11px;color:#64748b;margin-top:3px">FCN coupons logged to date</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">AT1 bond coupons</div>
+        <div style="font-size:26px;font-weight:700;margin-top:4px">${total_bond_rcvd:,.0f}</div>
+        <div style="font-size:11px;color:#64748b;margin-top:3px">A${total_bond_aud:,.0f} AUD → USD @ {AUDUSD:.4f}</div>
       </div>
       <div>
         <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">Dividends received</div>
         <div style="font-size:26px;font-weight:700;margin-top:4px;color:#16a34a">${total_divs_rcvd:,.0f}</div>
         <div style="font-size:11px;color:#64748b;margin-top:3px">ETF &amp; fund distributions to date</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">Total income received</div>
+        <div style="font-size:26px;font-weight:700;margin-top:4px;color:#16a34a">${total_income_rcvd:,.0f}</div>
+        <div style="font-size:11px;color:#64748b;margin-top:3px">Coupons + AT1 + dividends to date</div>
       </div>
     </div>
     <!-- Cash position row -->
@@ -1936,7 +1949,7 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None, prev_clo
         <div>
           <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">Total deposited</div>
           <div style="font-size:20px;font-weight:700;margin-top:3px">${TOTAL_CASH_DEPOSITED:,.0f}</div>
-          <div style="font-size:11px;color:#64748b;margin-top:2px">15 SWIFT transfers</div>
+          <div style="font-size:11px;color:#64748b;margin-top:2px">{len(CASH_TRANSFERS)} SWIFT transfers</div>
         </div>
         <div>
           <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">Deployed in positions</div>
