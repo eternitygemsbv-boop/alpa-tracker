@@ -112,6 +112,7 @@ TRADES_SINCE_STATEMENT = [
     {"date": "12 Aug 26", "description": "HSBC Aerospace FCN coupon — Period 1 (air_ge_saf, GE/SAF/AIR)", "cost_usd": +1_021.67},
     {"date": "12 Aug 26", "description": "Man Dynamic Income Fund dividend — Aug distribution", "cost_usd": +858.40},
     {"date": "12 Aug 26", "description": "Man Global InvGrade Opps Fund dividend — Aug distribution", "cost_usd": +492.80},
+    {"date": "17 Aug 26", "description": "QQQ accumulator delivery — 10 sh @ strike $573.977 (settles 18 Aug 2026)", "cost_usd": -5_739.77},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
