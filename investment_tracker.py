@@ -59,6 +59,7 @@ CASH_TRANSFERS = [
     {"date": "31 JUL 26", "amount_usd": 129_990.00},   # FT26211MPQDJ
     {"date": "05 AUG 26", "amount_usd": 90_000.00},    # FT26217279M3
     {"date": "05 AUG 26", "amount_usd": 130_000.00},   # FT26217DW9Z6
+    {"date": "20 AUG 26", "amount_usd": 80_000.00},    # FT26231RFR89
 ]
 TOTAL_CASH_DEPOSITED = sum(t["amount_usd"] for t in CASH_TRANSFERS)  # $2,079,910
 
@@ -113,6 +114,11 @@ TRADES_SINCE_STATEMENT = [
     {"date": "12 Aug 26", "description": "Man Dynamic Income Fund dividend — Aug distribution", "cost_usd": +858.40},
     {"date": "12 Aug 26", "description": "Man Global InvGrade Opps Fund dividend — Aug distribution", "cost_usd": +492.80},
     {"date": "17 Aug 26", "description": "QQQ accumulator delivery — 10 sh @ strike $573.977 (settles 18 Aug 2026)", "cost_usd": -5_739.77},
+    {"date": "19 Aug 26", "description": "HSBC Industrials FCN coupon — Period 2 (hon_su_sie)", "cost_usd": +1_014.17},
+    {"date": "19 Aug 26", "description": "SCB Banks FCN coupon — Period 2 (gs_jpm_ms)", "cost_usd": +1_791.60},
+    {"date": "19 Aug 26", "description": "MS Asia ETF FCN coupon — Period 2 (ms_asia_etf)", "cost_usd": +1_938.75},
+    {"date": "19 Aug 26", "description": "Nomura AMZN/ORCL FCN coupon — Period 1 (amzn_orcl)", "cost_usd": +1_721.25},
+    {"date": "20 Aug 26", "description": "Inward SWIFT deposit (FT26231RFR89)", "cost_usd": +80_000.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -279,6 +285,7 @@ FCN_POSITIONS = [
         ],
         "coupons_received": [
             {"date": "2026-07-20", "amount_usd": 1014.17, "note": "Period 1 (DIARSC2619697304 — BOS tran report 22 Jul 2026)"},
+            {"date": "2026-08-19", "amount_usd": 1014.17, "note": "Period 2 — BOS transactions 19 Aug 2026"},
         ],
     },
 
@@ -303,6 +310,7 @@ FCN_POSITIONS = [
         ],
         "coupons_received": [
             {"date": "2026-07-20", "amount_usd": 1791.60, "note": "Period 1 (DIARSC2619685568 — BOS tran report 22 Jul 2026)"},
+            {"date": "2026-08-19", "amount_usd": 1791.60, "note": "Period 2 — BOS transactions 19 Aug 2026"},
         ],
     },
 
@@ -326,6 +334,7 @@ FCN_POSITIONS = [
         ],
         "coupons_received": [
             {"date": "2026-07-21", "amount_usd": 1938.75, "note": "Period 1 (DIARSC2619772044 — BOS tran report 22 Jul 2026)"},
+            {"date": "2026-08-19", "amount_usd": 1938.75, "note": "Period 2 — BOS transactions 19 Aug 2026"},
         ],
     },
 
@@ -397,7 +406,9 @@ FCN_POSITIONS = [
             {"ticker": "AMZN", "name": "Amazon.com Inc",    "initial": 241.70, "ki_pct": 50, "strike_pct": 60, "ac_pct": 95, "currency": "USD"},
             {"ticker": "ORCL", "name": "Oracle Corporation", "initial": 144.51, "ki_pct": 50, "strike_pct": 60, "ac_pct": 95, "currency": "USD"},
         ],
-        "coupons_received": [],
+        "coupons_received": [
+            {"date": "2026-08-19", "amount_usd": 1721.25, "note": "Period 1 — BOS transactions 19 Aug 2026"},
+        ],
     },
 
     # ── 11. DRAM Single-ETF FCN — Roundhill DRAM Memory ETF  (Morgan Stanley, XS3427736569) ──
