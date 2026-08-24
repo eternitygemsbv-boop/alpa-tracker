@@ -789,6 +789,23 @@ ACCUMULATOR_POSITIONS = [
         "settled": True,                    # all 39 shares delivered in one lump sum; tracked in DIRECT_HOLDINGS
         "shares_delivered": 39,             # confirmed BOS 30 Jun 2026 statement ($35,870.09 total)
     },
+    # META Accumulator #2 — Bank of Singapore, trade date 21 Aug 2026 (SYACDC2623600208)
+    # Boosted Knock-Out Discount Accumulator (Guaranteed Period). 318 fixing dates over 33 periods.
+    # Notional $173,879.22 (boosted $347,758.44). 1 share/fixing, 2 boosted (below strike). ACTIVE.
+    {
+        "id": "meta_accumulator_2",
+        "name": "META Accumulator #2",
+        "issuer": "Bank of Singapore (SYACDC2623600208)",
+        "underlying_ticker": "META",
+        "underlying_name": "Meta Platforms Ord Shs Class A",
+        "start_date": "2026-08-24",         # effective date (trade 21 Aug 2026)
+        "end_date": "2027-11-26",           # period 33 end date (318 fixing dates)
+        "strike_price": 454.8199,           # 83.18% of spot 546.79
+        "knockout_price": 574.1295,         # 105% of spot 546.79
+        "guaranteed_end": "2026-10-16",     # guaranteed period: 21 Aug – 16 Oct 2026
+        "shares_per_day": 1,
+        "leverage_below_strike": 2,
+    },
 ]
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -803,7 +820,7 @@ MANUAL_PRICES = {
     "LLY":   1156.63,
     "DIA":   500.25,    # no update in this statement
     # US Tech
-    "META":  681.31,    # 15 Jul 2026
+    "META":  546.79,    # 21 Aug 2026 (spot from META Accu #2 confirmation; was 681.31 on 15 Jul)
     "GOOGL": 370.92,    # 15 Jul 2026
     "NVDA":  200.42,    # no update in this statement
     "MSFT":  395.63,    # 15 Jul 2026
