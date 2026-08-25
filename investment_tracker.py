@@ -60,6 +60,7 @@ CASH_TRANSFERS = [
     {"date": "05 AUG 26", "amount_usd": 90_000.00},    # FT26217279M3
     {"date": "05 AUG 26", "amount_usd": 130_000.00},   # FT26217DW9Z6
     {"date": "20 AUG 26", "amount_usd": 80_000.00},    # FT26231RFR89
+    {"date": "25 AUG 26", "amount_usd": 90_100.00},    # FT262362FB1T
 ]
 TOTAL_CASH_DEPOSITED = sum(t["amount_usd"] for t in CASH_TRANSFERS)  # $2,079,910
 
@@ -119,6 +120,7 @@ TRADES_SINCE_STATEMENT = [
     {"date": "19 Aug 26", "description": "MS Asia ETF FCN coupon — Period 2 (ms_asia_etf)", "cost_usd": +1_938.75},
     {"date": "19 Aug 26", "description": "Nomura AMZN/ORCL FCN coupon — Period 1 (amzn_orcl)", "cost_usd": +1_721.25},
     {"date": "20 Aug 26", "description": "Inward SWIFT deposit (FT26231RFR89)", "cost_usd": +80_000.00},
+    {"date": "25 Aug 26", "description": "Inward SWIFT deposit (FT262362FB1T)", "cost_usd": +90_100.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -839,7 +841,7 @@ MANUAL_PRICES = {
     "EWJ":   90.98,     # no update in this statement
     "CQQQ":  54.00,     # no update in this statement
     # Direct ETF holdings (15 Jul 2026 from BOS statement)
-    "GLD":   372.35,
+    "GLD":   423.09,    # 23 Aug 2026 (was 372.35 on 15 Jul; gold rallied)
     "OIH":   382.06,
     "SHLD":  60.26,     # Global X Defense Tech ETF (BOS 15 Jul 2026)
     # Bond funds (Man Group) — updated from BOS ad-hoc statement 15 Jul 2026
