@@ -121,6 +121,10 @@ TRADES_SINCE_STATEMENT = [
     {"date": "19 Aug 26", "description": "Nomura AMZN/ORCL FCN coupon — Period 1 (amzn_orcl)", "cost_usd": +1_721.25},
     {"date": "20 Aug 26", "description": "Inward SWIFT deposit (FT26231RFR89)", "cost_usd": +80_000.00},
     {"date": "25 Aug 26", "description": "Inward SWIFT deposit (FT262362FB1T)", "cost_usd": +90_100.00},
+    {"date": "25 Aug 26", "description": "Barclays GOOGL/AMZN/AVGO FCN — $100,000 (XS3473397845, settles 08 Sep 2026)", "cost_usd": -100_000.00},
+    {"date": "26 Aug 26", "description": "Barclays UBER/SPOT/NFLX FCN — $100,000 (XS3478985388, settles 09 Sep 2026)", "cost_usd": -100_000.00},
+    {"date": "26 Aug 26", "description": "OCBC TMO/JNJ/LLY FCN coupon — Period 1 (tmo_jnj_lly)", "cost_usd": +976.70},
+    {"date": "27 Aug 26", "description": "META accumulator #2 KO delivery — 39 sh @ strike $454.82 (SYACDC2623600208)", "cost_usd": -17_737.98},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -158,6 +162,12 @@ KNOWN_KO_EVENTS = {
         "ko_price":         771.33,      # SPY close 4 Aug 2026 (vs barrier 765.261)
         "ticker":           "SPY",
         "knockout_barrier": 765.2610,
+    },
+    "meta_accumulator_2": {
+        "ko_date":          "2026-08-26",
+        "ko_price":         578.77,      # META close 26 Aug 2026 (vs barrier 574.1295)
+        "ticker":           "META",
+        "knockout_barrier": 574.1295,
     },
 }
 
@@ -384,7 +394,9 @@ FCN_POSITIONS = [
             {"ticker": "JNJ",  "name": "Johnson & Johnson",             "initial": 268.00,   "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
             {"ticker": "LLY",  "name": "Eli Lilly and Co",              "initial": 1_211.79, "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
         ],
-        "coupons_received": [],
+        "coupons_received": [
+            {"date": "2026-08-26", "amount_usd": 976.70, "note": "Period 1 — BOS transactions 26 Aug 2026"},
+        ],
     },
 
     # ── 10. AMZN/ORCL Worst-of FCN  (Nomura, XS3384042803) ──
@@ -514,6 +526,54 @@ FCN_POSITIONS = [
         "underlyings": [
             {"ticker": "GLW", "name": "Corning Incorporated", "initial": 152.96,
              "ki_pct": 50, "strike_pct": 55, "ac_pct": 98, "currency": "USD"},
+        ],
+        "coupons_received": [],
+    },
+
+    # ── 15. GOOGL/AMZN/AVGO Worst-of FCN  (Barclays, XS3473397845) ──
+    # BOS narrative: "12M USD Barclays FCN - GOOGL.OQ, AMZN.OQ, AVGO.OQ 080927 XS3473397845"
+    # Trade 25-Aug-2026; settlement (issue) 08-Sep-2026; 12M term → maturity ~08-Sep-2027.
+    # *** PLACEHOLDER — upload term sheet for coupon rate, KI/Strike/AC levels and initial prices ***
+    {
+        "id": "googl_amzn_avgo",
+        "name": "GOOGL/AMZN/AVGO Worst-of FCN",
+        "issuer": "Barclays (ISIN: XS3473397845)",
+        "notional_usd": 100_000,
+        "coupon_monthly_pct": 0.0,      # ← unknown; update from term sheet
+        "coupon_annual_pct":  0.0,      # ← unknown; update from term sheet
+        "issue_date": "2026-09-08",
+        "maturity_date": "2027-09-08",  # ~12M from issue (080927); confirm from term sheet
+        "first_autocall_date": "2026-12-08",  # assumed ~3M non-call; confirm from term sheet
+        "autocall_freq": "TBC — confirm from term sheet",
+        "ki_type": "TBC — confirm from term sheet",
+        "underlyings": [
+            {"ticker": "GOOGL", "name": "Alphabet Inc Class A", "initial": 1.0, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "AMZN",  "name": "Amazon.com Inc",       "initial": 1.0, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "AVGO",  "name": "Broadcom Inc",         "initial": 1.0, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
+        ],
+        "coupons_received": [],
+    },
+
+    # ── 16. UBER/SPOT/NFLX Worst-of FCN  (Barclays, XS3478985388) ──
+    # BOS narrative: "12M USD Barclays FCN - UBER.N, SPOT.N, NFLX.OQ 090927 XS3478985388"
+    # Trade 26-Aug-2026; settlement (issue) 09-Sep-2026; 12M term → maturity ~09-Sep-2027.
+    # *** PLACEHOLDER — upload term sheet for coupon rate, KI/Strike/AC levels and initial prices ***
+    {
+        "id": "uber_spot_nflx",
+        "name": "UBER/SPOT/NFLX Worst-of FCN",
+        "issuer": "Barclays (ISIN: XS3478985388)",
+        "notional_usd": 100_000,
+        "coupon_monthly_pct": 0.0,      # ← unknown; update from term sheet
+        "coupon_annual_pct":  0.0,      # ← unknown; update from term sheet
+        "issue_date": "2026-09-09",
+        "maturity_date": "2027-09-09",  # ~12M from issue (090927); confirm from term sheet
+        "first_autocall_date": "2026-12-09",  # assumed ~3M non-call; confirm from term sheet
+        "autocall_freq": "TBC — confirm from term sheet",
+        "ki_type": "TBC — confirm from term sheet",
+        "underlyings": [
+            {"ticker": "UBER", "name": "Uber Technologies Inc", "initial": 1.0, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "SPOT", "name": "Spotify Technology SA", "initial": 1.0, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "NFLX", "name": "Netflix Inc",           "initial": 1.0, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
         ],
         "coupons_received": [],
     },
@@ -654,6 +714,16 @@ DIRECT_HOLDINGS = [
         "purchase_price": 464.0166,  # strike price = cost basis; total $17,632.63 (SCTRSC2618361926)
         "currency": "USD",
         "note": "38 sh from META Accu (KO 1 Jul 2026, close $612.91 vs barrier $590.0458); guaranteed period 18 Jun–13 Aug 2026",
+    },
+    {
+        "id": "meta_shares_2",
+        "name": "Meta Platforms Class A (accumulator #2 delivery)",
+        "ticker": "META",
+        "isin": "US30303M1027",
+        "shares": 39,
+        "purchase_price": 454.8199,  # strike = cost basis; 39 guaranteed-period sh total $17,737.98 (value 27 Aug)
+        "currency": "USD",
+        "note": "39 sh from META Accu #2 (KO 26 Aug 2026, close $578.77 vs barrier $574.1295); guaranteed period 21 Aug–16 Oct 2026",
     },
     # SPY Accumulator KO'd 4 Aug 2026 (close $771.33 vs barrier $765.261) → shares settled to equity here.
     {
@@ -807,6 +877,8 @@ ACCUMULATOR_POSITIONS = [
         "guaranteed_end": "2026-10-16",     # guaranteed period: 21 Aug – 16 Oct 2026
         "shares_per_day": 1,
         "leverage_below_strike": 2,
+        "settled": True,                    # KO'd 26 Aug 2026 (META close $578.77 >= $574.1295); 39 guaranteed-period shares delivered
+        "shares_delivered": 39,             # full guaranteed-period delivery at strike $454.82 ($17,737.98, value 27 Aug)
     },
 ]
 
@@ -818,14 +890,14 @@ ACCUMULATOR_POSITIONS = [
 MANUAL_PRICES = {
     # USD ETFs (15 Jul 2026 prices from BOS ad-hoc statement; SPY updated 5 Aug post-KO)
     "SPY":   769.79,    # 5 Aug 2026 close (accumulator KO'd 4 Aug at $771.33)
-    "QQQ":   717.74,
-    "LLY":   1156.63,
+    "QQQ":   705.16,
+    "LLY":   1255.40,
     "DIA":   500.25,    # no update in this statement
     # US Tech
-    "META":  546.79,    # 21 Aug 2026 (spot from META Accu #2 confirmation; was 681.31 on 15 Jul)
-    "GOOGL": 370.92,    # 15 Jul 2026
+    "META":  578.77,    # 26 Aug 2026 close (META Accu #2 KO day)
+    "GOOGL": 348.83,    # 15 Jul 2026
     "NVDA":  200.42,    # no update in this statement
-    "MSFT":  395.63,    # 15 Jul 2026
+    "MSFT":  486.10,    # 15 Jul 2026
     # Semiconductors
     "INTC":  107.04,    # no update in this statement
     "TSM":   408.75,    # no update in this statement
@@ -870,6 +942,12 @@ MANUAL_PRICES = {
     "TSLA":  312.73,    # USD — Tesla, Inc. initial
     # Corning FCN underlying (Barclays XS3457845785) — yfinance ticker "GLW"; fallback = initial price
     "GLW":   152.96,    # USD — Corning Inc initial price 6 Aug 2026 (yfinance fetches GLW live)
+    # New Barclays FCN underlyings (XS3473397845 GOOGL/AMZN/AVGO, XS3478985388 UBER/SPOT/NFLX)
+    # yfinance fetches these live; placeholders pending term sheets
+    "AVGO":  1.0,       # ← placeholder; update initial from term sheet
+    "UBER":  1.0,       # ← placeholder; update initial from term sheet
+    "SPOT":  1.0,       # ← placeholder; update initial from term sheet
+    "NFLX":  1.0,       # ← placeholder; update initial from term sheet
 }
 MANUAL_PRICES_DATE = "2026-07-15"
 
