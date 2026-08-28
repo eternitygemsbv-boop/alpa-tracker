@@ -179,17 +179,23 @@ KNOWN_KO_EVENTS = {
 FCN_POSITIONS = [
 
     # ── 1. US Index Worst-of FCN — SPY / QQQ / DIA  (BNP Paribas, XS3358849498) ─
+    # *** AUTOCALLED 27 Aug 2026 *** — all 3 closed >= 100% initial on first obs date
+    #   (SPY ~768>=738.37, QQQ 718.66>=709.75, DIA ~535>=496.29). Redeems at par $100,000
+    #   + final Period-3 coupon $770, expected value ~1 Sep 2026. Confirm from BOS statement,
+    #   then move $100k to cash and retire this note.
     {
         "id": "spy_qqq_dia",
         "name": "US Index Worst-of FCN",
         "issuer": "BNP Paribas (ISIN: XS3358849498)",
         "notional_usd": 100_000,
+        "autocalled": True,
+        "autocall_date": "2026-08-27",
         "coupon_monthly_pct": 0.77,
         "coupon_annual_pct": 9.24,
         "issue_date": "2026-05-13",
         "maturity_date": "2027-06-01",
         "first_autocall_date": "2026-08-27",
-        "autocall_freq": "Monthly",
+        "autocall_freq": "Monthly — AUTOCALLED on first obs 27 Aug 2026",
         "ki_type": "European — KI at 80%, Strike at 90%; checked only at Determination Date (27 May 2027)",
         "underlyings": [
             {"ticker": "SPY", "name": "SPDR S&P 500 ETF",  "initial": 738.37, "ki_pct": 80, "strike_pct": 90, "ac_pct": 100},
