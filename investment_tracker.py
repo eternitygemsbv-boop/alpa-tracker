@@ -537,25 +537,28 @@ FCN_POSITIONS = [
     },
 
     # ── 15. GOOGL/AMZN/AVGO Worst-of FCN  (Barclays, XS3473397845) ──
-    # BOS narrative: "12M USD Barclays FCN - GOOGL.OQ, AMZN.OQ, AVGO.OQ 080927 XS3473397845"
-    # Trade 25-Aug-2026; settlement (issue) 08-Sep-2026; 12M term → maturity ~08-Sep-2027.
-    # *** PLACEHOLDER — upload term sheet for coupon rate, KI/Strike/AC levels and initial prices ***
+    # Final term sheet 25-Aug-2026 (Barclays Bank PLC, A1/A+/AA-). Basket of 3 shares.
+    # Trade/Initial Valuation 25-Aug-2026; issue 08-Sep-2026; Final Valuation 08-Sep-2027; Redemption 10-Sep-2027.
+    # Coupon 0.9817% per period ($981.70/month). Autocall (trigger 95%) ONLY from the 6th Interest
+    #   Valuation Date (08-Mar-2027); Periods 1–5 are NON-CALL. KI 60% European (Final Val Date only); Strike 70%.
+    # NOTE: first_autocall_date set to 2026-12-08 as COUPON-SCHEDULE ANCHOR (first coupon 08-Oct-2026);
+    #   TRUE first autocall observation is 08-Mar-2027 (Period 6) — see autocall_freq.
     {
         "id": "googl_amzn_avgo",
         "name": "GOOGL/AMZN/AVGO Worst-of FCN",
-        "issuer": "Barclays (ISIN: XS3473397845)",
+        "issuer": "Barclays Bank PLC (ISIN: XS3473397845, A1/A+/AA-)",
         "notional_usd": 100_000,
-        "coupon_monthly_pct": 0.0,      # ← unknown; update from term sheet
-        "coupon_annual_pct":  0.0,      # ← unknown; update from term sheet
+        "coupon_monthly_pct": 0.9817,   # 0.9817% per period
+        "coupon_annual_pct": 11.7804,   # 0.9817% × 12
         "issue_date": "2026-09-08",
-        "maturity_date": "2027-09-08",  # ~12M from issue (080927); confirm from term sheet
-        "first_autocall_date": "2026-12-08",  # assumed ~3M non-call; confirm from term sheet
-        "autocall_freq": "TBC — confirm from term sheet",
-        "ki_type": "TBC — confirm from term sheet",
+        "maturity_date": "2027-09-10",  # Redemption Date (2 biz days after Final Valuation 08-Sep-2027)
+        "first_autocall_date": "2026-12-08",  # COUPON-SCHEDULE ANCHOR ONLY (first coupon 08-Oct-2026); true autocall 08-Mar-2027
+        "autocall_freq": "Autocall from Period 6 (08-Mar-2027) to maturity; Periods 1–5 are NON-CALL",
+        "ki_type": "European — KI at 60% of initial; checked ONLY at Final Valuation Date (08-Sep-2027); Strike at 70%",
         "underlyings": [
-            {"ticker": "GOOGL", "name": "Alphabet Inc Class A", "initial": 1.0, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
-            {"ticker": "AMZN",  "name": "Amazon.com Inc",       "initial": 1.0, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
-            {"ticker": "AVGO",  "name": "Broadcom Inc",         "initial": 1.0, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "GOOGL", "name": "Alphabet Inc Class A", "initial": 349.51, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "AMZN",  "name": "Amazon.com Inc",       "initial": 262.73, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "AVGO",  "name": "Broadcom Inc",         "initial": 360.97, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
         ],
         "coupons_received": [],
     },
@@ -950,7 +953,8 @@ MANUAL_PRICES = {
     "GLW":   152.96,    # USD — Corning Inc initial price 6 Aug 2026 (yfinance fetches GLW live)
     # New Barclays FCN underlyings (XS3473397845 GOOGL/AMZN/AVGO, XS3478985388 UBER/SPOT/NFLX)
     # yfinance fetches these live; placeholders pending term sheets
-    "AVGO":  1.0,       # ← placeholder; update initial from term sheet
+    "AVGO":  360.97,    # Broadcom initial 25 Aug 2026 (Barclays XS3473397845)
+    "AMZN":  262.73,    # Amazon initial 25 Aug 2026 (fallback; yfinance fetches live)
     "UBER":  1.0,       # ← placeholder; update initial from term sheet
     "SPOT":  1.0,       # ← placeholder; update initial from term sheet
     "NFLX":  1.0,       # ← placeholder; update initial from term sheet
