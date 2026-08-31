@@ -125,6 +125,8 @@ TRADES_SINCE_STATEMENT = [
     {"date": "26 Aug 26", "description": "Barclays UBER/SPOT/NFLX FCN — $100,000 (XS3478985388, settles 09 Sep 2026)", "cost_usd": -100_000.00},
     {"date": "26 Aug 26", "description": "OCBC TMO/JNJ/LLY FCN coupon — Period 1 (tmo_jnj_lly)", "cost_usd": +976.70},
     {"date": "27 Aug 26", "description": "META accumulator #2 KO delivery — 39 sh @ strike $454.82 (SYACDC2623600208)", "cost_usd": -17_737.98},
+    {"date": "31 Aug 26", "description": "US Index FCN autocall — final Period 3 coupon (spy_qqq_dia, BNP)", "cost_usd": +770.00},
+    {"date": "31 Aug 26", "description": "US Index FCN autocall — par redemption $100,000 (spy_qqq_dia, XS3358849498)", "cost_usd": +100_000.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -205,6 +207,7 @@ FCN_POSITIONS = [
         "coupons_received": [
             {"date": "2026-07-01", "amount_usd": 770.00, "note": "Period 1 — confirmed BOS transaction report 3 Jul 2026"},
             {"date": "2026-07-29", "amount_usd": 770.00, "note": "Period 2 (DIARSC2620505085 — BOS tran report 4 Aug 2026)"},
+            {"date": "2026-08-31", "amount_usd": 770.00, "note": "Period 3 / final — paid with autocall redemption 31 Aug 2026"},
         ],
     },
 
@@ -1546,18 +1549,34 @@ def fcn_card(fcn, prices):
     b_clr   = STATUS_COLOR.get(overall, "#94a3b8")
     b_lbl   = STATUS_LABEL.get(overall, overall)
 
-    return (f'<div class="card">'
+    # ── Autocalled (redeemed) notes: show a clear REDEEMED badge + banner, dim the card ──
+    autocalled = fcn.get("autocalled")
+    if autocalled:
+        b_clr = "#0ea5e9"
+        b_lbl = "AUTOCALLED · REDEEMED"
+        ac_banner = (f'<div style="background:#e0f2fe;border:1px solid #7dd3fc;border-radius:8px;'
+                     f'padding:9px 12px;margin:10px 0;font-size:12px;color:#075985">'
+                     f'✓ <strong>Autocalled {fcn.get("autocall_date","")}</strong> — redeemed early at par '
+                     f'(${notional:,.0f} returned to cash) plus final coupon. No longer an active position; '
+                     f'coupons received are retained in totals below.</div>')
+        card_style = ' style="opacity:.72"'
+    else:
+        ac_banner = ""
+        card_style = ""
+
+    return (f'<div class="card"{card_style}>'
             f'<div class="ch"><div>'
             f'<div class="ct">{fcn["name"]} &nbsp;<span class="badge" style="background:{b_clr}">{b_lbl}</span></div>'
             f'<div class="cm">{fcn["issuer"]} · Notional: {n_str} · Coupon: {a_pct:.2f}% p.a. ({m_str})</div>'
             f'<div class="cm">Maturity: {fcn.get("maturity_date","—")} · First autocall: {fcn.get("first_autocall_date","—")} · {fcn.get("autocall_freq","—")}</div>'
             f'<div class="cm">KI type: {fcn.get("ki_type","—")}</div>'
             f'</div></div>'
+            f'{ac_banner}'
             f'{rows}'
             f'<div class="is"><div style="font-weight:700;font-size:13px;margin-bottom:10px">Coupon Income</div>'
             f'<div class="ig">'
-            f'<div><div class="il">Monthly income</div><div class="iv">{m_str}</div></div>'
-            f'<div><div class="il">Annual income</div><div class="iv">{a_str}</div></div>'
+            f'<div><div class="il">Monthly income</div><div class="iv">{"— (redeemed)" if autocalled else m_str}</div></div>'
+            f'<div><div class="il">Annual income</div><div class="iv">{"— (redeemed)" if autocalled else a_str}</div></div>'
             f'<div><div class="il">Total received</div><div class="iv">${total_rcvd:,.2f}</div></div>'
             f'</div>{coupon_html}</div></div>')
 
@@ -1873,7 +1892,8 @@ def holding_card(h, prices, prev_closes=None):
 def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None, prev_closes=None):
     now = datetime.now().strftime("%d %b %Y, %H:%M")
 
-    fcn_cards   = "".join(fcn_card(f, prices) for f in FCN_POSITIONS)
+    # Active notes first, autocalled/redeemed notes sorted to the bottom
+    fcn_cards   = "".join(fcn_card(f, prices) for f in sorted(FCN_POSITIONS, key=lambda x: bool(x.get("autocalled"))))
     bond_cards  = "".join(bond_card(b) for b in BOND_POSITIONS)
     active_accums  = [a for a in ACCUMULATOR_POSITIONS if not a.get("settled")]
     settled_accums = [a for a in ACCUMULATOR_POSITIONS if a.get("settled")]
@@ -1894,6 +1914,8 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None, prev_clo
     total_monthly_usd = 0.0
     total_annual_usd  = 0.0
     for f in FCN_POSITIONS:
+        if f.get("autocalled"):          # redeemed — no forward income
+            continue
         n = f.get("notional_usd") or 0
         m = f.get("coupon_monthly_pct") or 0
         a = f.get("coupon_annual_pct") or (m * 12)
@@ -1919,7 +1941,8 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None, prev_clo
 
     # ── Portfolio value & P&L ───────────────────────────────────────────────────
     # FCNs & bonds: held at par (no secondary market price available)
-    total_fcn_notional = sum((f.get("notional_usd") or 0) for f in FCN_POSITIONS)
+    # Autocalled notes are excluded — their par has been redeemed to cash (in TRADES_SINCE_STATEMENT).
+    total_fcn_notional = sum((f.get("notional_usd") or 0) for f in FCN_POSITIONS if not f.get("autocalled"))
     total_bond_usd = 0.0
     for b in BOND_POSITIONS:
         n   = b.get("notional", 0)
@@ -2105,8 +2128,8 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None, prev_clo
   <!-- FCN stats row -->
   <div class="sg">
     <div class="sc"><div class="sl">FCN Positions</div>
-      <div class="sv">{len(FCN_POSITIONS)}</div>
-      <div class="ss">{n_safe} safe · {n_watch} watch · {n_breach} breach</div></div>
+      <div class="sv">{sum(1 for f in FCN_POSITIONS if not f.get("autocalled"))}</div>
+      <div class="ss">{n_safe} safe · {n_watch} watch · {n_breach} breach · {sum(1 for f in FCN_POSITIONS if f.get("autocalled"))} autocalled</div></div>
     <div class="sc"><div class="sl">Accumulator positions</div>
       <div class="sv">{len(active_accums)}</div>
       <div class="ss">Active · {len(settled_accums)} settled</div></div>
