@@ -127,6 +127,8 @@ TRADES_SINCE_STATEMENT = [
     {"date": "27 Aug 26", "description": "META accumulator #2 KO delivery — 39 sh @ strike $454.82 (SYACDC2623600208)", "cost_usd": -17_737.98},
     {"date": "31 Aug 26", "description": "US Index FCN autocall — final Period 3 coupon (spy_qqq_dia, BNP)", "cost_usd": +770.00},
     {"date": "31 Aug 26", "description": "US Index FCN autocall — par redemption $100,000 (spy_qqq_dia, XS3358849498)", "cost_usd": +100_000.00},
+    {"date": "31 Aug 26", "description": "QQQ accumulator delivery — 10 sh @ strike $573.977 (SCTRSC2624477919, settles 1 Sep)", "cost_usd": -5_739.77},
+    {"date": "31 Aug 26", "description": "USD current-account interest credit (value 01 Sep 2026)", "cost_usd": +222.21},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
