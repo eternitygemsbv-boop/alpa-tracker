@@ -567,25 +567,28 @@ FCN_POSITIONS = [
     },
 
     # ── 16. UBER/SPOT/NFLX Worst-of FCN  (Barclays, XS3478985388) ──
-    # BOS narrative: "12M USD Barclays FCN - UBER.N, SPOT.N, NFLX.OQ 090927 XS3478985388"
-    # Trade 26-Aug-2026; settlement (issue) 09-Sep-2026; 12M term → maturity ~09-Sep-2027.
-    # *** PLACEHOLDER — upload term sheet for coupon rate, KI/Strike/AC levels and initial prices ***
+    # Final term sheet 26-Aug-2026 (Barclays Bank PLC, A1/A+/AA-). Basket of 3 shares.
+    # Trade/Initial Valuation 26-Aug-2026; issue 09-Sep-2026; Final Valuation 09-Sep-2027; Redemption 13-Sep-2027.
+    # Coupon 1.0100% per period ($1,010/month). Autocall (trigger 100%) ONLY from the 6th Interest
+    #   Valuation Date (09-Mar-2027); Periods 1–5 are NON-CALL. KI 55% European (Final Val Date only); Strike 65%.
+    # NOTE: first_autocall_date set to 2026-12-09 as COUPON-SCHEDULE ANCHOR (first coupon 09-Oct-2026);
+    #   TRUE first autocall observation is 09-Mar-2027 (Period 6) — see autocall_freq.
     {
         "id": "uber_spot_nflx",
         "name": "UBER/SPOT/NFLX Worst-of FCN",
-        "issuer": "Barclays (ISIN: XS3478985388)",
+        "issuer": "Barclays Bank PLC (ISIN: XS3478985388, A1/A+/AA-)",
         "notional_usd": 100_000,
-        "coupon_monthly_pct": 0.0,      # ← unknown; update from term sheet
-        "coupon_annual_pct":  0.0,      # ← unknown; update from term sheet
+        "coupon_monthly_pct": 1.0100,   # 1.0100% per period
+        "coupon_annual_pct": 12.12,     # 1.0100% × 12
         "issue_date": "2026-09-09",
-        "maturity_date": "2027-09-09",  # ~12M from issue (090927); confirm from term sheet
-        "first_autocall_date": "2026-12-09",  # assumed ~3M non-call; confirm from term sheet
-        "autocall_freq": "TBC — confirm from term sheet",
-        "ki_type": "TBC — confirm from term sheet",
+        "maturity_date": "2027-09-13",  # Redemption Date (2 biz days after Final Valuation 09-Sep-2027)
+        "first_autocall_date": "2026-12-09",  # COUPON-SCHEDULE ANCHOR ONLY (first coupon 09-Oct-2026); true autocall 09-Mar-2027
+        "autocall_freq": "Autocall from Period 6 (09-Mar-2027) to maturity; Periods 1–5 are NON-CALL",
+        "ki_type": "European — KI at 55% of initial; checked ONLY at Final Valuation Date (09-Sep-2027); Strike at 65%",
         "underlyings": [
-            {"ticker": "UBER", "name": "Uber Technologies Inc", "initial": 1.0, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
-            {"ticker": "SPOT", "name": "Spotify Technology SA", "initial": 1.0, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
-            {"ticker": "NFLX", "name": "Netflix Inc",           "initial": 1.0, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "UBER", "name": "Uber Technologies Inc", "initial": 81.56,  "ki_pct": 55, "strike_pct": 65, "ac_pct": 100, "currency": "USD"},
+            {"ticker": "SPOT", "name": "Spotify Technology SA", "initial": 550.00, "ki_pct": 55, "strike_pct": 65, "ac_pct": 100, "currency": "USD"},
+            {"ticker": "NFLX", "name": "Netflix Inc",           "initial": 81.84,  "ki_pct": 55, "strike_pct": 65, "ac_pct": 100, "currency": "USD"},
         ],
         "coupons_received": [],
     },
@@ -958,9 +961,9 @@ MANUAL_PRICES = {
     # yfinance fetches these live; placeholders pending term sheets
     "AVGO":  360.97,    # Broadcom initial 25 Aug 2026 (Barclays XS3473397845)
     "AMZN":  262.73,    # Amazon initial 25 Aug 2026 (fallback; yfinance fetches live)
-    "UBER":  1.0,       # ← placeholder; update initial from term sheet
-    "SPOT":  1.0,       # ← placeholder; update initial from term sheet
-    "NFLX":  1.0,       # ← placeholder; update initial from term sheet
+    "UBER":  81.56,   # initial 26 Aug 2026 (Barclays XS3478985388; yfinance live)
+    "SPOT":  550.00,   # initial 26 Aug 2026 (Barclays XS3478985388; yfinance live)
+    "NFLX":  81.84,   # initial 26 Aug 2026 (Barclays XS3478985388; yfinance live)
 }
 MANUAL_PRICES_DATE = "2026-07-15"
 
