@@ -129,6 +129,7 @@ TRADES_SINCE_STATEMENT = [
     {"date": "31 Aug 26", "description": "US Index FCN autocall — par redemption $100,000 (spy_qqq_dia, XS3358849498)", "cost_usd": +100_000.00},
     {"date": "31 Aug 26", "description": "QQQ accumulator delivery — 10 sh @ strike $573.977 (SCTRSC2624477919, settles 1 Sep)", "cost_usd": -5_739.77},
     {"date": "31 Aug 26", "description": "USD current-account interest credit (value 01 Sep 2026)", "cost_usd": +222.21},
+    {"date": "01 Sep 26", "description": "HSBC US Tech FCN coupon — Period 3 (meta_googl_nvda)", "cost_usd": +1_083.33},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -234,6 +235,7 @@ FCN_POSITIONS = [
         "coupons_received": [
             {"date": "2026-07-01", "amount_usd": 1083.33, "note": "Period 1 — confirmed BOS transaction report 3 Jul 2026"},
             {"date": "2026-07-30", "amount_usd": 1083.33, "note": "Period 2 (DIARSC2620873375 — BOS tran report 4 Aug 2026)"},
+            {"date": "2026-09-01", "amount_usd": 1083.33, "note": "Period 3 — BOS transactions 1 Sep 2026"},
         ],
     },
 
