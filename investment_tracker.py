@@ -82,54 +82,22 @@ TOTAL_CASH_DEPOSITED = sum(t["amount_usd"] for t in CASH_TRANSFERS)  # $2,079,91
 DASHBOARD_USER     = "alpa"
 DASHBOARD_PASSWORD = "invest2026"
 
-CASH_BALANCE_BOS    = 214_950.33
-CASH_BALANCE_DATE   = "15 Jul 2026"   # BOS ad-hoc statement (generated 16 Jul 2026 16:27)
-# Note: $214,950.33 already includes both pending debits:
-#   − $150,000 Nomura AMZN/ORCL FCN settlement (value date 16 Jul 2026)
-#   − $100,000 OCBC TMO/JNJ/LLY FCN settlement (value date 22 Jul 2026)
+CASH_BALANCE_BOS    = 211_325.00
+CASH_BALANCE_DATE   = "1 Sep 2026"    # Re-baselined to BOS app USD current-account balance (reconciled vs 15 Jul–1 Sep export)
+# This is the bank's authoritative "balance including pending payables" as of 1 Sep 2026.
+# It ALREADY includes the two pending Barclays FCN settlements:
+#   − $100,000 GOOGL/AMZN/AVGO FCN (value date 08 Sep 2026)
+#   − $100,000 UBER/SPOT/NFLX FCN (value date 09 Sep 2026)
+# Everything through 1 Sep (all coupons/dividends/deposits/purchases/autocall redemption) is baked in.
+# Prior 15 Jul baseline ($214,950.33) accumulated ~$3.3k of drift from pending-settlement timing; this reset clears it.
 
 # New trades / deposits since the last BOS statement.
 # cost_usd: positive = cash in (deposit/dividend), negative = cash out (purchase).
 TRADES_SINCE_STATEMENT = [
-    # All activity through 15 Jul 2026 (incl. pending FCN settlements) is baked
-    # into $214,950.33 above. Items below are all post-15-Jul-2026.
-    # OCBC TMO/JNJ/LLY FCN settlement (22 Jul 2026, $100k) already in the balance.
-    {"date": "20 Jul 26", "description": "SCB Banks FCN coupon — Period 1 (gs_jpm_ms, DIARSC2619685568)", "cost_usd": +1_791.60},
-    {"date": "20 Jul 26", "description": "HSBC Industrials FCN coupon — Period 1 (hon_su_sie, DIARSC2619697304)", "cost_usd": +1_014.17},
-    {"date": "20 Jul 26", "description": "QQQ accumulator delivery — 10 sh @ strike $573.977 (SCTRSC2620257535)", "cost_usd": -5_739.77},
-    {"date": "20 Jul 26", "description": "MS Roundhill DRAM Memory ETF FCN — $100,000 (XS3427736569, settles 03 Aug 2026)", "cost_usd": -100_000.00},
-    {"date": "21 Jul 26", "description": "MS Asia ETF FCN coupon — Period 1 (ms_asia_etf, DIARSC2619772044)", "cost_usd": +1_938.75},
-    {"date": "22 Jul 26", "description": "BNP Gold Miners FCN — $100,000 (AAL.L/NEM/B, XS3433078295, settles 05 Aug 2026)", "cost_usd": -100_000.00},
-    {"date": "23 Jul 26", "description": "SPY accumulator delivery — 10 sh @ strike $621.829 (SCTRSC2620598671)", "cost_usd": -6_218.29},
-    {"date": "27 Jul 26", "description": "JPM AAPL/TSLA FCN — $100,000 (XS3407131419, settles 10 Aug 2026)", "cost_usd": -100_000.00},
-    {"date": "29 Jul 26", "description": "BNP US Index FCN coupon — Period 2 (spy_qqq_dia, DIARSC2620505085)", "cost_usd": +770.00},
-    {"date": "29 Jul 26", "description": "Custody fee (01 Apr–30 Jun 2026, FT26210SLWCJ)", "cost_usd": -454.67},
-    {"date": "30 Jul 26", "description": "HSBC US Tech FCN coupon — Period 2 (meta_googl_nvda, DIARSC2620873375)", "cost_usd": +1_083.33},
-    {"date": "31 Jul 26", "description": "USD current-account interest credit (value 01 Aug 2026)", "cost_usd": +474.29},
-    {"date": "31 Jul 26", "description": "Inward SWIFT deposit (FT26211MPQDJ)", "cost_usd": +129_990.00},
-    {"date": "04 Aug 26", "description": "SPY accumulator delivery — 7 sh @ strike $621.829 (SCTRSC2621774202)", "cost_usd": -4_352.80},
-    {"date": "05 Aug 26", "description": "Inward SWIFT deposit (FT26217279M3)", "cost_usd": +90_000.00},
-    {"date": "05 Aug 26", "description": "Inward SWIFT deposit (FT26217DW9Z6)", "cost_usd": +130_000.00},
-    {"date": "06 Aug 26", "description": "Barclays Corning (GLW) FCN — $100,000 (XS3457845785, settles 20 Aug 2026)", "cost_usd": -100_000.00},
-    {"date": "12 Aug 26", "description": "HSBC Aerospace FCN coupon — Period 1 (air_ge_saf, GE/SAF/AIR)", "cost_usd": +1_021.67},
-    {"date": "12 Aug 26", "description": "Man Dynamic Income Fund dividend — Aug distribution", "cost_usd": +858.40},
-    {"date": "12 Aug 26", "description": "Man Global InvGrade Opps Fund dividend — Aug distribution", "cost_usd": +492.80},
-    {"date": "17 Aug 26", "description": "QQQ accumulator delivery — 10 sh @ strike $573.977 (settles 18 Aug 2026)", "cost_usd": -5_739.77},
-    {"date": "19 Aug 26", "description": "HSBC Industrials FCN coupon — Period 2 (hon_su_sie)", "cost_usd": +1_014.17},
-    {"date": "19 Aug 26", "description": "SCB Banks FCN coupon — Period 2 (gs_jpm_ms)", "cost_usd": +1_791.60},
-    {"date": "19 Aug 26", "description": "MS Asia ETF FCN coupon — Period 2 (ms_asia_etf)", "cost_usd": +1_938.75},
-    {"date": "19 Aug 26", "description": "Nomura AMZN/ORCL FCN coupon — Period 1 (amzn_orcl)", "cost_usd": +1_721.25},
-    {"date": "20 Aug 26", "description": "Inward SWIFT deposit (FT26231RFR89)", "cost_usd": +80_000.00},
-    {"date": "25 Aug 26", "description": "Inward SWIFT deposit (FT262362FB1T)", "cost_usd": +90_100.00},
-    {"date": "25 Aug 26", "description": "Barclays GOOGL/AMZN/AVGO FCN — $100,000 (XS3473397845, settles 08 Sep 2026)", "cost_usd": -100_000.00},
-    {"date": "26 Aug 26", "description": "Barclays UBER/SPOT/NFLX FCN — $100,000 (XS3478985388, settles 09 Sep 2026)", "cost_usd": -100_000.00},
-    {"date": "26 Aug 26", "description": "OCBC TMO/JNJ/LLY FCN coupon — Period 1 (tmo_jnj_lly)", "cost_usd": +976.70},
-    {"date": "27 Aug 26", "description": "META accumulator #2 KO delivery — 39 sh @ strike $454.82 (SYACDC2623600208)", "cost_usd": -17_737.98},
-    {"date": "31 Aug 26", "description": "US Index FCN autocall — final Period 3 coupon (spy_qqq_dia, BNP)", "cost_usd": +770.00},
-    {"date": "31 Aug 26", "description": "US Index FCN autocall — par redemption $100,000 (spy_qqq_dia, XS3358849498)", "cost_usd": +100_000.00},
-    {"date": "31 Aug 26", "description": "QQQ accumulator delivery — 10 sh @ strike $573.977 (SCTRSC2624477919, settles 1 Sep)", "cost_usd": -5_739.77},
-    {"date": "31 Aug 26", "description": "USD current-account interest credit (value 01 Sep 2026)", "cost_usd": +222.21},
-    {"date": "01 Sep 26", "description": "HSBC US Tech FCN coupon — Period 3 (meta_googl_nvda)", "cost_usd": +1_083.33},
+    # Re-baselined to $211,325.00 as of 1 Sep 2026 (reconciled vs BOS 15 Jul–1 Sep export).
+    # ALL activity through 1 Sep 2026 is baked into the balance above, INCLUDING the two
+    # pending Barclays FCN settlements (GOOGL/AMZN/AVGO 08 Sep, UBER/SPOT/NFLX 09 Sep).
+    # Add ONLY new post-1-Sep-2026 movements here.
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
