@@ -1873,8 +1873,13 @@ def holding_card(h, prices, prev_closes=None):
 def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None, prev_closes=None):
     now = datetime.now().strftime("%d %b %Y, %H:%M")
 
-    # Active notes first, autocalled/redeemed notes sorted to the bottom
-    fcn_cards   = "".join(fcn_card(f, prices) for f in sorted(FCN_POSITIONS, key=lambda x: bool(x.get("autocalled"))))
+    # Live FCNs in the main section; autocalled/redeemed FCNs moved to a section at the very bottom
+    active_fcns     = [f for f in FCN_POSITIONS if not f.get("autocalled")]
+    autocalled_fcns = [f for f in FCN_POSITIONS if f.get("autocalled")]
+    fcn_cards            = "".join(fcn_card(f, prices) for f in active_fcns)
+    autocalled_fcn_cards = "".join(fcn_card(f, prices) for f in autocalled_fcns)
+    redeemed_fcn_sec = (f'<div class="sec" style="color:#94a3b8">Redeemed / Autocalled FCNs (capital returned to cash)</div>{autocalled_fcn_cards}'
+                        if autocalled_fcns else "")
     bond_cards  = "".join(bond_card(b) for b in BOND_POSITIONS)
     active_accums  = [a for a in ACCUMULATOR_POSITIONS if not a.get("settled")]
     settled_accums = [a for a in ACCUMULATOR_POSITIONS if a.get("settled")]
@@ -2127,6 +2132,7 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None, prev_clo
   {bond_cards}
   {accum_sec}
   {holding_sec}
+  {redeemed_fcn_sec}
   {settled_sec}
 </div>
 <footer>Generated {now} · Live prices via Yahoo Finance{"" if not live_mode else " · Auto-refreshing every 30s"}</footer>
