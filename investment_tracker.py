@@ -210,17 +210,23 @@ FCN_POSITIONS = [
     # ── 3. European Banks Worst-of FCN — HSBA / GLE / UBS  (Goldman Sachs, XS3292699736) ──
     # Underlyings priced in local currencies (GBP / EUR) and USD (UBS NYSE).
     # UBS ticker: NYSE "UBS" in USD — confirmed from GS term sheet (Bloomberg: UBS UN Equity).
+    # *** AUTOCALLED 3 Sep 2026 *** — all 3 closed >= 100% initial on first obs date
+    #   (HSBA.L ~1528>=1329, GLE.PA 74.38>=67.05, UBS 54.90>=46.22). Redeems at par $100,000
+    #   + final Period-3 coupon $1,114.17, expected value ~8 Sep 2026. Confirm from BOS statement,
+    #   then move $100k(+coupon) to cash.
     {
         "id": "hsba_gle_ubs",
         "name": "European Banks Worst-of FCN",
         "issuer": "Goldman Sachs (ISIN: XS3292699736)",
         "notional_usd": 100_000,
+        "autocalled": True,
+        "autocall_date": "2026-09-03",
         "coupon_monthly_pct": 1.1142,
         "coupon_annual_pct": 13.37,
         "issue_date": "2026-05-20",
         "maturity_date": "2027-06-07",
         "first_autocall_date": "2026-09-03",
-        "autocall_freq": "Monthly",
+        "autocall_freq": "Monthly — AUTOCALLED on first obs 3 Sep 2026",
         "ki_type": "European — KI checked only at Final Valuation Date (3 Jun 2027)",
         "underlyings": [
             {"ticker": "HSBA.L", "name": "HSBC Group",            "initial": 1329.0, "ki_pct": 65, "strike_pct": 75, "ac_pct": 100, "currency": "GBP"},
