@@ -98,6 +98,7 @@ TRADES_SINCE_STATEMENT = [
     # ALL activity through 1 Sep 2026 is baked into the balance above, INCLUDING the two
     # pending Barclays FCN settlements (GOOGL/AMZN/AVGO 08 Sep, UBER/SPOT/NFLX 09 Sep).
     # Add ONLY new post-1-Sep-2026 movements here.
+    {"date": "09 Sep 26", "description": "Super Micro Computer (SMCI) — 135 sh @ $39.68 net $5,556.80 incl. $200 comm (SCTRSC2625294016)", "cost_usd": -5_556.80},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -677,6 +678,15 @@ DIRECT_HOLDINGS = [
         "purchase_price": 380.0125,  # net $24,700.81 / 65 shares (incl. $244.56 commission); trade 29 Jun 2026
         "currency": "USD",
     },
+    {
+        "id": "smci",
+        "name": "Super Micro Computer Inc",
+        "ticker": "SMCI",
+        "isin": "US86800U3023",
+        "shares": 135,
+        "purchase_price": 41.1615,   # net $5,556.80 / 135 sh (trade $39.68 + $200 commission); trade 08 Sep 2026
+        "currency": "USD",
+    },
     # ── Accumulator Deliveries (equity received from KO'd accumulators) ──────
     {
         "id": "googl_shares",
@@ -909,6 +919,7 @@ MANUAL_PRICES = {
     "GLD":   423.09,    # 23 Aug 2026 (was 372.35 on 15 Jul; gold rallied)
     "OIH":   382.06,
     "SHLD":  60.26,     # Global X Defense Tech ETF (BOS 15 Jul 2026)
+    "SMCI":  39.68,     # Super Micro Computer — trade price 08 Sep 2026 (yfinance fetches live)
     # Bond funds (Man Group) — updated from BOS ad-hoc statement 15 Jul 2026
     "IE00039W6MB8": 100.85,   # Man Dynamic Income — NAV USD (BOS 15 Jul 2026)
     "IE000KEXCUV1": 112.29,   # Man Global InvGrade Opps — NAV USD (BOS 15 Jul 2026)
