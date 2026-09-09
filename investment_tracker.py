@@ -99,6 +99,12 @@ TRADES_SINCE_STATEMENT = [
     # pending Barclays FCN settlements (GOOGL/AMZN/AVGO 08 Sep, UBER/SPOT/NFLX 09 Sep).
     # Add ONLY new post-1-Sep-2026 movements here.
     {"date": "09 Sep 26", "description": "Super Micro Computer (SMCI) — 135 sh @ $39.68 net $5,556.80 incl. $200 comm (SCTRSC2625294016)", "cost_usd": -5_556.80},
+    # NOTE: the two Barclays FCN -$100k settlements (08/09 Sep) are NOT listed here — already
+    # deducted in the $211,325 baseline (they were pending). Do not re-deduct.
+    {"date": "08 Sep 26", "description": "MS DRAM FCN coupon — Period 1 (ms_dram, DIARSC2624526609)", "cost_usd": +1_839.20},
+    {"date": "08 Sep 26", "description": "Nomura Semiconductor FCN coupon — Period 3 (intc_tsm_asml, DIARSC2624623052)", "cost_usd": +1_543.30},
+    {"date": "08 Sep 26", "description": "GS European Banks FCN — final Period 3 coupon (hsba_gle_ubs, DIARSC2624631120)", "cost_usd": +1_114.17},
+    {"date": "08 Sep 26", "description": "GS European Banks FCN autocall — par redemption $100,000 (hsba_gle_ubs, XS3292699736)", "cost_usd": +100_000.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -237,6 +243,7 @@ FCN_POSITIONS = [
         "coupons_received": [
             {"date": "2026-07-08", "amount_usd": 1114.17, "note": "Period 1 — confirmed BOS transaction report 10 Jul 2026"},
             {"date": "2026-08-05", "amount_usd": 1114.17, "note": "Period 2 — BOS tran report 8 Aug 2026"},
+            {"date": "2026-09-08", "amount_usd": 1114.17, "note": "Period 3 / final — paid with autocall redemption (DIARSC2624631120 — BOS export 9 Sep 2026)"},
         ],
     },
 
@@ -261,6 +268,7 @@ FCN_POSITIONS = [
         "coupons_received": [
             {"date": "2026-07-08", "amount_usd": 1543.30, "note": "Period 1 — confirmed BOS transaction report 10 Jul 2026"},
             {"date": "2026-08-05", "amount_usd": 1543.30, "note": "Period 2 — BOS tran report 8 Aug 2026"},
+            {"date": "2026-09-08", "amount_usd": 1543.30, "note": "Period 3 (DIARSC2624623052 — BOS export 9 Sep 2026)"},
         ],
     },
 
@@ -434,7 +442,9 @@ FCN_POSITIONS = [
             {"ticker": "DRAM", "name": "Roundhill DRAM Memory ETF", "initial": 54.29,
              "ki_pct": 50, "strike_pct": 60, "ac_pct": 100, "currency": "USD"},
         ],
-        "coupons_received": [],
+        "coupons_received": [
+            {"date": "2026-09-08", "amount_usd": 1839.20, "note": "Period 1 (DIARSC2624526609 — BOS export 9 Sep 2026)"},
+        ],
     },
 
     # ── 12. Gold Miners Worst-of FCN — AAL.L / NEM / B  (BNP Paribas, XS3433078295) ──
