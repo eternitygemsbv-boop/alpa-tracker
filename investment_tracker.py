@@ -612,9 +612,11 @@ FCN_POSITIONS = [
     # ── 18. Palo Alto/CrowdStrike Worst-of FCN  (OCBC, XS3490319905) ──
     # Term sheet 08-Sep-2026 (Oversea-Chinese Banking Corp). 12M monthly-callable, European KI.
     # Trade 08-Sep-2026; issue 22-Sep-2026; Final Valuation ~22-Sep-2027; maturity 24-Sep-2027.
-    # Coupon 0.9575% per period ($957.50/month; 11.49% p.a.). Monthly callable.
+    # Coupon 0.9575% per period ($957.50/month; 11.49% p.a.).
+    # Trigger Event (autocall) EXCLUDES Valuation Dates (1)–(5) → Periods 1–5 are NON-CALL;
+    #   autocall observed from Valuation Date 6 (~22-Mar-2027) to Final Valuation Date.
     # KI 50% European (Final Val Date only); Strike 55%; autocall trigger 95%.
-    # first_autocall_date = coupon-schedule anchor (first coupon 22-Oct-2026); monthly callable from ~22-Oct-2026 (Period 1).
+    # first_autocall_date = coupon-schedule anchor (first coupon 22-Oct-2026); true autocall 22-Mar-2027 (VD 6).
     {
         "id": "panw_crwd",
         "name": "Palo Alto/CrowdStrike Worst-of FCN",
@@ -624,8 +626,8 @@ FCN_POSITIONS = [
         "coupon_annual_pct": 11.49,     # 0.9575% × 12
         "issue_date": "2026-09-22",
         "maturity_date": "2027-09-24",
-        "first_autocall_date": "2026-12-22",  # COUPON-SCHEDULE ANCHOR (first coupon 22-Oct-2026); monthly callable from ~22-Oct-2026
-        "autocall_freq": "Monthly callable from Period 1 (~22-Oct-2026 obs; pay 26-Oct-2026)",
+        "first_autocall_date": "2026-12-22",  # COUPON-SCHEDULE ANCHOR (first coupon 22-Oct-2026); true autocall 22-Mar-2027 (VD 6)
+        "autocall_freq": "Autocall from Valuation Date 6 (~22-Mar-2027) to maturity; VD 1–5 are NON-CALL",
         "ki_type": "European — KI at 50% of initial; checked ONLY at Final Valuation Date (~22-Sep-2027); Strike at 55%",
         "underlyings": [
             {"ticker": "PANW", "name": "Palo Alto Networks Inc",   "initial": 327.95, "ki_pct": 50, "strike_pct": 55, "ac_pct": 95, "currency": "USD"},
