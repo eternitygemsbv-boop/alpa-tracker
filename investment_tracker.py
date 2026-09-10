@@ -105,6 +105,8 @@ TRADES_SINCE_STATEMENT = [
     {"date": "08 Sep 26", "description": "Nomura Semiconductor FCN coupon — Period 3 (intc_tsm_asml, DIARSC2624623052)", "cost_usd": +1_543.30},
     {"date": "08 Sep 26", "description": "GS European Banks FCN — final Period 3 coupon (hsba_gle_ubs, DIARSC2624631120)", "cost_usd": +1_114.17},
     {"date": "08 Sep 26", "description": "GS European Banks FCN autocall — par redemption $100,000 (hsba_gle_ubs, XS3292699736)", "cost_usd": +100_000.00},
+    {"date": "08 Sep 26", "description": "JPM Eaton/Vertiv FCN — $100,000 (XS3434031780, settles 22 Sep 2026)", "cost_usd": -100_000.00},
+    {"date": "08 Sep 26", "description": "OCBC Palo Alto/CrowdStrike FCN — $100,000 (XS3490319905, settles 22 Sep 2026)", "cost_usd": -100_000.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -581,6 +583,56 @@ FCN_POSITIONS = [
         ],
         "coupons_received": [],
     },
+
+    # ── 17. Eaton/Vertiv Worst-of FCN  (J.P. Morgan, XS3434031780) ──
+    # Term sheet 08-Sep-2026 (JPM Structured Products B.V., guar. JPMorgan Chase Bank N.A. AA-/AA/Aa2).
+    # Trade 08-Sep-2026; issue 22-Sep-2026; Final Valuation ~22-Sep-2027; maturity ~24-Sep-2027.
+    # Coupon 11.66% p.a. × 1/12 = 0.9717% per period ($971.67/month). Early redemption obs Period 6–11.
+    # KI 55% European (Final Val Date only); Strike 60%; autocall trigger (Barrier) 95%.
+    # first_autocall_date = coupon-schedule anchor (first coupon 22-Oct-2026); true autocall 22-Mar-2027 (Period 6).
+    {
+        "id": "etn_vrt",
+        "name": "Eaton/Vertiv Worst-of FCN",
+        "issuer": "J.P. Morgan (ISIN: XS3434031780, Guarantor JPMorgan Chase Bank N.A. AA-/AA/Aa2)",
+        "notional_usd": 100_000,
+        "coupon_monthly_pct": 0.9717,   # 11.66% p.a. ÷ 12
+        "coupon_annual_pct": 11.66,
+        "issue_date": "2026-09-22",
+        "maturity_date": "2027-09-24",
+        "first_autocall_date": "2026-12-22",  # COUPON-SCHEDULE ANCHOR (first coupon 22-Oct-2026); true autocall 22-Mar-2027 (Period 6)
+        "autocall_freq": "Autocall from Period 6 (~22-Mar-2027) to Period 11; Periods 1–5 are NON-CALL",
+        "ki_type": "European — KI at 55% of initial; checked ONLY at Final Valuation Date (~22-Sep-2027); Strike at 60%",
+        "underlyings": [
+            {"ticker": "ETN", "name": "Eaton Corporation plc", "initial": 423.68, "ki_pct": 55, "strike_pct": 60, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "VRT", "name": "Vertiv Holdings Co",    "initial": 285.24, "ki_pct": 55, "strike_pct": 60, "ac_pct": 95, "currency": "USD"},
+        ],
+        "coupons_received": [],
+    },
+
+    # ── 18. Palo Alto/CrowdStrike Worst-of FCN  (OCBC, XS3490319905) ──
+    # Term sheet 08-Sep-2026 (Oversea-Chinese Banking Corp). 12M monthly-callable, European KI.
+    # Trade 08-Sep-2026; issue 22-Sep-2026; Final Valuation ~22-Sep-2027; maturity 24-Sep-2027.
+    # Coupon 0.9575% per period ($957.50/month; 11.49% p.a.). Monthly callable.
+    # KI 50% European (Final Val Date only); Strike 55%; autocall trigger 95%.
+    # first_autocall_date = coupon-schedule anchor (first coupon 22-Oct-2026); monthly callable from ~22-Oct-2026 (Period 1).
+    {
+        "id": "panw_crwd",
+        "name": "Palo Alto/CrowdStrike Worst-of FCN",
+        "issuer": "OCBC (ISIN: XS3490319905)",
+        "notional_usd": 100_000,
+        "coupon_monthly_pct": 0.9575,   # 0.9575% per period
+        "coupon_annual_pct": 11.49,     # 0.9575% × 12
+        "issue_date": "2026-09-22",
+        "maturity_date": "2027-09-24",
+        "first_autocall_date": "2026-12-22",  # COUPON-SCHEDULE ANCHOR (first coupon 22-Oct-2026); monthly callable from ~22-Oct-2026
+        "autocall_freq": "Monthly callable from Period 1 (~22-Oct-2026 obs; pay 26-Oct-2026)",
+        "ki_type": "European — KI at 50% of initial; checked ONLY at Final Valuation Date (~22-Sep-2027); Strike at 55%",
+        "underlyings": [
+            {"ticker": "PANW", "name": "Palo Alto Networks Inc",   "initial": 327.95, "ki_pct": 50, "strike_pct": 55, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "CRWD", "name": "CrowdStrike Holdings Inc", "initial": 210.00, "ki_pct": 50, "strike_pct": 55, "ac_pct": 95, "currency": "USD"},
+        ],
+        "coupons_received": [],
+    },
 ]
 
 # ─── Bond / AT1 Positions ─────────────────────────────────────────────────────
@@ -930,6 +982,11 @@ MANUAL_PRICES = {
     "OIH":   382.06,
     "SHLD":  60.26,     # Global X Defense Tech ETF (BOS 15 Jul 2026)
     "SMCI":  39.68,     # Super Micro Computer — trade price 08 Sep 2026 (yfinance fetches live)
+    # New FCN underlyings (JPM XS3434031780 ETN/VRT; OCBC XS3490319905 PANW/CRWD) — fallback = initial
+    "ETN":   423.68,    # Eaton Corp initial 08 Sep 2026
+    "VRT":   285.24,    # Vertiv Holdings initial 08 Sep 2026
+    "PANW":  327.95,    # Palo Alto Networks initial 08 Sep 2026
+    "CRWD":  210.00,    # CrowdStrike initial 08 Sep 2026
     # Bond funds (Man Group) — updated from BOS ad-hoc statement 15 Jul 2026
     "IE00039W6MB8": 100.85,   # Man Dynamic Income — NAV USD (BOS 15 Jul 2026)
     "IE000KEXCUV1": 112.29,   # Man Global InvGrade Opps — NAV USD (BOS 15 Jul 2026)
