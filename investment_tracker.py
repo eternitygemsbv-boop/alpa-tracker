@@ -107,6 +107,7 @@ TRADES_SINCE_STATEMENT = [
     {"date": "08 Sep 26", "description": "GS European Banks FCN autocall — par redemption $100,000 (hsba_gle_ubs, XS3292699736)", "cost_usd": +100_000.00},
     {"date": "08 Sep 26", "description": "JPM Eaton/Vertiv FCN — $100,000 (XS3434031780, settles 22 Sep 2026)", "cost_usd": -100_000.00},
     {"date": "08 Sep 26", "description": "OCBC Palo Alto/CrowdStrike FCN — $100,000 (XS3490319905, settles 22 Sep 2026)", "cost_usd": -100_000.00},
+    {"date": "09 Sep 26", "description": "GS Europe Banks FCN #2 — $100,000 (HSBA/GLE/UBS, XS3453960984, settles 23 Sep 2026)", "cost_usd": -100_000.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -635,6 +636,33 @@ FCN_POSITIONS = [
         ],
         "coupons_received": [],
     },
+
+    # ── 19. European Banks Worst-of FCN #2 — HSBA / GLE / UBS  (Goldman Sachs Bank Europe SE, XS3453960984) ──
+    # Final terms 09-Sep-2026. 1-year Quanto USD Worst-of Fixed Coupon Note. Issuer GS Bank Europe SE (A1/A+/AA-).
+    # Trade 09-Sep-2026; issue 23-Sep-2026; Final Valuation (Expiration) 23-Sep-2027; maturity 27-Sep-2027.
+    # Coupon 11.05% p.a. / 12 = 0.9208% per period ($920.83/month). Autocall (Knock-out) trigger 98%.
+    # Autocall observed from Observation Date 1 = 23-Mar-2027 (i.e. coupon Periods 1–5, Oct-2026..Feb-2027, are NON-CALL).
+    # KI 65% European (Final Valuation Date only); Strike 75%. Quanto (FX hedged to USD).
+    # HSBA.L stored in GBp (pence): initial 1550.80 = GBP 15.508. first_autocall_date = coupon anchor (first coupon 27-Oct-2026).
+    {
+        "id": "hsba_gle_ubs_2",
+        "name": "European Banks Worst-of FCN #2",
+        "issuer": "Goldman Sachs Bank Europe SE (ISIN: XS3453960984, A1/A+/AA-)",
+        "notional_usd": 100_000,
+        "coupon_monthly_pct": 0.9208,   # 11.05% p.a. ÷ 12
+        "coupon_annual_pct": 11.05,
+        "issue_date": "2026-09-23",
+        "maturity_date": "2027-09-27",
+        "first_autocall_date": "2026-12-27",  # COUPON-SCHEDULE ANCHOR (first coupon 27-Oct-2026); true autocall 23-Mar-2027 (Obs 1)
+        "autocall_freq": "Autocall from 23-Mar-2027 to Aug-2027 (6 obs); coupon Periods 1–5 are NON-CALL",
+        "ki_type": "European — KI at 65% of initial; checked ONLY at Final Valuation Date (23-Sep-2027); Strike at 75%. Quanto USD.",
+        "underlyings": [
+            {"ticker": "HSBA.L", "name": "HSBC Holdings plc",  "initial": 1550.80, "ki_pct": 65, "strike_pct": 75, "ac_pct": 98, "currency": "GBP"},
+            {"ticker": "GLE.PA", "name": "Société Générale",   "initial": 73.81,   "ki_pct": 65, "strike_pct": 75, "ac_pct": 98, "currency": "EUR"},
+            {"ticker": "UBS",    "name": "UBS AG (USD/NYSE)",   "initial": 55.16,   "ki_pct": 65, "strike_pct": 75, "ac_pct": 98, "currency": "USD"},
+        ],
+        "coupons_received": [],
+    },
 ]
 
 # ─── Bond / AT1 Positions ─────────────────────────────────────────────────────
@@ -993,9 +1021,9 @@ MANUAL_PRICES = {
     "IE00039W6MB8": 100.85,   # Man Dynamic Income — NAV USD (BOS 15 Jul 2026)
     "IE000KEXCUV1": 112.29,   # Man Global InvGrade Opps — NAV USD (BOS 15 Jul 2026)
     # European (local currency)
-    "HSBA.L":  1329.20,   # GBp — no update in this statement
-    "GLE.PA":  69.87,     # EUR — no update in this statement
-    "UBS":     46.77,     # USD (NYSE) — no update in this statement
+    "HSBA.L":  1550.80,   # GBp — no update in this statement
+    "GLE.PA":  73.81,     # EUR — no update in this statement
+    "UBS":     55.16,     # USD (NYSE) — no update in this statement
     "SU.PA":   261.50,    # EUR — no update in this statement
     "SIE.DE":  279.10,    # EUR — no update in this statement
     # Aerospace FCN underlyings (HSBC XS3377025971)
