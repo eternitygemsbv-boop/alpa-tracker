@@ -94,20 +94,34 @@ CASH_BALANCE_DATE   = "1 Sep 2026"    # Re-baselined to BOS app USD current-acco
 # New trades / deposits since the last BOS statement.
 # cost_usd: positive = cash in (deposit/dividend), negative = cash out (purchase).
 TRADES_SINCE_STATEMENT = [
-    # Re-baselined to $211,325.00 as of 1 Sep 2026 (reconciled vs BOS 15 Jul–1 Sep export).
-    # ALL activity through 1 Sep 2026 is baked into the balance above, INCLUDING the two
-    # pending Barclays FCN settlements (GOOGL/AMZN/AVGO 08 Sep, UBER/SPOT/NFLX 09 Sep).
-    # Add ONLY new post-1-Sep-2026 movements here.
-    {"date": "09 Sep 26", "description": "Super Micro Computer (SMCI) — 135 sh @ $39.68 net $5,556.80 incl. $200 comm (SCTRSC2625294016)", "cost_usd": -5_556.80},
-    # NOTE: the two Barclays FCN -$100k settlements (08/09 Sep) are NOT listed here — already
-    # deducted in the $211,325 baseline (they were pending). Do not re-deduct.
-    {"date": "08 Sep 26", "description": "MS DRAM FCN coupon — Period 1 (ms_dram, DIARSC2624526609)", "cost_usd": +1_839.20},
-    {"date": "08 Sep 26", "description": "Nomura Semiconductor FCN coupon — Period 3 (intc_tsm_asml, DIARSC2624623052)", "cost_usd": +1_543.30},
-    {"date": "08 Sep 26", "description": "GS European Banks FCN — final Period 3 coupon (hsba_gle_ubs, DIARSC2624631120)", "cost_usd": +1_114.17},
-    {"date": "08 Sep 26", "description": "GS European Banks FCN autocall — par redemption $100,000 (hsba_gle_ubs, XS3292699736)", "cost_usd": +100_000.00},
-    {"date": "08 Sep 26", "description": "JPM Eaton/Vertiv FCN — $100,000 (XS3434031780, settles 22 Sep 2026)", "cost_usd": -100_000.00},
-    {"date": "08 Sep 26", "description": "OCBC Palo Alto/CrowdStrike FCN — $100,000 (XS3490319905, settles 22 Sep 2026)", "cost_usd": -100_000.00},
-    {"date": "09 Sep 26", "description": "GS Europe Banks FCN #2 — $100,000 (HSBA/GLE/UBS, XS3453960984, settles 23 Sep 2026)", "cost_usd": -100_000.00},
+    # Re-baselined to $211,325.00 as of 1 Sep 2026. Below = the complete USD current-account
+    # movement list from the BOS export (Sub AssetClass "Current Accounts") for 2 Sep–19 Sep 2026,
+    # so available cash matches the bank exactly ($211,325.00 + net = $12,955.82 as of 19 Sep).
+    # 08 Sep
+    {"date": "08 Sep 26", "description": "MS DRAM FCN coupon — Period 1 (ms_dram)", "cost_usd": +1_839.20},
+    {"date": "08 Sep 26", "description": "Nomura Semiconductor FCN coupon — Period 3 (intc_tsm_asml)", "cost_usd": +1_543.30},
+    {"date": "08 Sep 26", "description": "GS European Banks FCN #1 — final Period 3 coupon (hsba_gle_ubs)", "cost_usd": +1_114.17},
+    {"date": "08 Sep 26", "description": "GS European Banks FCN #1 autocall — par redemption $100,000 (hsba_gle_ubs, XS3292699736)", "cost_usd": +100_000.00},
+    {"date": "08 Sep 26", "description": "JPM Eaton/Vertiv FCN purchase — $100,000 (XS3434031780)", "cost_usd": -100_000.00},
+    {"date": "08 Sep 26", "description": "OCBC Palo Alto/CrowdStrike FCN purchase — $100,000 (XS3490319905)", "cost_usd": -100_000.00},
+    {"date": "08 Sep 26", "description": "Super Micro Computer (SMCI) — 135 sh net $5,556.80 (SCTRSC2625294016)", "cost_usd": -5_556.80},
+    # 09 Sep
+    {"date": "09 Sep 26", "description": "GS Europe Banks FCN #2 purchase — $100,000 (HSBA/GLE/UBS, XS3453960984)", "cost_usd": -100_000.00},
+    {"date": "09 Sep 26", "description": "Man Dynamic Income Fund dividend — Sep distribution", "cost_usd": +784.40},
+    {"date": "09 Sep 26", "description": "Man Global InvGrade Opps Fund dividend — Sep distribution", "cost_usd": +466.40},
+    # 10 Sep
+    {"date": "10 Sep 26", "description": "BNP Gold Miners FCN coupon — Period 1 (aal_nem_b)", "cost_usd": +931.67},
+    {"date": "10 Sep 26", "description": "Eli Lilly (LLY) cash dividend — 39 sh", "cost_usd": +47.23},
+    {"date": "10 Sep 26", "description": "Microsoft (MSFT) cash dividend — 65 sh", "cost_usd": +41.40},
+    # 11 Sep
+    {"date": "11 Sep 26", "description": "HSBC Aerospace FCN coupon — Period 2 (air_ge_saf)", "cost_usd": +1_021.67},
+    # 14 Sep
+    {"date": "14 Sep 26", "description": "JPM AAPL/TSLA FCN coupon — Period 1 (aapl_tsla)", "cost_usd": +1_042.50},
+    {"date": "14 Sep 26", "description": "Alphabet (GOOGL) cash dividend — 56 sh", "cost_usd": +8.62},
+    {"date": "14 Sep 26", "description": "QQQ accumulator delivery — 9 sh @ strike $573.977", "cost_usd": -5_165.79},
+    # 18 Sep
+    {"date": "18 Sep 26", "description": "SCB Banks FCN coupon — Period 3 (gs_jpm_ms)", "cost_usd": +1_791.60},
+    {"date": "18 Sep 26", "description": "Nomura AMZN/ORCL FCN coupon — Period 2 (amzn_orcl)", "cost_usd": +1_721.25},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -322,6 +336,7 @@ FCN_POSITIONS = [
         "coupons_received": [
             {"date": "2026-07-20", "amount_usd": 1791.60, "note": "Period 1 (DIARSC2619685568 — BOS tran report 22 Jul 2026)"},
             {"date": "2026-08-19", "amount_usd": 1791.60, "note": "Period 2 — BOS transactions 19 Aug 2026"},
+            {"date": "2026-09-18", "amount_usd": 1791.60, "note": "Period 3 — BOS export 19 Sep 2026"},
         ],
     },
 
@@ -369,6 +384,7 @@ FCN_POSITIONS = [
         ],
         "coupons_received": [
             {"date": "2026-08-12", "amount_usd": 1021.67, "note": "Period 1 — BOS transactions 12 Aug 2026"},
+            {"date": "2026-09-11", "amount_usd": 1021.67, "note": "Period 2 — BOS export 19 Sep 2026"},
         ],
     },
 
@@ -421,6 +437,7 @@ FCN_POSITIONS = [
         ],
         "coupons_received": [
             {"date": "2026-08-19", "amount_usd": 1721.25, "note": "Period 1 — BOS transactions 19 Aug 2026"},
+            {"date": "2026-09-18", "amount_usd": 1721.25, "note": "Period 2 — BOS export 19 Sep 2026"},
         ],
     },
 
@@ -474,7 +491,9 @@ FCN_POSITIONS = [
             {"ticker": "NEM",   "name": "Newmont Corporation", "initial": 94.65,   "ki_pct": 55, "strike_pct": 65, "ac_pct": 95, "currency": "USD"},
             {"ticker": "B",     "name": "Barrick Mining Corp", "initial": 37.29,   "ki_pct": 55, "strike_pct": 65, "ac_pct": 95, "currency": "USD"},
         ],
-        "coupons_received": [],
+        "coupons_received": [
+            {"date": "2026-09-10", "amount_usd": 931.67, "note": "Period 1 — BOS export 19 Sep 2026"},
+        ],
     },
 
     # ── 13. AAPL/TSLA Worst-of FCN  (J.P. Morgan, XS3407131419) ──
@@ -499,7 +518,9 @@ FCN_POSITIONS = [
             {"ticker": "AAPL", "name": "Apple Inc.",  "initial": 335.00, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
             {"ticker": "TSLA", "name": "Tesla, Inc.", "initial": 312.73, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
         ],
-        "coupons_received": [],
+        "coupons_received": [
+            {"date": "2026-09-14", "amount_usd": 1042.50, "note": "Period 1 — BOS export 19 Sep 2026"},
+        ],
     },
 
     # ── 14. Corning (GLW) Single-Stock FCN  (Barclays, XS3457845785) ──
@@ -732,6 +753,7 @@ DIRECT_HOLDINGS = [
             {"date": "2026-06-10", "amount_usd": 524.70, "note": "Jun distribution (DIARSC2615690480 — BOS ad-hoc statement)"},
             {"date": "2026-07-09", "amount_usd": 888.00, "note": "Jul distribution (DIARSC2618741318 — BOS ad-hoc statement)"},
             {"date": "2026-08-12", "amount_usd": 858.40, "note": "Aug distribution (BOS transactions 12 Aug 2026)"},
+            {"date": "2026-09-09", "amount_usd": 784.40, "note": "Sep distribution (BOS export 19 Sep 2026)"},
         ],
     },
     {
@@ -747,6 +769,7 @@ DIRECT_HOLDINGS = [
             {"date": "2026-06-10", "amount_usd": 457.60, "note": "Jun distribution (DIARSC2615518074 — BOS ad-hoc statement)"},
             {"date": "2026-07-09", "amount_usd": 528.00, "note": "Jul distribution (DIARSC2618794052 — BOS ad-hoc statement)"},
             {"date": "2026-08-12", "amount_usd": 492.80, "note": "Aug distribution (BOS transactions 12 Aug 2026)"},
+            {"date": "2026-09-09", "amount_usd": 466.40, "note": "Sep distribution (BOS export 19 Sep 2026)"},
         ],
     },
     {
@@ -769,6 +792,9 @@ DIRECT_HOLDINGS = [
         "shares": 65,
         "purchase_price": 380.0125,  # net $24,700.81 / 65 shares (incl. $244.56 commission); trade 29 Jun 2026
         "currency": "USD",
+        "dividends_received": [
+            {"date": "2026-09-10", "amount_usd": 41.40, "note": "Q1 dividend — 65 sh (BOS export 19 Sep 2026)"},
+        ],
     },
     {
         "id": "smci",
@@ -789,6 +815,9 @@ DIRECT_HOLDINGS = [
         "purchase_price": 293.9751,  # blended: 38 sh @ $298.1035 (Accu #1) + 18 sh @ $285.2599 (Accu #2) = $16,462.61 / 56
         "currency": "USD",
         "note": "38 sh from GOOGL Accu #1 (KO 20 Jun) + 18 sh from Accu #2 (KO 29 Jun); confirmed BOS 30 Jun statement",
+        "dividends_received": [
+            {"date": "2026-09-14", "amount_usd": 8.62, "note": "Q3 dividend — 56 sh (BOS export 19 Sep 2026)"},
+        ],
     },
     {
         "id": "lly_shares",
@@ -799,6 +828,9 @@ DIRECT_HOLDINGS = [
         "purchase_price": 919.7458,  # full guaranteed period (24 Jun–17 Aug) delivered in one batch on KO date; $35,870.09 total
         "currency": "USD",
         "note": "Guaranteed period delivery from LLY Accu (KO 24 Jun 2026); confirmed BOS 30 Jun statement",
+        "dividends_received": [
+            {"date": "2026-09-10", "amount_usd": 47.23, "note": "Q3 dividend — 39 sh (BOS export 19 Sep 2026)"},
+        ],
     },
     {
         "id": "meta_shares",
