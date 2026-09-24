@@ -1076,6 +1076,8 @@ MANUAL_PRICES = {
     "VRT":   285.24,    # Vertiv Holdings initial 08 Sep 2026
     "PANW":  327.95,    # Palo Alto Networks initial 08 Sep 2026
     "CRWD":  210.00,    # CrowdStrike initial 08 Sep 2026
+    "CEG":   255.47,    # Constellation Energy initial 21 Sep 2026 (BNP XS3502401105; yfinance fetches live)
+    "VST":   142.00,    # Vistra Corp initial 21 Sep 2026 (yfinance fetches live)
     # Bond funds (Man Group) — updated from BOS ad-hoc statement 15 Jul 2026
     "IE00039W6MB8": 100.85,   # Man Dynamic Income — NAV USD (BOS 15 Jul 2026)
     "IE000KEXCUV1": 112.29,   # Man Global InvGrade Opps — NAV USD (BOS 15 Jul 2026)
