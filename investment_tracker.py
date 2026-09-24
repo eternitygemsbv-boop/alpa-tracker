@@ -122,6 +122,7 @@ TRADES_SINCE_STATEMENT = [
     # 18 Sep
     {"date": "18 Sep 26", "description": "SCB Banks FCN coupon — Period 3 (gs_jpm_ms)", "cost_usd": +1_791.60},
     {"date": "18 Sep 26", "description": "Nomura AMZN/ORCL FCN coupon — Period 2 (amzn_orcl)", "cost_usd": +1_721.25},
+    {"date": "21 Sep 26", "description": "BNP Power Utilities FCN (CEG/VST) — $100,000 (XS3502401105, settles 05 Oct 2026 — PENDING, needs funding)", "cost_usd": -100_000.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -681,6 +682,32 @@ FCN_POSITIONS = [
             {"ticker": "HSBA.L", "name": "HSBC Holdings plc",  "initial": 1550.80, "ki_pct": 65, "strike_pct": 75, "ac_pct": 98, "currency": "GBP"},
             {"ticker": "GLE.PA", "name": "Société Générale",   "initial": 73.81,   "ki_pct": 65, "strike_pct": 75, "ac_pct": 98, "currency": "EUR"},
             {"ticker": "UBS",    "name": "UBS AG (USD/NYSE)",   "initial": 55.16,   "ki_pct": 65, "strike_pct": 75, "ac_pct": 98, "currency": "USD"},
+        ],
+        "coupons_received": [],
+    },
+
+    # ── 20. Power Utilities Worst-of FCN — CEG / VST  (BNP Paribas, XS3502401105) ──
+    # Term sheet 21-Sep-2026 (BNP Paribas, A+/A1). 12M USD Stock Basket, monthly coupon.
+    # Trade 21-Sep-2026; issue 05-Oct-2026; Final Valuation ~05-Oct-2027; maturity 07-Oct-2027.
+    # Coupon 11.70% p.a. / 12 = 0.975% per period ($975/month). Autocall trigger 95%.
+    # Early Redemption observed from Observation Date 6 (05-Apr-2027) → coupon Periods 1–5 are NON-CALL.
+    # KI 60% European (Final Valuation Date only); Strike 70%.
+    # first_autocall_date = coupon-schedule anchor (first coupon 05-Nov-2026); true autocall 05-Apr-2027 (Obs 6).
+    {
+        "id": "ceg_vst",
+        "name": "Power Utilities Worst-of FCN",
+        "issuer": "BNP Paribas (ISIN: XS3502401105, A+/A1)",
+        "notional_usd": 100_000,
+        "coupon_monthly_pct": 0.975,    # 11.70% p.a. ÷ 12
+        "coupon_annual_pct": 11.70,
+        "issue_date": "2026-10-05",
+        "maturity_date": "2027-10-07",
+        "first_autocall_date": "2027-01-05",  # COUPON-SCHEDULE ANCHOR (first coupon 05-Nov-2026); true autocall 05-Apr-2027 (Obs 6)
+        "autocall_freq": "Autocall from Observation Date 6 (05-Apr-2027) to maturity; Periods 1–5 are NON-CALL",
+        "ki_type": "European — KI at 60% of initial; checked ONLY at Final Valuation Date (~05-Oct-2027); Strike at 70%",
+        "underlyings": [
+            {"ticker": "CEG", "name": "Constellation Energy Corp", "initial": 255.47, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "VST", "name": "Vistra Corp",               "initial": 142.00, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
         ],
         "coupons_received": [],
     },
