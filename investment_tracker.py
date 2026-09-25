@@ -61,6 +61,7 @@ CASH_TRANSFERS = [
     {"date": "05 AUG 26", "amount_usd": 130_000.00},   # FT26217DW9Z6
     {"date": "20 AUG 26", "amount_usd": 80_000.00},    # FT26231RFR89
     {"date": "25 AUG 26", "amount_usd": 90_100.00},    # FT262362FB1T
+    {"date": "25 SEP 26", "amount_usd": 79_990.00},
 ]
 TOTAL_CASH_DEPOSITED = sum(t["amount_usd"] for t in CASH_TRANSFERS)  # $2,079,910
 
@@ -94,35 +95,35 @@ CASH_BALANCE_DATE   = "1 Sep 2026"    # Re-baselined to BOS app USD current-acco
 # New trades / deposits since the last BOS statement.
 # cost_usd: positive = cash in (deposit/dividend), negative = cash out (purchase).
 TRADES_SINCE_STATEMENT = [
-    # Re-baselined to $211,325.00 as of 1 Sep 2026. Below = the complete USD current-account
-    # movement list from the BOS export (Sub AssetClass "Current Accounts") for 2 Sep–19 Sep 2026,
-    # so available cash matches the bank exactly ($211,325.00 + net = $12,955.82 as of 19 Sep).
-    # 08 Sep
-    {"date": "08 Sep 26", "description": "MS DRAM FCN coupon — Period 1 (ms_dram)", "cost_usd": +1_839.20},
-    {"date": "08 Sep 26", "description": "Nomura Semiconductor FCN coupon — Period 3 (intc_tsm_asml)", "cost_usd": +1_543.30},
-    {"date": "08 Sep 26", "description": "GS European Banks FCN #1 — final Period 3 coupon (hsba_gle_ubs)", "cost_usd": +1_114.17},
-    {"date": "08 Sep 26", "description": "GS European Banks FCN #1 autocall — par redemption $100,000 (hsba_gle_ubs, XS3292699736)", "cost_usd": +100_000.00},
-    {"date": "08 Sep 26", "description": "JPM Eaton/Vertiv FCN purchase — $100,000 (XS3434031780)", "cost_usd": -100_000.00},
-    {"date": "08 Sep 26", "description": "OCBC Palo Alto/CrowdStrike FCN purchase — $100,000 (XS3490319905)", "cost_usd": -100_000.00},
-    {"date": "08 Sep 26", "description": "Super Micro Computer (SMCI) — 135 sh net $5,556.80 (SCTRSC2625294016)", "cost_usd": -5_556.80},
-    # 09 Sep
-    {"date": "09 Sep 26", "description": "GS Europe Banks FCN #2 purchase — $100,000 (HSBA/GLE/UBS, XS3453960984)", "cost_usd": -100_000.00},
-    {"date": "09 Sep 26", "description": "Man Dynamic Income Fund dividend — Sep distribution", "cost_usd": +784.40},
-    {"date": "09 Sep 26", "description": "Man Global InvGrade Opps Fund dividend — Sep distribution", "cost_usd": +466.40},
-    # 10 Sep
-    {"date": "10 Sep 26", "description": "BNP Gold Miners FCN coupon — Period 1 (aal_nem_b)", "cost_usd": +931.67},
-    {"date": "10 Sep 26", "description": "Eli Lilly (LLY) cash dividend — 39 sh", "cost_usd": +47.23},
-    {"date": "10 Sep 26", "description": "Microsoft (MSFT) cash dividend — 65 sh", "cost_usd": +41.40},
-    # 11 Sep
-    {"date": "11 Sep 26", "description": "HSBC Aerospace FCN coupon — Period 2 (air_ge_saf)", "cost_usd": +1_021.67},
-    # 14 Sep
-    {"date": "14 Sep 26", "description": "JPM AAPL/TSLA FCN coupon — Period 1 (aapl_tsla)", "cost_usd": +1_042.50},
-    {"date": "14 Sep 26", "description": "Alphabet (GOOGL) cash dividend — 56 sh", "cost_usd": +8.62},
-    {"date": "14 Sep 26", "description": "QQQ accumulator delivery — 9 sh @ strike $573.977", "cost_usd": -5_165.79},
-    # 18 Sep
-    {"date": "18 Sep 26", "description": "SCB Banks FCN coupon — Period 3 (gs_jpm_ms)", "cost_usd": +1_791.60},
-    {"date": "18 Sep 26", "description": "Nomura AMZN/ORCL FCN coupon — Period 2 (amzn_orcl)", "cost_usd": +1_721.25},
-    {"date": "21 Sep 26", "description": "BNP Power Utilities FCN (CEG/VST) — $100,000 (XS3502401105, settles 05 Oct 2026 — PENDING, needs funding)", "cost_usd": -100_000.00},
+    # Re-baselined to $211,325.00 as of 1 Sep 2026. Full USD current-account movement list from
+    # BOS export (Sub AssetClass "Current Accounts") 2 Sep–25 Sep 2026 -> cash = -$201,687.06 (OVERDRAWN).
+    {"date": "08 Sep 26", "description": "GS European Banks FCN #1 — final Period 3 coupon", "cost_usd": +1_114.17},
+    {"date": "08 Sep 26", "description": "Nomura Semiconductor FCN coupon — Period 3", "cost_usd": +1_543.30},
+    {"date": "08 Sep 26", "description": "MS DRAM FCN coupon — Period 1", "cost_usd": +1_839.20},
+    {"date": "08 Sep 26", "description": "JPM Eaton/Vertiv FCN purchase (XS3434031780)", "cost_usd": -100_000.00},
+    {"date": "08 Sep 26", "description": "OCBC Palo Alto/CrowdStrike FCN purchase (XS3490319905)", "cost_usd": -100_000.00},
+    {"date": "08 Sep 26", "description": "Super Micro Computer (SMCI) — 135 sh", "cost_usd": -5_556.80},
+    {"date": "08 Sep 26", "description": "GS European Banks FCN #1 autocall — par redemption", "cost_usd": +100_000.00},
+    {"date": "09 Sep 26", "description": "Man Global InvGrade Opps Fund dividend — Sep", "cost_usd": +466.40},
+    {"date": "09 Sep 26", "description": "Man Dynamic Income Fund dividend — Sep", "cost_usd": +784.40},
+    {"date": "09 Sep 26", "description": "GS Europe Banks FCN #2 purchase (XS3453960984)", "cost_usd": -100_000.00},
+    {"date": "10 Sep 26", "description": "Microsoft (MSFT) cash dividend", "cost_usd": +41.40},
+    {"date": "10 Sep 26", "description": "Eli Lilly (LLY) cash dividend", "cost_usd": +47.23},
+    {"date": "10 Sep 26", "description": "BNP Gold Miners FCN coupon — Period 1", "cost_usd": +931.67},
+    {"date": "11 Sep 26", "description": "HSBC Aerospace FCN coupon — Period 2", "cost_usd": +1_021.67},
+    {"date": "14 Sep 26", "description": "Alphabet (GOOGL) cash dividend", "cost_usd": +8.62},
+    {"date": "14 Sep 26", "description": "JPM AAPL/TSLA FCN coupon — Period 1", "cost_usd": +1_042.50},
+    {"date": "14 Sep 26", "description": "QQQ accumulator delivery — 9 sh", "cost_usd": -5_165.79},
+    {"date": "18 Sep 26", "description": "HSBC Industrials FCN coupon — Period 3", "cost_usd": +1_014.17},
+    {"date": "18 Sep 26", "description": "Nomura AMZN/ORCL FCN coupon — Period 2", "cost_usd": +1_721.25},
+    {"date": "18 Sep 26", "description": "SCB Banks FCN coupon — Period 3", "cost_usd": +1_791.60},
+    {"date": "21 Sep 26", "description": "MS Asia ETF FCN coupon — Period 3", "cost_usd": +1_938.75},
+    {"date": "21 Sep 26", "description": "BNP Power Utilities FCN (CEG/VST) purchase (XS3502401105)", "cost_usd": -100_000.00},
+    {"date": "23 Sep 26", "description": "Barclays Corning (GLW) FCN coupon — Period 1", "cost_usd": +1_437.50},
+    {"date": "24 Sep 26", "description": "OCBC TMO/JNJ/LLY FCN coupon — Period 2", "cost_usd": +976.70},
+    {"date": "24 Sep 26", "description": "Citi Memory FCN (SK Hynix/SanDisk) purchase (XS3446114244)", "cost_usd": -100_000.00},
+    {"date": "25 Sep 26", "description": "Inward SWIFT deposit", "cost_usd": +79_990.00},
+    {"date": "25 Sep 26", "description": "Barclays China Tech FCN (Alibaba/Tencent/BYD) purchase (XS3213039608)", "cost_usd": -100_000.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -312,6 +313,7 @@ FCN_POSITIONS = [
         "coupons_received": [
             {"date": "2026-07-20", "amount_usd": 1014.17, "note": "Period 1 (DIARSC2619697304 — BOS tran report 22 Jul 2026)"},
             {"date": "2026-08-19", "amount_usd": 1014.17, "note": "Period 2 — BOS transactions 19 Aug 2026"},
+            {"date": "2026-09-18", "amount_usd": 1014.17, "note": "Period 3 — BOS export 25 Sep 2026"},
         ],
     },
 
@@ -362,6 +364,7 @@ FCN_POSITIONS = [
         "coupons_received": [
             {"date": "2026-07-21", "amount_usd": 1938.75, "note": "Period 1 (DIARSC2619772044 — BOS tran report 22 Jul 2026)"},
             {"date": "2026-08-19", "amount_usd": 1938.75, "note": "Period 2 — BOS transactions 19 Aug 2026"},
+            {"date": "2026-09-21", "amount_usd": 1938.75, "note": "Period 3 — BOS export 25 Sep 2026"},
         ],
     },
 
@@ -412,6 +415,7 @@ FCN_POSITIONS = [
         ],
         "coupons_received": [
             {"date": "2026-08-26", "amount_usd": 976.70, "note": "Period 1 — BOS transactions 26 Aug 2026"},
+            {"date": "2026-09-24", "amount_usd": 976.70, "note": "Period 2 — BOS export 25 Sep 2026"},
         ],
     },
 
@@ -550,7 +554,9 @@ FCN_POSITIONS = [
             {"ticker": "GLW", "name": "Corning Incorporated", "initial": 152.96,
              "ki_pct": 50, "strike_pct": 55, "ac_pct": 98, "currency": "USD"},
         ],
-        "coupons_received": [],
+        "coupons_received": [
+            {"date": "2026-09-23", "amount_usd": 1437.50, "note": "Period 1 — BOS export 25 Sep 2026"},
+        ],
     },
 
     # ── 15. GOOGL/AMZN/AVGO Worst-of FCN  (Barclays, XS3473397845) ──
@@ -708,6 +714,53 @@ FCN_POSITIONS = [
         "underlyings": [
             {"ticker": "CEG", "name": "Constellation Energy Corp", "initial": 255.47, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
             {"ticker": "VST", "name": "Vistra Corp",               "initial": 142.00, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
+        ],
+        "coupons_received": [],
+    },
+
+    # ── 21. Memory Worst-of FCN — SK Hynix / SanDisk  (Citi, XS3446114244) ──
+    # BOS narrative: "6M USD Citi FCN - SKHY.OQ, SNDK.OQ 080427 XS3446114244"
+    # Trade 24-Sep-2026; 6M term → maturity ~08-Apr-2027.
+    # *** PLACEHOLDER — upload term sheet for coupon rate, KI/Strike/AC levels and initial prices ***
+    {
+        "id": "skhy_sndk",
+        "name": "Memory Worst-of FCN (SK Hynix/SanDisk)",
+        "issuer": "Citi (ISIN: XS3446114244)",
+        "notional_usd": 100_000,
+        "coupon_monthly_pct": 0.0,      # ← unknown; update from term sheet
+        "coupon_annual_pct":  0.0,      # ← unknown; update from term sheet
+        "issue_date": "2026-09-24",
+        "maturity_date": "2027-04-08",  # 6M (080427); confirm from term sheet
+        "first_autocall_date": "2026-12-24",  # placeholder anchor; confirm from term sheet
+        "autocall_freq": "TBC — confirm from term sheet",
+        "ki_type": "TBC — confirm from term sheet",
+        "underlyings": [
+            {"ticker": "SKHY", "name": "SK Hynix (ADR/OTC)", "initial": 1.0, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "SNDK", "name": "SanDisk Corp",       "initial": 1.0, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
+        ],
+        "coupons_received": [],
+    },
+
+    # ── 22. China Tech Worst-of FCN — Alibaba / Tencent / BYD  (Barclays, XS3213039608) ──
+    # BOS narrative: "12M USD Barclays FCN - 9988.HK, 0700.HK, 1211.HK 121027 XS3213039608"
+    # Trade 25-Sep-2026; 12M term → maturity ~12-Oct-2027. HK-listed underlyings (HKD).
+    # *** PLACEHOLDER — upload term sheet for coupon rate, KI/Strike/AC levels and initial prices ***
+    {
+        "id": "baba_tcehy_byd",
+        "name": "China Tech Worst-of FCN (Alibaba/Tencent/BYD)",
+        "issuer": "Barclays (ISIN: XS3213039608)",
+        "notional_usd": 100_000,
+        "coupon_monthly_pct": 0.0,      # ← unknown; update from term sheet
+        "coupon_annual_pct":  0.0,      # ← unknown; update from term sheet
+        "issue_date": "2026-09-25",
+        "maturity_date": "2027-10-12",  # 12M (121027); confirm from term sheet
+        "first_autocall_date": "2026-12-25",  # placeholder anchor; confirm from term sheet
+        "autocall_freq": "TBC — confirm from term sheet",
+        "ki_type": "TBC — confirm from term sheet",
+        "underlyings": [
+            {"ticker": "9988.HK", "name": "Alibaba Group (HK)",       "initial": 1.0, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "HKD"},
+            {"ticker": "0700.HK", "name": "Tencent Holdings (HK)",    "initial": 1.0, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "HKD"},
+            {"ticker": "1211.HK", "name": "BYD Company (HK)",         "initial": 1.0, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "HKD"},
         ],
         "coupons_received": [],
     },
@@ -1078,6 +1131,12 @@ MANUAL_PRICES = {
     "CRWD":  210.00,    # CrowdStrike initial 08 Sep 2026
     "CEG":   255.47,    # Constellation Energy initial 21 Sep 2026 (BNP XS3502401105; yfinance fetches live)
     "VST":   142.00,    # Vistra Corp initial 21 Sep 2026 (yfinance fetches live)
+    # New FCN underlyings (Citi XS3446114244; Barclays XS3213039608) — placeholders pending term sheets
+    "SKHY":  1.0,       # SK Hynix — update from term sheet
+    "SNDK":  1.0,       # SanDisk — update from term sheet
+    "9988.HK": 1.0,     # Alibaba HK — update from term sheet
+    "0700.HK": 1.0,     # Tencent HK — update from term sheet
+    "1211.HK": 1.0,     # BYD HK — update from term sheet
     # Bond funds (Man Group) — updated from BOS ad-hoc statement 15 Jul 2026
     "IE00039W6MB8": 100.85,   # Man Dynamic Income — NAV USD (BOS 15 Jul 2026)
     "IE000KEXCUV1": 112.29,   # Man Global InvGrade Opps — NAV USD (BOS 15 Jul 2026)
