@@ -718,25 +718,27 @@ FCN_POSITIONS = [
         "coupons_received": [],
     },
 
-    # ── 21. Memory Worst-of FCN — SK Hynix / SanDisk  (Citi, XS3446114244) ──
-    # BOS narrative: "6M USD Citi FCN - SKHY.OQ, SNDK.OQ 080427 XS3446114244"
-    # Trade 24-Sep-2026; 6M term → maturity ~08-Apr-2027.
-    # *** PLACEHOLDER — upload term sheet for coupon rate, KI/Strike/AC levels and initial prices ***
+    # ── 21. Memory Worst-of FCN — SanDisk / SK Hynix  (Citi, XS3446114244) ──
+    # Term sheet 24-Sep-2026 (Citigroup Global Markets). 6-month Fixed Coupon Autocall Note.
+    # Trade/Strike 24-Sep-2026; issue 08-Oct-2026; Final Valuation 08-Apr-2027; maturity 12-Apr-2027.
+    # Coupon 1.1283% per month = 13.54% p.a. ($1,128.30/month). Autocall barrier 85% (LOW — redeems easily).
+    # Autocall observed from 08-Jan-2027 (Obs 3) → Periods 1–2 (Nov, Dec) are NON-CALL.
+    # KI 50% European (Final Valuation Date only); Strike 60%. SanDisk = SNDK, SK Hynix = SKHY (ADR).
     {
         "id": "skhy_sndk",
-        "name": "Memory Worst-of FCN (SK Hynix/SanDisk)",
+        "name": "Memory Worst-of FCN (SanDisk/SK Hynix)",
         "issuer": "Citi (ISIN: XS3446114244)",
         "notional_usd": 100_000,
-        "coupon_monthly_pct": 0.0,      # ← unknown; update from term sheet
-        "coupon_annual_pct":  0.0,      # ← unknown; update from term sheet
-        "issue_date": "2026-09-24",
-        "maturity_date": "2027-04-08",  # 6M (080427); confirm from term sheet
-        "first_autocall_date": "2026-12-24",  # placeholder anchor; confirm from term sheet
-        "autocall_freq": "TBC — confirm from term sheet",
-        "ki_type": "TBC — confirm from term sheet",
+        "coupon_monthly_pct": 1.1283,   # 1.1283% per period
+        "coupon_annual_pct": 13.54,     # ≈ 1.1283% × 12
+        "issue_date": "2026-10-08",
+        "maturity_date": "2027-04-12",
+        "first_autocall_date": "2027-01-08",  # Obs 3 — first autocall (also coupon anchor: first coupon 08-Nov-2026); Periods 1–2 non-call
+        "autocall_freq": "Monthly autocall from 08-Jan-2027 (Obs 3); Periods 1–2 NON-CALL; barrier 85%",
+        "ki_type": "European — KI at 50% of initial; checked ONLY at Final Valuation Date (08-Apr-2027); Strike at 60%",
         "underlyings": [
-            {"ticker": "SKHY", "name": "SK Hynix (ADR/OTC)", "initial": 1.0, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
-            {"ticker": "SNDK", "name": "SanDisk Corp",       "initial": 1.0, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "SNDK", "name": "SanDisk Corporation", "initial": 1785.70, "ki_pct": 50, "strike_pct": 60, "ac_pct": 85, "currency": "USD"},
+            {"ticker": "SKHY", "name": "SK Hynix Inc (ADR)",  "initial": 185.60,  "ki_pct": 50, "strike_pct": 60, "ac_pct": 85, "currency": "USD"},
         ],
         "coupons_received": [],
     },
@@ -1132,8 +1134,8 @@ MANUAL_PRICES = {
     "CEG":   255.47,    # Constellation Energy initial 21 Sep 2026 (BNP XS3502401105; yfinance fetches live)
     "VST":   142.00,    # Vistra Corp initial 21 Sep 2026 (yfinance fetches live)
     # New FCN underlyings (Citi XS3446114244; Barclays XS3213039608) — placeholders pending term sheets
-    "SKHY":  1.0,       # SK Hynix — update from term sheet
-    "SNDK":  1.0,       # SanDisk — update from term sheet
+    "SKHY":  185.60,    # SK Hynix ADR initial 24 Sep 2026 (Citi XS3446114244)
+    "SNDK":  1785.70,   # SanDisk initial 24 Sep 2026 (Citi XS3446114244)
     "9988.HK": 1.0,     # Alibaba HK — update from term sheet
     "0700.HK": 1.0,     # Tencent HK — update from term sheet
     "1211.HK": 1.0,     # BYD HK — update from term sheet
