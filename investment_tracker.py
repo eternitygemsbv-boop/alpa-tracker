@@ -1101,6 +1101,23 @@ ACCUMULATOR_POSITIONS = [
         "settled": True,                    # KO'd 26 Aug 2026 (META close $578.77 >= $574.1295); 39 guaranteed-period shares delivered
         "shares_delivered": 39,             # full guaranteed-period delivery at strike $454.82 ($17,737.98, value 27 Aug)
     },
+    # GOOGL Accumulator #3 — Bank of Singapore, trade date 24 Sep 2026 (SYACDC2626800017)
+    # Boosted Knock-Out Discount Accumulator (Guaranteed Period). 376 fixing dates over 39 periods.
+    # Notional $126,602.96 (boosted $253,205.92). 1 share/fixing, 2 boosted (below strike). ACTIVE.
+    {
+        "id": "googl_accumulator_3",
+        "name": "GOOGL Accumulator #3",
+        "issuer": "Bank of Singapore (SYACDC2626800017)",
+        "underlying_ticker": "GOOGL",
+        "underlying_name": "Alphabet Inc-CL A",
+        "start_date": "2026-09-25",         # effective date (trade 24 Sep 2026)
+        "end_date": "2028-03-24",           # period 39 settlement date (376 fixing dates)
+        "strike_price": 275.8665,           # 81.93% of spot 336.71
+        "knockout_price": 353.5455,         # 105% of spot 336.71
+        "guaranteed_end": "2026-10-22",     # guaranteed period: 24 Sep – 22 Oct 2026
+        "shares_per_day": 1,
+        "leverage_below_strike": 2,
+    },
 ]
 
 # ═════════════════════════════════════════════════════════════════════════════
