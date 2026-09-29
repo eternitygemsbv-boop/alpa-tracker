@@ -744,25 +744,28 @@ FCN_POSITIONS = [
     },
 
     # ── 22. China Tech Worst-of FCN — Alibaba / Tencent / BYD  (Barclays, XS3213039608) ──
-    # BOS narrative: "12M USD Barclays FCN - 9988.HK, 0700.HK, 1211.HK 121027 XS3213039608"
-    # Trade 25-Sep-2026; 12M term → maturity ~12-Oct-2027. HK-listed underlyings (HKD).
-    # *** PLACEHOLDER — upload term sheet for coupon rate, KI/Strike/AC levels and initial prices ***
+    # Term sheet 25-Sep-2026 (Barclays Bank PLC). Periodic Callable Fixed Coupon, European KI. HK-listed (HKD).
+    # Trade/Initial Valuation 25-Sep-2026; issue 09-Oct-2026; Final Valuation 11-Oct-2027; Redemption 13-Oct-2027.
+    # Coupon 0.9592% per period ($959.20/month; 11.51% p.a.). Autocall trigger 85% (LOW).
+    # Specified Early Redemption from the 6th Interest Valuation Date (09-Apr-2027) → Periods 1–5 are NON-CALL.
+    # KI 60% European (Final Valuation Date only); Strike 70%.
+    # first_autocall_date = coupon-schedule anchor (first coupon 09-Nov-2026); true autocall 09-Apr-2027 (Obs 6).
     {
         "id": "baba_tcehy_byd",
         "name": "China Tech Worst-of FCN (Alibaba/Tencent/BYD)",
-        "issuer": "Barclays (ISIN: XS3213039608)",
+        "issuer": "Barclays Bank PLC (ISIN: XS3213039608, A1/A+/AA-)",
         "notional_usd": 100_000,
-        "coupon_monthly_pct": 0.0,      # ← unknown; update from term sheet
-        "coupon_annual_pct":  0.0,      # ← unknown; update from term sheet
-        "issue_date": "2026-09-25",
-        "maturity_date": "2027-10-12",  # 12M (121027); confirm from term sheet
-        "first_autocall_date": "2026-12-25",  # placeholder anchor; confirm from term sheet
-        "autocall_freq": "TBC — confirm from term sheet",
-        "ki_type": "TBC — confirm from term sheet",
+        "coupon_monthly_pct": 0.9592,   # 0.9592% per period
+        "coupon_annual_pct": 11.51,     # 0.9592% × 12
+        "issue_date": "2026-10-09",
+        "maturity_date": "2027-10-13",  # Redemption Date (2 biz days after Final Valuation 11-Oct-2027)
+        "first_autocall_date": "2027-01-09",  # COUPON-SCHEDULE ANCHOR (first coupon 09-Nov-2026); true autocall 09-Apr-2027 (Obs 6)
+        "autocall_freq": "Autocall from Obs 6 (09-Apr-2027) to maturity; Periods 1–5 NON-CALL; trigger 85%",
+        "ki_type": "European — KI at 60% of initial; checked ONLY at Final Valuation Date (11-Oct-2027); Strike at 70%",
         "underlyings": [
-            {"ticker": "9988.HK", "name": "Alibaba Group (HK)",       "initial": 1.0, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "HKD"},
-            {"ticker": "0700.HK", "name": "Tencent Holdings (HK)",    "initial": 1.0, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "HKD"},
-            {"ticker": "1211.HK", "name": "BYD Company (HK)",         "initial": 1.0, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "HKD"},
+            {"ticker": "9988.HK", "name": "Alibaba Group (HK)",    "initial": 107.70, "ki_pct": 60, "strike_pct": 70, "ac_pct": 85, "currency": "HKD"},
+            {"ticker": "0700.HK", "name": "Tencent Holdings (HK)", "initial": 434.20, "ki_pct": 60, "strike_pct": 70, "ac_pct": 85, "currency": "HKD"},
+            {"ticker": "1211.HK", "name": "BYD Company (HK)",      "initial": 77.50,  "ki_pct": 60, "strike_pct": 70, "ac_pct": 85, "currency": "HKD"},
         ],
         "coupons_received": [],
     },
@@ -1136,9 +1139,9 @@ MANUAL_PRICES = {
     # New FCN underlyings (Citi XS3446114244; Barclays XS3213039608) — placeholders pending term sheets
     "SKHY":  185.60,    # SK Hynix ADR initial 24 Sep 2026 (Citi XS3446114244)
     "SNDK":  1785.70,   # SanDisk initial 24 Sep 2026 (Citi XS3446114244)
-    "9988.HK": 1.0,     # Alibaba HK — update from term sheet
-    "0700.HK": 1.0,     # Tencent HK — update from term sheet
-    "1211.HK": 1.0,     # BYD HK — update from term sheet
+    "9988.HK": 107.70,  # Alibaba HK initial 25 Sep 2026 (Barclays XS3213039608)
+    "0700.HK": 434.20,  # Tencent HK initial 25 Sep 2026
+    "1211.HK": 77.50,   # BYD HK initial 25 Sep 2026
     # Bond funds (Man Group) — updated from BOS ad-hoc statement 15 Jul 2026
     "IE00039W6MB8": 100.85,   # Man Dynamic Income — NAV USD (BOS 15 Jul 2026)
     "IE000KEXCUV1": 112.29,   # Man Global InvGrade Opps — NAV USD (BOS 15 Jul 2026)
