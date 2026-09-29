@@ -62,6 +62,8 @@ CASH_TRANSFERS = [
     {"date": "20 AUG 26", "amount_usd": 80_000.00},    # FT26231RFR89
     {"date": "25 AUG 26", "amount_usd": 90_100.00},    # FT262362FB1T
     {"date": "25 SEP 26", "amount_usd": 79_990.00},
+    {"date": "28 SEP 26", "amount_usd": 129_990.00},
+    {"date": "28 SEP 26", "amount_usd": 130_000.00},
 ]
 TOTAL_CASH_DEPOSITED = sum(t["amount_usd"] for t in CASH_TRANSFERS)  # $2,079,910
 
@@ -124,6 +126,10 @@ TRADES_SINCE_STATEMENT = [
     {"date": "24 Sep 26", "description": "Citi Memory FCN (SK Hynix/SanDisk) purchase (XS3446114244)", "cost_usd": -100_000.00},
     {"date": "25 Sep 26", "description": "Inward SWIFT deposit", "cost_usd": +79_990.00},
     {"date": "25 Sep 26", "description": "Barclays China Tech FCN (Alibaba/Tencent/BYD) purchase (XS3213039608)", "cost_usd": -100_000.00},
+    {"date": "28 Sep 26", "description": "QQQ accumulator delivery — 10 sh @ strike $573.977", "cost_usd": -5_739.77},
+    {"date": "28 Sep 26", "description": "Meta Platforms (META) cash dividend — 77 sh", "cost_usd": +28.30},
+    {"date": "28 Sep 26", "description": "Inward SWIFT deposit (FT26271JGTG1)", "cost_usd": +129_990.00},
+    {"date": "28 Sep 26", "description": "Inward SWIFT deposit (FT26271PR0Y5)", "cost_usd": +130_000.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -926,6 +932,9 @@ DIRECT_HOLDINGS = [
         "purchase_price": 464.0166,  # strike price = cost basis; total $17,632.63 (SCTRSC2618361926)
         "currency": "USD",
         "note": "38 sh from META Accu (KO 1 Jul 2026, close $612.91 vs barrier $590.0458); guaranteed period 18 Jun–13 Aug 2026",
+        "dividends_received": [
+            {"date": "2026-09-28", "amount_usd": 28.30, "note": "Q3 dividend — 77 sh total (BOS export 29 Sep 2026)"},
+        ],
     },
     {
         "id": "meta_shares_2",
