@@ -726,22 +726,23 @@ FCN_POSITIONS = [
     },
     {
         "id": "hdb_ibn_rs",
-        "name": "India Banks / Reliance Steel Worst-of FCN",
-        "issuer": "Goldman Sachs Bank Europe SE (ISIN: XS3503818133, A+/A1/AA-)",
-        "notional_usd": 200_000,          # $200k notional (double size); Denomination USD 10,000
-        "coupon_monthly_pct": 0.9167,     # 11.00% p.a. ÷ 12
-        "coupon_annual_pct": 11.00,
-        "issue_date": "2026-10-09",
-        "maturity_date": "2027-10-13",    # Maturity 13-Oct-2027 (Valuation/Expiration 11-Oct-2027)
-        "first_autocall_date": "2027-01-12",  # COUPON-SCHEDULE ANCHOR (first coupon 12-Nov-2026); true first autocall Obs 1 = 11-Jan-2027
-        "autocall_freq": "Autocall monthly from Observation Date 1 (11-Jan-2027) through Obs 9 (09-Sep-2027); coupon periods 1–2 (Nov/Dec 2026) are NON-CALL. KO at 95% of initial.",
-        "ki_type": "European — KI at 65% of initial, checked ONLY at Final Valuation (11-Oct-2027); Put Strike at 75%",
+        "name": "India Banks / Reliance Steel Worst-of FCN ⚠ PLACEHOLDER",
+        "issuer": "Goldman Sachs (ISIN: XS3503818133)",
+        "notional_usd": 200_000,          # $200k notional — confirmed from BOS export
+        "coupon_monthly_pct": 0.0,        # ⚠ TERM SHEET PENDING (correct one due Fri) — coupon unknown
+        "coupon_annual_pct": 0.0,         # ⚠ update when correct GS term sheet arrives
+        "issue_date": "2026-10-09",       # value/settlement date from BOS export
+        "maturity_date": "2027-10-13",    # "121027" in description (confirm on new term sheet)
+        "first_autocall_date": "2027-01-09",  # PLACEHOLDER anchor — confirm from term sheet
+        "autocall_freq": "⚠ PLACEHOLDER — economics pending correct GS term sheet (expected Fri). Prior term sheet was the wrong note.",
+        "ki_type": "⚠ PLACEHOLDER — KI/Strike not confirmed; awaiting correct GS term sheet",
         "underlyings": [
             {"ticker": "HDB", "name": "HDFC Bank ADR",            "initial": 23.27,  "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
             {"ticker": "IBN", "name": "ICICI Bank ADR",           "initial": 27.94,  "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
             {"ticker": "RS",  "name": "Reliance Steel & Aluminum","initial": 384.31, "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
         ],
         "coupons_received": [],
+        "placeholder": True,
     },
 
     # ── 21. Memory Worst-of FCN — SanDisk / SK Hynix  (Citi, XS3446114244) ──
