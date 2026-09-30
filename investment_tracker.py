@@ -126,6 +126,7 @@ TRADES_SINCE_STATEMENT = [
     {"date": "24 Sep 26", "description": "Citi Memory FCN (SK Hynix/SanDisk) purchase (XS3446114244)", "cost_usd": -100_000.00},
     {"date": "25 Sep 26", "description": "Inward SWIFT deposit", "cost_usd": +79_990.00},
     {"date": "25 Sep 26", "description": "Barclays China Tech FCN (Alibaba/Tencent/BYD) purchase (XS3213039608)", "cost_usd": -100_000.00},
+    {"date": "25 Sep 26", "description": "GS India/Reliance FCN (HDB/IBN/RS) purchase (XS3503818133) — $200k notional", "cost_usd": -200_000.00},
     {"date": "28 Sep 26", "description": "QQQ accumulator delivery — 10 sh @ strike $573.977", "cost_usd": -5_739.77},
     {"date": "28 Sep 26", "description": "Meta Platforms (META) cash dividend — 77 sh", "cost_usd": +28.30},
     {"date": "28 Sep 26", "description": "Inward SWIFT deposit (FT26271JGTG1)", "cost_usd": +129_990.00},
@@ -723,6 +724,26 @@ FCN_POSITIONS = [
         ],
         "coupons_received": [],
     },
+    {
+        "id": "hdb_ibn_rs",
+        "name": "India / Reliance Worst-of FCN ⚠ PLACEHOLDER",
+        "issuer": "Goldman Sachs (ISIN: XS3503818133)",
+        "notional_usd": 200_000,          # NOTE: $200k notional (double size)
+        "coupon_monthly_pct": 0.0,        # ⚠ TERM SHEET NEEDED — coupon rate unknown (placeholder 0)
+        "coupon_annual_pct": 0.0,         # ⚠ update from GS term sheet when available
+        "issue_date": "2026-10-09",       # value/settlement date from BOS export
+        "maturity_date": "2027-10-12",    # "121027" in description
+        "first_autocall_date": "2027-01-09",  # PLACEHOLDER anchor — confirm from term sheet
+        "autocall_freq": "⚠ PLACEHOLDER — observation schedule not yet known; confirm from GS term sheet",
+        "ki_type": "⚠ PLACEHOLDER — KI/Strike not yet known (typical 60/70); confirm from GS term sheet",
+        "underlyings": [
+            {"ticker": "HDB", "name": "HDFC Bank ADR",        "initial": 23.50,  "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "IBN", "name": "ICICI Bank ADR",       "initial": 27.91,  "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "RS",  "name": "Reliance Steel & Alum","initial": 392.00, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
+        ],
+        "coupons_received": [],
+        "placeholder": True,
+    },
 
     # ── 21. Memory Worst-of FCN — SanDisk / SK Hynix  (Citi, XS3446114244) ──
     # Term sheet 24-Sep-2026 (Citigroup Global Markets). 6-month Fixed Coupon Autocall Note.
@@ -1162,6 +1183,9 @@ MANUAL_PRICES = {
     "CRWD":  210.00,    # CrowdStrike initial 08 Sep 2026
     "CEG":   255.47,    # Constellation Energy initial 21 Sep 2026 (BNP XS3502401105; yfinance fetches live)
     "VST":   142.00,    # Vistra Corp initial 21 Sep 2026 (yfinance fetches live)
+    "HDB":    23.50,    # HDFC Bank ADR fallback (GS XS3503818133; yfinance fetches live)
+    "IBN":    27.91,    # ICICI Bank ADR fallback (yfinance fetches live)
+    "RS":    392.00,    # Reliance Steel & Aluminum fallback (yfinance fetches live)
     # New FCN underlyings (Citi XS3446114244; Barclays XS3213039608) — placeholders pending term sheets
     "SKHY":  185.60,    # SK Hynix ADR initial 24 Sep 2026 (Citi XS3446114244)
     "SNDK":  1785.70,   # SanDisk initial 24 Sep 2026 (Citi XS3446114244)
