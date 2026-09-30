@@ -2155,6 +2155,51 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None, prev_clo
         cls = "ab-e" if level == "error" else "ab-w" if level == "warn" else "ab-g"
         alert_html += f'<div class="ab {cls}">{msg}</div>'
 
+    # ── AUTOCALL / KNOCK-OUT EVENT banner ────────────────────────────────────────
+    # Fires ONLY on CONFIRMED events (never proximity, never stale-price guesses):
+    #   • FCN autocalls that have been confirmed & flagged (autocalled=True) — shown for 30 days after.
+    #   • Accumulator knock-outs — either newly detected on a CONFIRMED daily close >= barrier
+    #     (accumulator_status.knocked_out, which uses fetched closes, not intraday/fallback),
+    #     or a logged KO within the last 30 days.
+    # NOTE: live-price FCN autocall detection is intentionally NOT done here — when the yfinance
+    # fetch fails the fallback prices equal each note's initial (100%), which sits above the
+    # autocall trigger and would fire false alarms. New FCN autocalls are caught by the upload
+    # reconciliation / EOD sweep and then flagged, at which point they appear here.
+    from datetime import date as _dtdate
+    _today = _dtdate.today()
+    def _recent(iso, days=30):
+        try:
+            return (_today - _dtdate.fromisoformat(iso)).days <= days and _today >= _dtdate.fromisoformat(iso)
+        except Exception:
+            return False
+    _events = []
+    for f in FCN_POSITIONS:
+        if f.get("autocalled") and _recent(f.get("autocall_date", "")):
+            _events.append(("AUTOCALLED", f["name"], f.get("notional_usd", 0),
+                            f'redeemed early at par on {f.get("autocall_date","")}'))
+    for acc in ACCUMULATOR_POSITIONS:
+        a_st = accumulator_status(acc, prices, closes)
+        kr = a_st.get("ko_record") or {}
+        if a_st.get("knocked_out") and _recent(kr.get("ko_date", "")):
+            _events.append(("KNOCKED OUT", acc["name"], 0,
+                            f'{acc.get("underlying_ticker","")} closed {kr.get("ko_price","?")} ≥ KO barrier '
+                            f'{acc.get("knockout_price",0):.2f} on {kr.get("ko_date","")}'))
+        elif a_st.get("knocked_out") and not acc.get("settled") and not kr:
+            # newly detected on today's confirmed close, not yet logged/processed
+            _events.append(("KNOCK-OUT DETECTED", acc["name"], 0,
+                            f'{acc.get("underlying_ticker","")} close ≥ KO barrier {acc.get("knockout_price",0):.2f} — confirm & settle'))
+    if _events:
+        _rows = "".join(
+            f'<div style="margin-top:6px;font-size:13px"><strong>{typ}: {name}</strong>'
+            + (f' (${notl:,.0f})' if notl else '')
+            + f' — {det}</div>' for typ, name, notl, det in _events)
+        alert_html = (
+            '<div class="ab ab-e" style="border:2px solid #b91c1c;background:#fef2f2">'
+            '<div style="font-size:15px;font-weight:800;color:#b91c1c">🔔 AUTOCALL / KNOCK-OUT</div>'
+            f'{_rows}'
+            '<div style="margin-top:8px;font-size:12px;color:#7f1d1d">Upload the BOS statement so Claude can book the redemption / settle the shares.</div>'
+            '</div>' + alert_html)
+
     # ── Income summary ──────────────────────────────────────────────────────────
     total_monthly_usd = 0.0
     total_annual_usd  = 0.0
