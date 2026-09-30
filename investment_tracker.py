@@ -726,23 +726,22 @@ FCN_POSITIONS = [
     },
     {
         "id": "hdb_ibn_rs",
-        "name": "India / Reliance Worst-of FCN ⚠ PLACEHOLDER",
-        "issuer": "Goldman Sachs (ISIN: XS3503818133)",
-        "notional_usd": 200_000,          # NOTE: $200k notional (double size)
-        "coupon_monthly_pct": 0.0,        # ⚠ TERM SHEET NEEDED — coupon rate unknown (placeholder 0)
-        "coupon_annual_pct": 0.0,         # ⚠ update from GS term sheet when available
-        "issue_date": "2026-10-09",       # value/settlement date from BOS export
-        "maturity_date": "2027-10-12",    # "121027" in description
-        "first_autocall_date": "2027-01-09",  # PLACEHOLDER anchor — confirm from term sheet
-        "autocall_freq": "⚠ PLACEHOLDER — observation schedule not yet known; confirm from GS term sheet",
-        "ki_type": "⚠ PLACEHOLDER — KI/Strike not yet known (typical 60/70); confirm from GS term sheet",
+        "name": "India Banks / Reliance Steel Worst-of FCN",
+        "issuer": "Goldman Sachs Bank Europe SE (ISIN: XS3503818133, A+/A1/AA-)",
+        "notional_usd": 200_000,          # $200k notional (double size); Denomination USD 10,000
+        "coupon_monthly_pct": 0.9167,     # 11.00% p.a. ÷ 12
+        "coupon_annual_pct": 11.00,
+        "issue_date": "2026-10-09",
+        "maturity_date": "2027-10-13",    # Maturity 13-Oct-2027 (Valuation/Expiration 11-Oct-2027)
+        "first_autocall_date": "2027-01-12",  # COUPON-SCHEDULE ANCHOR (first coupon 12-Nov-2026); true first autocall Obs 1 = 11-Jan-2027
+        "autocall_freq": "Autocall monthly from Observation Date 1 (11-Jan-2027) through Obs 9 (09-Sep-2027); coupon periods 1–2 (Nov/Dec 2026) are NON-CALL. KO at 95% of initial.",
+        "ki_type": "European — KI at 65% of initial, checked ONLY at Final Valuation (11-Oct-2027); Put Strike at 75%",
         "underlyings": [
-            {"ticker": "HDB", "name": "HDFC Bank ADR",        "initial": 23.50,  "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
-            {"ticker": "IBN", "name": "ICICI Bank ADR",       "initial": 27.91,  "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
-            {"ticker": "RS",  "name": "Reliance Steel & Alum","initial": 392.00, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "HDB", "name": "HDFC Bank ADR",            "initial": 23.27,  "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "IBN", "name": "ICICI Bank ADR",           "initial": 27.94,  "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "RS",  "name": "Reliance Steel & Aluminum","initial": 384.31, "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
         ],
         "coupons_received": [],
-        "placeholder": True,
     },
 
     # ── 21. Memory Worst-of FCN — SanDisk / SK Hynix  (Citi, XS3446114244) ──
@@ -1183,9 +1182,9 @@ MANUAL_PRICES = {
     "CRWD":  210.00,    # CrowdStrike initial 08 Sep 2026
     "CEG":   255.47,    # Constellation Energy initial 21 Sep 2026 (BNP XS3502401105; yfinance fetches live)
     "VST":   142.00,    # Vistra Corp initial 21 Sep 2026 (yfinance fetches live)
-    "HDB":    23.50,    # HDFC Bank ADR fallback (GS XS3503818133; yfinance fetches live)
-    "IBN":    27.91,    # ICICI Bank ADR fallback (yfinance fetches live)
-    "RS":    392.00,    # Reliance Steel & Aluminum fallback (yfinance fetches live)
+    "HDB":    23.27,    # HDFC Bank ADR initial 25 Sep 2026 (GS XS3503818133; yfinance fetches live)
+    "IBN":    27.94,    # ICICI Bank ADR initial 25 Sep 2026 (yfinance fetches live)
+    "RS":    384.31,    # Reliance Steel & Aluminum initial 25 Sep 2026 (yfinance fetches live)
     # New FCN underlyings (Citi XS3446114244; Barclays XS3213039608) — placeholders pending term sheets
     "SKHY":  185.60,    # SK Hynix ADR initial 24 Sep 2026 (Citi XS3446114244)
     "SNDK":  1785.70,   # SanDisk initial 24 Sep 2026 (Citi XS3446114244)
