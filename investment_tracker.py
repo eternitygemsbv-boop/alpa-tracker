@@ -131,6 +131,8 @@ TRADES_SINCE_STATEMENT = [
     {"date": "28 Sep 26", "description": "Meta Platforms (META) cash dividend — 77 sh", "cost_usd": +28.30},
     {"date": "28 Sep 26", "description": "Inward SWIFT deposit (FT26271JGTG1)", "cost_usd": +129_990.00},
     {"date": "28 Sep 26", "description": "Inward SWIFT deposit (FT26271PR0Y5)", "cost_usd": +130_000.00},
+    {"date": "30 Sep 26", "description": "HSBC US Tech FCN (META/GOOGL/NVDA) coupon — Period 4", "cost_usd": +1_083.33},
+    {"date": "30 Sep 26", "description": "Current-account interest credit (value 1 Oct)", "cost_usd": +283.46},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -237,6 +239,7 @@ FCN_POSITIONS = [
             {"date": "2026-07-01", "amount_usd": 1083.33, "note": "Period 1 — confirmed BOS transaction report 3 Jul 2026"},
             {"date": "2026-07-30", "amount_usd": 1083.33, "note": "Period 2 (DIARSC2620873375 — BOS tran report 4 Aug 2026)"},
             {"date": "2026-09-01", "amount_usd": 1083.33, "note": "Period 3 — BOS transactions 1 Sep 2026"},
+            {"date": "2026-09-30", "amount_usd": 1083.33, "note": "Period 4 — BOS app 30 Sep 2026 (note still live, not autocalled)"},
         ],
     },
 
