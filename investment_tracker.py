@@ -64,6 +64,7 @@ CASH_TRANSFERS = [
     {"date": "25 SEP 26", "amount_usd": 79_990.00},
     {"date": "28 SEP 26", "amount_usd": 129_990.00},
     {"date": "28 SEP 26", "amount_usd": 130_000.00},
+    {"date": "02 OCT 26", "amount_usd": 79_990.00},
 ]
 TOTAL_CASH_DEPOSITED = sum(t["amount_usd"] for t in CASH_TRANSFERS)  # $2,079,910
 
@@ -133,6 +134,8 @@ TRADES_SINCE_STATEMENT = [
     {"date": "28 Sep 26", "description": "Inward SWIFT deposit (FT26271PR0Y5)", "cost_usd": +130_000.00},
     {"date": "30 Sep 26", "description": "HSBC US Tech FCN (META/GOOGL/NVDA) coupon — Period 4", "cost_usd": +1_083.33},
     {"date": "30 Sep 26", "description": "Current-account interest credit (value 1 Oct)", "cost_usd": +283.46},
+    {"date": "01 Oct 26", "description": "Correction of credit interest", "cost_usd": +0.09},
+    {"date": "02 Oct 26", "description": "Inward SWIFT deposit (FT26275DGG5B)", "cost_usd": +79_990.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
