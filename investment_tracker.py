@@ -181,6 +181,12 @@ KNOWN_KO_EVENTS = {
         "ticker":           "META",
         "knockout_barrier": 574.1295,
     },
+    "qqq_accumulator": {
+        "ko_date":          "2026-10-05",
+        "ko_price":         756.20,      # QQQ close 5 Oct 2026 (vs barrier 753.816)
+        "ticker":           "QQQ",
+        "knockout_barrier": 753.8160,
+    },
 }
 
 # ─── FCN Positions ────────────────────────────────────────────────────────────
@@ -983,9 +989,17 @@ DIRECT_HOLDINGS = [
         "currency": "USD",
         "note": "35 sh from SPY Accu (KO 4 Aug 2026, close $771.33 vs barrier $765.261); guaranteed period ended 9 Jul 2026",
     },
-    # NOTE: QQQ shares (delivered in periodic batches from the still-active QQQ accumulator) are NOT
-    # listed here — they are tracked in ACCUMULATOR_POSITIONS via _shares_accumulated() to avoid
-    # double-counting. QQQ will be added here only if/when its accumulator is KO'd and settled.
+    # QQQ Accumulator KO'd 5 Oct 2026 (close $756.20 vs barrier $753.816) → shares settled to equity here.
+    {
+        "id": "qqq_shares",
+        "name": "Invesco QQQ Trust (accumulator delivery)",
+        "ticker": "QQQ",
+        "isin": "US46090E1038",
+        "shares": 81,
+        "purchase_price": 573.977,   # strike; 81 sh total $46,492.13 (9@22Jun +9@6Jul +10@20Jul +10@3Aug +10@17Aug +10@31Aug +9@14Sep +10@28Sep +4@5Oct)
+        "currency": "USD",
+        "note": "81 sh from QQQ Accu (KO 5 Oct 2026, close $756.20 vs barrier $753.816); guaranteed period ended 3 Aug 2026",
+    },
     {
         "id": "polar_cap_tech",
         "name": "Polar Capital Global Technology Fund (Dist - Cash)",
@@ -1014,6 +1028,7 @@ ACCUMULATOR_POSITIONS = [
         "guaranteed_end": "2026-08-03",     # 8 weeks guaranteed
         "shares_per_day": 1,
         "leverage_below_strike": 2,
+        "settled": True,   # KNOCKED OUT 5 Oct 2026 (QQQ close 756.20 >= barrier 753.816); 81 sh delivered -> qqq_shares in DIRECT_HOLDINGS
     },
     # SPY Accumulator — HSBC, trade date 11 Jun 2026
     # KO'd 4 Aug 2026 — SPY closed $771.33 vs KO barrier $765.261 (guaranteed period already ended 9 Jul).
@@ -1154,7 +1169,7 @@ ACCUMULATOR_POSITIONS = [
 MANUAL_PRICES = {
     # USD ETFs (15 Jul 2026 prices from BOS ad-hoc statement; SPY updated 5 Aug post-KO)
     "SPY":   769.79,    # 5 Aug 2026 close (accumulator KO'd 4 Aug at $771.33)
-    "QQQ":   705.16,
+    "QQQ":   756.20,    # QQQ close 5 Oct 2026 (KO day); yfinance fetches live
     "LLY":   1255.40,
     "DIA":   500.25,    # no update in this statement
     # US Tech
