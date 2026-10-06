@@ -136,6 +136,7 @@ TRADES_SINCE_STATEMENT = [
     {"date": "30 Sep 26", "description": "Current-account interest credit (value 1 Oct)", "cost_usd": +283.46},
     {"date": "01 Oct 26", "description": "Correction of credit interest", "cost_usd": +0.09},
     {"date": "02 Oct 26", "description": "Inward SWIFT deposit (FT26275DGG5B)", "cost_usd": +79_990.00},
+    {"date": "05 Oct 26", "description": "QQQ accumulator delivery — 4 sh @ strike $573.9775", "cost_usd": -2_295.91},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
