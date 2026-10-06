@@ -1014,17 +1014,18 @@ DIRECT_HOLDINGS = [
 
 # ─── Accumulator Positions ────────────────────────────────────────────────────
 ACCUMULATOR_POSITIONS = [
-    # QQQ Accumulator — purchased 8 Jun 2026 (SYACDC2616000100)
+    # QQQ Accumulator — HSBC, trade date 8 Jun 2026 (RFQ 177315642). 24M, bi-weekly, 501 days, leverage.
+    # Exec spot 717.92; Strike 573.977 (79.95%); KO 753.816 (105% of initial). Daily shares 1.
     {
         "id": "qqq_accumulator",
         "name": "QQQ Accumulator",
-        "issuer": "BOS (SYACDC2616000100)",
+        "issuer": "HSBC (RFQ: 177315642)",
         "underlying_ticker": "QQQ",
-        "underlying_name": "Invesco QQQ Trust",
+        "underlying_name": "Invesco QQQ Trust Series 1",
         "start_date": "2026-06-08",
-        "end_date": "2028-06-05",
-        "strike_price": 573.977,
-        "knockout_price": 753.816,
+        "end_date": "2028-06-05",           # 24M tenor (501 days)
+        "strike_price": 573.977,            # 79.95% of exec spot 717.92
+        "knockout_price": 753.816,          # 105% of exec spot 717.92
         "guaranteed_end": "2026-08-03",     # 8 weeks guaranteed
         "shares_per_day": 1,
         "leverage_below_strike": 2,
