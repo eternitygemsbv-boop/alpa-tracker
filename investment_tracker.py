@@ -138,6 +138,9 @@ TRADES_SINCE_STATEMENT = [
     {"date": "02 Oct 26", "description": "Inward SWIFT deposit (FT26275DGG5B)", "cost_usd": +79_990.00},
     {"date": "05 Oct 26", "description": "QQQ accumulator delivery — 4 sh @ strike $573.9775", "cost_usd": -2_295.91},
     {"date": "07 Oct 26", "description": "Semiconductor FCN (INTC/TSM/ASML) AUTOCALL — par redemption (DIARSC2628086557)", "cost_usd": +100_000.00},
+    {"date": "07 Oct 26", "description": "Semiconductor FCN final coupon — Period 4 (DIARSC2627474090)", "cost_usd": +1_543.30},
+    {"date": "07 Oct 26", "description": "Roundhill DRAM FCN coupon — Period 2 (DIARSC2627420660)", "cost_usd": +1_839.20},
+    {"date": "07 Oct 26", "description": "Gold Miners FCN coupon — Period 2 (DIARSC2627443090)", "cost_usd": +931.67},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -311,6 +314,7 @@ FCN_POSITIONS = [
             {"date": "2026-07-08", "amount_usd": 1543.30, "note": "Period 1 — confirmed BOS transaction report 10 Jul 2026"},
             {"date": "2026-08-05", "amount_usd": 1543.30, "note": "Period 2 — BOS tran report 8 Aug 2026"},
             {"date": "2026-09-08", "amount_usd": 1543.30, "note": "Period 3 (DIARSC2624623052 — BOS export 9 Sep 2026)"},
+            {"date": "2026-10-07", "amount_usd": 1543.30, "note": "Period 4 FINAL coupon on autocall (DIARSC2627474090 — BOS export 8 Oct 2026)"},
         ],
     },
 
@@ -492,6 +496,7 @@ FCN_POSITIONS = [
         ],
         "coupons_received": [
             {"date": "2026-09-08", "amount_usd": 1839.20, "note": "Period 1 (DIARSC2624526609 — BOS export 9 Sep 2026)"},
+            {"date": "2026-10-07", "amount_usd": 1839.20, "note": "Period 2 (DIARSC2627420660 — BOS export 8 Oct 2026)"},
         ],
     },
 
@@ -521,6 +526,7 @@ FCN_POSITIONS = [
         ],
         "coupons_received": [
             {"date": "2026-09-10", "amount_usd": 931.67, "note": "Period 1 — BOS export 19 Sep 2026"},
+            {"date": "2026-10-07", "amount_usd": 931.67, "note": "Period 2 (DIARSC2627443090 — BOS export 8 Oct 2026)"},
         ],
     },
 
