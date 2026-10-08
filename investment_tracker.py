@@ -137,6 +137,7 @@ TRADES_SINCE_STATEMENT = [
     {"date": "01 Oct 26", "description": "Correction of credit interest", "cost_usd": +0.09},
     {"date": "02 Oct 26", "description": "Inward SWIFT deposit (FT26275DGG5B)", "cost_usd": +79_990.00},
     {"date": "05 Oct 26", "description": "QQQ accumulator delivery — 4 sh @ strike $573.9775", "cost_usd": -2_295.91},
+    {"date": "07 Oct 26", "description": "Semiconductor FCN (INTC/TSM/ASML) AUTOCALL — par redemption (DIARSC2628086557)", "cost_usd": +100_000.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -299,6 +300,8 @@ FCN_POSITIONS = [
         "first_autocall_date": "2026-09-03",
         "autocall_freq": "Monthly (from 3rd observation, Sep 2026)",
         "ki_type": "European — KI checked only at Final Valuation Date (3 Jun 2027)",
+        "autocalled": True,                 # AUTOCALLED on 5 Oct 2026 obs (all 3 >= 95% trigger); redeemed at par 7 Oct 2026 (DIARSC2628086557)
+        "autocall_date": "2026-10-05",
         "underlyings": [
             {"ticker": "INTC", "name": "Intel Corporation",          "initial": 116.39,  "ki_pct": 50, "strike_pct": 60, "ac_pct": 95},
             {"ticker": "TSM",  "name": "Taiwan Semiconductor (ADR)", "initial": 397.60,  "ki_pct": 50, "strike_pct": 60, "ac_pct": 95},
