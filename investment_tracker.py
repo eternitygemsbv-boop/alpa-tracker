@@ -2138,6 +2138,36 @@ def accum_card(acc, prices, closes=None):
             f'{row2}'
             f'</div>')
 
+def consolidated_holdings():
+    """Merge DIRECT_HOLDINGS that share a ticker into one line: total shares,
+    weighted-average cost, combined dividends. Single-holding tickers pass through."""
+    import re as _re
+    groups, order = {}, []
+    for h in DIRECT_HOLDINGS:
+        t = h.get("ticker", "")
+        if t not in groups:
+            groups[t] = []; order.append(t)
+        groups[t].append(h)
+    out = []
+    for t in order:
+        hs = groups[t]
+        if len(hs) == 1:
+            out.append(hs[0]); continue
+        shares = sum(x.get("shares", 0) for x in hs)
+        cost   = sum(x.get("shares", 0) * x.get("purchase_price", 0) for x in hs)
+        avg    = cost / shares if shares else 0
+        divs   = [d for x in hs for d in x.get("dividends_received", [])]
+        base   = _re.sub(r'\s*\(accumulator[^)]*\)', '', hs[0].get("name", "")).strip()
+        parts  = ["%g@$%.2f" % (x.get("shares", 0), x.get("purchase_price", 0)) for x in hs]
+        merged = dict(hs[0])
+        merged.update({
+            "shares": shares, "purchase_price": avg, "dividends_received": divs,
+            "name": f"{base} (combined accumulator deliveries)",
+            "note": "Consolidated " + " + ".join(parts),
+        })
+        out.append(merged)
+    return out
+
 def holding_card(h, prices, prev_closes=None):
     ticker   = h.get("ticker", "")
     current  = prices.get(ticker)
@@ -2223,7 +2253,8 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None, prev_clo
     accum_sec     = (f'<div class="sec">Accumulator Positions</div>{accum_cards}' if active_accums else "")
     settled_sec   = (f'<div class="sec" style="color:#94a3b8">Completed Accumulators (shares in Direct Holdings)</div>{settled_accum_cards}'
                      if settled_accums else "")
-    holding_cards = "".join(holding_card(h, prices, prev_closes) for h in DIRECT_HOLDINGS)
+    merged_holdings = consolidated_holdings()
+    holding_cards = "".join(holding_card(h, prices, prev_closes) for h in merged_holdings)
     holding_sec   = (f'<div class="sec">Direct Holdings (ETFs &amp; Bond Funds)</div>{holding_cards}' if DIRECT_HOLDINGS else "")
 
     alert_html = ""
@@ -2503,7 +2534,7 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None, prev_clo
       <div class="sv">{len(BOND_POSITIONS)}</div>
       <div class="ss">Fixed income</div></div>
     <div class="sc"><div class="sl">Direct holdings</div>
-      <div class="sv">{len(DIRECT_HOLDINGS)}</div>
+      <div class="sv">{len(merged_holdings)}</div>
       <div class="ss">ETFs &amp; bond funds</div></div>
   </div>
   <div class="sec">Fixed Coupon Note (FCN) Positions</div>
