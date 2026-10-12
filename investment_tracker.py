@@ -141,6 +141,7 @@ TRADES_SINCE_STATEMENT = [
     {"date": "07 Oct 26", "description": "Semiconductor FCN final coupon — Period 4 (DIARSC2627474090)", "cost_usd": +1_543.30},
     {"date": "07 Oct 26", "description": "Roundhill DRAM FCN coupon — Period 2 (DIARSC2627420660)", "cost_usd": +1_839.20},
     {"date": "07 Oct 26", "description": "Gold Miners FCN coupon — Period 2 (DIARSC2627443090)", "cost_usd": +931.67},
+    {"date": "08 Oct 26", "description": "OCBC Financials FCN (Citi/BlackRock/Blackstone) purchase (XS3523713942)", "cost_usd": -100_000.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -764,6 +765,25 @@ FCN_POSITIONS = [
         ],
         "coupons_received": [],
     },
+    {
+        "id": "c_blk_bx",
+        "name": "Financials Worst-of FCN (Citi/BlackRock/Blackstone)",
+        "issuer": "OCBC (ISIN: XS3523713942, Aa1/AA-/AA-)",
+        "notional_usd": 100_000,
+        "coupon_monthly_pct": 1.0083,       # fixed rate 1.0083%/month
+        "coupon_annual_pct": 12.10,         # 1.0083% × 12
+        "issue_date": "2026-10-22",
+        "maturity_date": "2027-10-26",      # Cash Settlement Date (Final Valuation 22-Oct-2027)
+        "first_autocall_date": "2027-01-25",  # COUPON-SCHEDULE ANCHOR (first coupon 25-Nov-2026); true first autocall VD6 = 22-Apr-2027
+        "autocall_freq": "Autocall from Valuation Date 6 (22-Apr-2027) monthly to maturity; Valuation Dates 1–5 (Nov 2026–Mar 2027) are NON-CALL. Trigger 95% of initial.",
+        "ki_type": "European — KI at 70% of initial, checked ONLY at Final Valuation (22-Oct-2027); Put Strike at 75%",
+        "underlyings": [
+            {"ticker": "C",   "name": "Citigroup Inc",  "initial": 126.73,   "ki_pct": 70, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "BLK", "name": "BlackRock Inc",  "initial": 1055.96,  "ki_pct": 70, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "BX",  "name": "Blackstone Inc", "initial": 110.45,   "ki_pct": 70, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
+        ],
+        "coupons_received": [],
+    },
 
     # ── 21. Memory Worst-of FCN — SanDisk / SK Hynix  (Citi, XS3446114244) ──
     # Term sheet 24-Sep-2026 (Citigroup Global Markets). 6-month Fixed Coupon Autocall Note.
@@ -1215,6 +1235,9 @@ MANUAL_PRICES = {
     "VST":   142.00,    # Vistra Corp initial 21 Sep 2026 (yfinance fetches live)
     "HDB":    23.27,    # HDFC Bank ADR initial 25 Sep 2026 (GS XS3503818133; yfinance fetches live)
     "IBN":    27.94,    # ICICI Bank ADR initial 25 Sep 2026 (yfinance fetches live)
+    "C":     126.73,    # Citigroup initial 8 Oct 2026 (OCBC XS3523713942; yfinance fetches live)
+    "BLK":  1055.96,    # BlackRock initial 8 Oct 2026 (yfinance fetches live)
+    "BX":    110.45,    # Blackstone initial 8 Oct 2026 (yfinance fetches live)
     # New FCN underlyings (Citi XS3446114244; Barclays XS3213039608) — placeholders pending term sheets
     "SKHY":  185.60,    # SK Hynix ADR initial 24 Sep 2026 (Citi XS3446114244)
     "SNDK":  1785.70,   # SanDisk initial 24 Sep 2026 (Citi XS3446114244)
