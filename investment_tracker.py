@@ -306,6 +306,7 @@ FCN_POSITIONS = [
         "ki_type": "European — KI checked only at Final Valuation Date (3 Jun 2027)",
         "autocalled": True,                 # AUTOCALLED on 5 Oct 2026 obs (all 3 >= 95% trigger); redeemed at par 7 Oct 2026 (DIARSC2628086557)
         "autocall_date": "2026-10-05",
+        "event_acked": True,                # par + final coupon booked 7 Oct — clear from dashboard banner
         "underlyings": [
             {"ticker": "INTC", "name": "Intel Corporation",          "initial": 116.39,  "ki_pct": 50, "strike_pct": 60, "ac_pct": 95},
             {"ticker": "TSM",  "name": "Taiwan Semiconductor (ADR)", "initial": 397.60,  "ki_pct": 50, "strike_pct": 60, "ac_pct": 95},
@@ -1059,6 +1060,7 @@ ACCUMULATOR_POSITIONS = [
         "shares_per_day": 1,
         "leverage_below_strike": 2,
         "settled": True,   # KNOCKED OUT 5 Oct 2026 (QQQ close 756.20 >= barrier 753.816); 81 sh delivered -> qqq_shares in DIRECT_HOLDINGS
+        "event_acked": True,  # 81 shares settled to Direct Holdings — clear from dashboard banner
     },
     # SPY Accumulator — HSBC, trade date 11 Jun 2026
     # KO'd 4 Aug 2026 — SPY closed $771.33 vs KO barrier $765.261 (guaranteed period already ended 9 Jul).
@@ -2279,12 +2281,18 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None, prev_clo
             return (_today - _dtdate.fromisoformat(iso)).days <= days and _today >= _dtdate.fromisoformat(iso)
         except Exception:
             return False
+    # Banner shows an event only until it has been fully booked. Set "event_acked": True on a
+    # note/accumulator once its redemption/settlement is recorded, and it drops off the banner.
     _events = []
     for f in FCN_POSITIONS:
+        if f.get("event_acked"):
+            continue
         if f.get("autocalled") and _recent(f.get("autocall_date", "")):
             _events.append(("AUTOCALLED", f["name"], f.get("notional_usd", 0),
                             f'redeemed early at par on {f.get("autocall_date","")}'))
     for acc in ACCUMULATOR_POSITIONS:
+        if acc.get("event_acked"):
+            continue
         a_st = accumulator_status(acc, prices, closes)
         kr = a_st.get("ko_record") or {}
         if a_st.get("knocked_out") and _recent(kr.get("ko_date", "")):
