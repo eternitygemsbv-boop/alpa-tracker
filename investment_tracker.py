@@ -1221,6 +1221,23 @@ ACCUMULATOR_POSITIONS = [
         "shares_delivered": 10,
         "event_acked": True,   # 10 shares settled to Direct Holdings — clear from dashboard banner
     },
+    # GLD Accumulator — Bank of Singapore, trade date 9 Oct 2026 (SYACDC2628500014)
+    # Boosted Knock-Out Discount Accumulator (Guaranteed Period). 250 fixing dates over 26 periods.
+    # Notional $191,990 (boosted $383,980). 2 sh/fixing, 4 boosted (below strike). ACTIVE.
+    {
+        "id": "gld_accumulator",
+        "name": "GLD Accumulator",
+        "issuer": "Bank of Singapore (SYACDC2628500014)",
+        "underlying_ticker": "GLD",
+        "underlying_name": "SPDR Gold Shares ETF",
+        "start_date": "2026-10-12",         # effective date (trade 9 Oct 2026)
+        "end_date": "2027-10-12",           # period 26 settlement date (250 fixing dates)
+        "strike_price": 355.1815,           # 92.5% of spot 383.98
+        "knockout_price": 403.179,          # 105% of spot 383.98
+        "guaranteed_end": "2026-11-06",     # guaranteed period: 9 Oct – 6 Nov 2026
+        "shares_per_day": 2,
+        "leverage_below_strike": 2,
+    },
 ]
 
 # ═════════════════════════════════════════════════════════════════════════════
