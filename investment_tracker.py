@@ -142,6 +142,8 @@ TRADES_SINCE_STATEMENT = [
     {"date": "07 Oct 26", "description": "Roundhill DRAM FCN coupon — Period 2 (DIARSC2627420660)", "cost_usd": +1_839.20},
     {"date": "07 Oct 26", "description": "Gold Miners FCN coupon — Period 2 (DIARSC2627443090)", "cost_usd": +931.67},
     {"date": "08 Oct 26", "description": "OCBC Financials FCN (Citi/BlackRock/Blackstone) purchase (XS3523713942)", "cost_usd": -100_000.00},
+    {"date": "12 Oct 26", "description": "GS Semiconductor FCN #2 (ASML/MRVL/TSM) purchase (XS3503484415)", "cost_usd": -100_000.00},
+    {"date": "13 Oct 26", "description": "GOOGL Accu #3 KO delivery — 10 sh @ strike $275.8665 (SYACDC2626800017)", "cost_usd": -2_758.67},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -191,6 +193,12 @@ KNOWN_KO_EVENTS = {
         "ko_price":         756.20,      # QQQ close 5 Oct 2026 (vs barrier 753.816)
         "ticker":           "QQQ",
         "knockout_barrier": 753.8160,
+    },
+    "googl_accumulator_3": {
+        "ko_date":          "2026-10-13",
+        "ko_price":         353.78,      # GOOGL ref spot 13 Oct 2026 (vs barrier 353.5455)
+        "ticker":           "GOOGL",
+        "knockout_barrier": 353.5455,
     },
 }
 
@@ -785,6 +793,25 @@ FCN_POSITIONS = [
         ],
         "coupons_received": [],
     },
+    {
+        "id": "asml_mrvl_tsm",
+        "name": "Semiconductor Worst-of FCN #2 (ASML/Marvell/TSM)",
+        "issuer": "Goldman Sachs Bank Europe SE (ISIN: XS3503484415, A+/A1/AA-)",
+        "notional_usd": 100_000,
+        "coupon_monthly_pct": 0.9233,       # 11.08% p.a. ÷ 12
+        "coupon_annual_pct": 11.08,
+        "issue_date": "2026-10-26",
+        "maturity_date": "2027-10-28",      # Maturity 28-Oct-2027 (Valuation/Expiration 26-Oct-2027)
+        "first_autocall_date": "2027-02-01",  # COUPON-SCHEDULE ANCHOR (first coupon 1-Dec-2026); true first autocall Obs 1 = 26-Apr-2027
+        "autocall_freq": "Autocall monthly from Observation Date 1 (26-Apr-2027) through Obs 6 (27-Sep-2027); coupon periods 1–5 are NON-CALL. KO at 95% of initial.",
+        "ki_type": "European — KI at 50% of initial, checked ONLY at Final Valuation (26-Oct-2027); Put Strike at 55%",
+        "underlyings": [
+            {"ticker": "ASML", "name": "ASML Holding NV",          "initial": 1783.55, "ki_pct": 50, "strike_pct": 55, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "MRVL", "name": "Marvell Technology",       "initial": 274.71,  "ki_pct": 50, "strike_pct": 55, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "TSM",  "name": "Taiwan Semiconductor (ADR)","initial": 454.00,  "ki_pct": 50, "strike_pct": 55, "ac_pct": 95, "currency": "USD"},
+        ],
+        "coupons_received": [],
+    },
 
     # ── 21. Memory Worst-of FCN — SanDisk / SK Hynix  (Citi, XS3446114244) ──
     # Term sheet 24-Sep-2026 (Citigroup Global Markets). 6-month Fixed Coupon Autocall Note.
@@ -964,10 +991,10 @@ DIRECT_HOLDINGS = [
         "name": "Alphabet Inc Class A (accumulator deliveries)",
         "ticker": "GOOGL",
         "isin": "US02079K3059",
-        "shares": 56,
-        "purchase_price": 293.9751,  # blended: 38 sh @ $298.1035 (Accu #1) + 18 sh @ $285.2599 (Accu #2) = $16,462.61 / 56
+        "shares": 66,
+        "purchase_price": 291.2315,  # blended: 38@$298.1035 (#1) + 18@$285.2599 (#2) + 10@$275.8665 (#3 KO 13 Oct) = $19,221.28 / 66
         "currency": "USD",
-        "note": "38 sh from GOOGL Accu #1 (KO 20 Jun) + 18 sh from Accu #2 (KO 29 Jun); confirmed BOS 30 Jun statement",
+        "note": "38 sh GOOGL Accu #1 (KO 20 Jun) + 18 sh Accu #2 (KO 29 Jun) + 10 sh Accu #3 (KO 13 Oct 2026, SYACDC2626800017)",
         "dividends_received": [
             {"date": "2026-09-14", "amount_usd": 8.62, "note": "Q3 dividend — 56 sh (BOS export 19 Sep 2026)"},
         ],
@@ -1190,6 +1217,9 @@ ACCUMULATOR_POSITIONS = [
         "guaranteed_end": "2026-10-22",     # guaranteed period: 24 Sep – 22 Oct 2026
         "shares_per_day": 1,
         "leverage_below_strike": 2,
+        "settled": True,       # KNOCKED OUT 13 Oct 2026 (ref spot 353.78 >= barrier 353.5455); 10 accrued sh -> googl_shares
+        "shares_delivered": 10,
+        "event_acked": True,   # 10 shares settled to Direct Holdings — clear from dashboard banner
     },
 ]
 
@@ -1211,8 +1241,9 @@ MANUAL_PRICES = {
     "MSFT":  486.10,    # 15 Jul 2026
     # Semiconductors
     "INTC":  107.04,    # no update in this statement
-    "TSM":   408.75,    # no update in this statement
-    "ASML":  1734.19,   # no update in this statement
+    "TSM":   454.00,    # TSM initial 12 Oct 2026 (GS XS3503484415; yfinance fetches live)
+    "ASML":  1783.55,   # ASML initial 12 Oct 2026 (GS XS3503484415; yfinance fetches live)
+    "MRVL":  274.71,    # Marvell initial 12 Oct 2026 (yfinance fetches live)
     # Industrials (USD)
     "HON":   205.88,    # no update in this statement
     # US Banks
