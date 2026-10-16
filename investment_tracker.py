@@ -144,6 +144,12 @@ TRADES_SINCE_STATEMENT = [
     {"date": "08 Oct 26", "description": "OCBC Financials FCN (Citi/BlackRock/Blackstone) purchase (XS3523713942)", "cost_usd": -100_000.00},
     {"date": "12 Oct 26", "description": "GS Semiconductor FCN #2 (ASML/MRVL/TSM) purchase (XS3503484415)", "cost_usd": -100_000.00},
     {"date": "13 Oct 26", "description": "GOOGL Accu #3 KO delivery — 10 sh @ strike $275.8665 (SYACDC2626800017)", "cost_usd": -2_758.67},
+    {"date": "09 Oct 26", "description": "Man Global InvGrade Opps Fund distribution — Oct", "cost_usd": +545.60},
+    {"date": "09 Oct 26", "description": "Man Dynamic Income Fund distribution — Oct", "cost_usd": +917.60},
+    {"date": "13 Oct 26", "description": "GOOGL/AMZN/AVGO FCN coupon — Period 1 (DIARSC2628084080)", "cost_usd": +981.70},
+    {"date": "14 Oct 26", "description": "Aerospace FCN coupon — Period 3 (DIARSC2628105279)", "cost_usd": +1_021.67},
+    {"date": "14 Oct 26", "description": "UBER/SPOT/NFLX FCN coupon — Period 1 (DIARSC2628146212)", "cost_usd": +1_010.00},
+    {"date": "14 Oct 26", "description": "AAPL/TSLA FCN coupon — Period 2 (DIARSC2628582990)", "cost_usd": +1_042.50},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -426,6 +432,7 @@ FCN_POSITIONS = [
         "coupons_received": [
             {"date": "2026-08-12", "amount_usd": 1021.67, "note": "Period 1 — BOS transactions 12 Aug 2026"},
             {"date": "2026-09-11", "amount_usd": 1021.67, "note": "Period 2 — BOS export 19 Sep 2026"},
+            {"date": "2026-10-14", "amount_usd": 1021.67, "note": "Period 3 (DIARSC2628105279 — BOS export 16 Oct 2026)"},
         ],
     },
 
@@ -564,6 +571,7 @@ FCN_POSITIONS = [
         ],
         "coupons_received": [
             {"date": "2026-09-14", "amount_usd": 1042.50, "note": "Period 1 — BOS export 19 Sep 2026"},
+            {"date": "2026-10-14", "amount_usd": 1042.50, "note": "Period 2 (DIARSC2628582990 — BOS export 16 Oct 2026)"},
         ],
     },
 
@@ -622,7 +630,9 @@ FCN_POSITIONS = [
             {"ticker": "AMZN",  "name": "Amazon.com Inc",       "initial": 262.73, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
             {"ticker": "AVGO",  "name": "Broadcom Inc",         "initial": 360.97, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
         ],
-        "coupons_received": [],
+        "coupons_received": [
+            {"date": "2026-10-13", "amount_usd": 981.70, "note": "Period 1 (DIARSC2628084080 — BOS export 16 Oct 2026)"},
+        ],
     },
 
     # ── 16. UBER/SPOT/NFLX Worst-of FCN  (Barclays, XS3478985388) ──
@@ -649,7 +659,9 @@ FCN_POSITIONS = [
             {"ticker": "SPOT", "name": "Spotify Technology SA", "initial": 550.00, "ki_pct": 55, "strike_pct": 65, "ac_pct": 100, "currency": "USD"},
             {"ticker": "NFLX", "name": "Netflix Inc",           "initial": 81.84,  "ki_pct": 55, "strike_pct": 65, "ac_pct": 100, "currency": "USD"},
         ],
-        "coupons_received": [],
+        "coupons_received": [
+            {"date": "2026-10-14", "amount_usd": 1010.00, "note": "Period 1 (DIARSC2628146212 — BOS export 16 Oct 2026)"},
+        ],
     },
 
     # ── 17. Eaton/Vertiv Worst-of FCN  (J.P. Morgan, XS3434031780) ──
@@ -934,6 +946,7 @@ DIRECT_HOLDINGS = [
             {"date": "2026-07-09", "amount_usd": 888.00, "note": "Jul distribution (DIARSC2618741318 — BOS ad-hoc statement)"},
             {"date": "2026-08-12", "amount_usd": 858.40, "note": "Aug distribution (BOS transactions 12 Aug 2026)"},
             {"date": "2026-09-09", "amount_usd": 784.40, "note": "Sep distribution (BOS export 19 Sep 2026)"},
+            {"date": "2026-10-09", "amount_usd": 917.60, "note": "Oct distribution (DIARSC2627997720 — BOS export 16 Oct 2026)"},
         ],
     },
     {
@@ -950,6 +963,7 @@ DIRECT_HOLDINGS = [
             {"date": "2026-07-09", "amount_usd": 528.00, "note": "Jul distribution (DIARSC2618794052 — BOS ad-hoc statement)"},
             {"date": "2026-08-12", "amount_usd": 492.80, "note": "Aug distribution (BOS transactions 12 Aug 2026)"},
             {"date": "2026-09-09", "amount_usd": 466.40, "note": "Sep distribution (BOS export 19 Sep 2026)"},
+            {"date": "2026-10-09", "amount_usd": 545.60, "note": "Oct distribution (DIARSC2627918979 — BOS export 16 Oct 2026)"},
         ],
     },
     {
