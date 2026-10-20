@@ -1252,6 +1252,38 @@ ACCUMULATOR_POSITIONS = [
         "shares_per_day": 2,
         "leverage_below_strike": 2,
     },
+    # HDB (HDFC Bank ADR) Accumulator — Bank of Singapore, trade 16 Oct 2026 (SYACDC2629200026)
+    # Notional $118,550 (boosted $237,100). 20 sh/fixing, 40 boosted. 250 fixings. ACTIVE.
+    {
+        "id": "hdb_accumulator",
+        "name": "HDFC Bank ADR Accumulator",
+        "issuer": "Bank of Singapore (SYACDC2629200026)",
+        "underlying_ticker": "HDB",
+        "underlying_name": "HDFC Bank Ltd ADR",
+        "start_date": "2026-10-19",         # effective date (trade 16 Oct 2026)
+        "end_date": "2027-10-19",           # ~250 fixing dates (12M)
+        "strike_price": 20.4617,            # 86.3% of spot 23.71
+        "knockout_price": 24.8955,          # 105% of spot 23.71
+        "guaranteed_end": "2026-12-11",     # guaranteed period: 16 Oct – 11 Dec 2026
+        "shares_per_day": 20,
+        "leverage_below_strike": 2,
+    },
+    # AVGO (Broadcom) Accumulator — Bank of Singapore, trade 16 Oct 2026 (SYACDC2629200235)
+    # Notional $120,623.48 (boosted $241,246.96). 1 sh/fixing, 2 boosted. 356 fixings. ACTIVE.
+    {
+        "id": "avgo_accumulator",
+        "name": "Broadcom Accumulator",
+        "issuer": "Bank of Singapore (SYACDC2629200235)",
+        "underlying_ticker": "AVGO",
+        "underlying_name": "Broadcom Inc",
+        "start_date": "2026-10-19",         # effective date (trade 16 Oct 2026)
+        "end_date": "2028-04-19",           # ~356 fixing dates (~18M)
+        "strike_price": 276.4853,           # 81.6% of spot 338.83
+        "knockout_price": 355.7715,         # 105% of spot 338.83
+        "guaranteed_end": "2026-12-11",     # guaranteed period: 16 Oct – 11 Dec 2026
+        "shares_per_day": 1,
+        "leverage_below_strike": 2,
+    },
 ]
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -1336,7 +1368,7 @@ MANUAL_PRICES = {
     "GLW":   152.96,    # USD — Corning Inc initial price 6 Aug 2026 (yfinance fetches GLW live)
     # New Barclays FCN underlyings (XS3473397845 GOOGL/AMZN/AVGO, XS3478985388 UBER/SPOT/NFLX)
     # yfinance fetches these live; placeholders pending term sheets
-    "AVGO":  360.97,    # Broadcom initial 25 Aug 2026 (Barclays XS3473397845)
+    "AVGO":  334.59,    # Broadcom close 19 Oct 2026 (yfinance fetches live)
     "AMZN":  262.73,    # Amazon initial 25 Aug 2026 (fallback; yfinance fetches live)
     "UBER":  81.56,   # initial 26 Aug 2026 (Barclays XS3478985388; yfinance live)
     "SPOT":  550.00,   # initial 26 Aug 2026 (Barclays XS3478985388; yfinance live)
