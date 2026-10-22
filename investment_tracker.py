@@ -95,6 +95,23 @@ CASH_BALANCE_DATE   = "1 Sep 2026"    # Re-baselined to BOS app USD current-acco
 # Everything through 1 Sep (all coupons/dividends/deposits/purchases/autocall redemption) is baked in.
 # Prior 15 Jul baseline ($214,950.33) accumulated ~$3.3k of drift from pending-settlement timing; this reset clears it.
 
+# ═════════════════════════════════════════════════════════════════════════════
+#  SWISSQUOTE ACCOUNT — SEPARATE from BOS (via Three Comma Capital Advisors)
+#  Account 3389202 · IBAN CH2008781000338920200. Kept fully distinct from BOS;
+#  the two never co-mingle. Dashboard shows this in its own section + a combined
+#  net-worth figure at the top. Add holdings/trades here as Swissquote confirms them.
+# ═════════════════════════════════════════════════════════════════════════════
+SWISSQUOTE_DEPOSITS = [
+    {"date": "21 Oct 26", "amount_usd": 130_000.00, "ref": "FT26294BG847"},
+]
+SWISSQUOTE_CASH_BASE = sum(t["amount_usd"] for t in SWISSQUOTE_DEPOSITS)
+# Cash movements since (purchases negative, income positive) — same convention as TRADES_SINCE_STATEMENT.
+SWISSQUOTE_TRADES = [
+]
+# Equities / ETFs held in Swissquote (same shape as DIRECT_HOLDINGS; yfinance prices live).
+SWISSQUOTE_HOLDINGS = [
+]
+
 # New trades / deposits since the last BOS statement.
 # cost_usd: positive = cash in (deposit/dividend), negative = cash out (purchase).
 TRADES_SINCE_STATEMENT = [
@@ -2531,6 +2548,45 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None, prev_clo
     )
     cash_clr = "#16a34a" if available_cash >= 0 else "#dc2626"
 
+    # ── Swissquote account (separate) ────────────────────────────────────────────
+    sq_cash = SWISSQUOTE_CASH_BASE + sum(t.get("cost_usd", 0) for t in SWISSQUOTE_TRADES)
+    sq_hold_mkt = sq_hold_cost = 0.0
+    sq_hold_priceable = True
+    for h in SWISSQUOTE_HOLDINGS:
+        sh = h.get("shares", 0); pp = h.get("purchase_price", 0); cur = prices.get(h.get("ticker"))
+        sq_hold_cost += sh * pp
+        if cur: sq_hold_mkt += sh * cur
+        else:   sq_hold_priceable = False
+    sq_total = sq_cash + sq_hold_mkt
+    sq_pl = (sq_hold_mkt - sq_hold_cost) if (sq_hold_priceable and SWISSQUOTE_HOLDINGS) else None
+
+    # ── Combined net worth (BOS + Swissquote) ────────────────────────────────────
+    bos_net_worth = portfolio_value + available_cash
+    combined_net_worth = bos_net_worth + sq_total
+    sq_cash_clr = "#16a34a" if sq_cash >= 0 else "#dc2626"
+
+    # Swissquote section HTML
+    sq_holding_cards = "".join(holding_card(h, prices, prev_closes) for h in SWISSQUOTE_HOLDINGS)
+    sq_holdings_block = (sq_holding_cards if SWISSQUOTE_HOLDINGS else
+        '<div style="background:#fff;border-radius:12px;padding:20px 24px;color:#94a3b8;font-size:13px">'
+        'No positions yet — cash only. Send Swissquote trade confirmations and they\'ll appear here.</div>')
+    swissquote_section = f"""
+  <div class="sec" style="margin-top:28px;border-top:3px solid #e11d48;padding-top:14px">Swissquote Account <span style="font-size:12px;color:#94a3b8;font-weight:400">· 3389202 · via Three Comma Capital · separate from BOS</span></div>
+  <div style="background:#fff;border-radius:14px;padding:20px 26px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.09)">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+      <div><div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">Account value</div>
+        <div style="font-size:24px;font-weight:700;margin-top:4px">${sq_total:,.0f}</div>
+        <div style="font-size:11px;color:#64748b;margin-top:3px">Cash + holdings</div></div>
+      <div><div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">Available cash</div>
+        <div style="font-size:24px;font-weight:700;margin-top:4px;color:{sq_cash_clr}">${sq_cash:,.0f}</div>
+        <div style="font-size:11px;color:#64748b;margin-top:3px">{len(SWISSQUOTE_DEPOSITS)} deposit(s){f" · {len(SWISSQUOTE_TRADES)} trade(s)" if SWISSQUOTE_TRADES else ""}</div></div>
+      <div><div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">Holdings P&amp;L</div>
+        <div style="font-size:24px;font-weight:700;margin-top:4px;color:{'#16a34a' if (sq_pl is None or sq_pl>=0) else '#dc2626'}">{('+' if sq_pl>=0 else '')+f'${sq_pl:,.0f}' if sq_pl is not None else '—'}</div>
+        <div style="font-size:11px;color:#64748b;margin-top:3px">Unrealised on positions</div></div>
+    </div>
+  </div>
+  {sq_holdings_block}"""
+
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -2543,9 +2599,21 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None, prev_clo
 </div>
 <div class="wrap">
   {alert_html}
-  <!-- Portfolio overview banner -->
+  <!-- Combined net worth banner (BOS + Swissquote) -->
+  <div style="background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:14px;padding:22px 28px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,.18)">
+    <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Combined Net Worth</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:end">
+      <div><div style="font-size:34px;font-weight:800;color:#fff">${combined_net_worth:,.0f}</div>
+        <div style="font-size:11px;color:#94a3b8;margin-top:3px">Bank of Singapore + Swissquote</div></div>
+      <div><div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">Bank of Singapore</div>
+        <div style="font-size:22px;font-weight:700;color:#e2e8f0;margin-top:3px">${bos_net_worth:,.0f}</div></div>
+      <div><div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">Swissquote</div>
+        <div style="font-size:22px;font-weight:700;color:#e2e8f0;margin-top:3px">${sq_total:,.0f}</div></div>
+    </div>
+  </div>
+  <!-- BOS portfolio overview banner -->
   <div style="background:#fff;border-radius:14px;padding:22px 28px;margin-bottom:18px;box-shadow:0 1px 4px rgba(0,0,0,.09)">
-    <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">Portfolio Overview</div>
+    <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">Bank of Singapore — Portfolio Overview</div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px">
       <div>
         <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em">Total Value</div>
@@ -2645,6 +2713,7 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None, prev_clo
   {bond_cards}
   {accum_sec}
   {holding_sec}
+  {swissquote_section}
   {redeemed_fcn_sec}
   {settled_sec}
 </div>
