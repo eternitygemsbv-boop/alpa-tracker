@@ -107,9 +107,20 @@ SWISSQUOTE_DEPOSITS = [
 SWISSQUOTE_CASH_BASE = sum(t["amount_usd"] for t in SWISSQUOTE_DEPOSITS)
 # Cash movements since (purchases negative, income positive) — same convention as TRADES_SINCE_STATEMENT.
 SWISSQUOTE_TRADES = [
+    {"date": "23 Oct 26", "description": "Buy 21 QQQ @ $702.10 (+$48.37 comm) — ref 1200020092", "cost_usd": -14_792.47},
 ]
 # Equities / ETFs held in Swissquote (same shape as DIRECT_HOLDINGS; yfinance prices live).
 SWISSQUOTE_HOLDINGS = [
+    {
+        "id": "sq_qqq",
+        "name": "Invesco QQQ Trust",
+        "ticker": "QQQ",
+        "isin": "US46090E1038",
+        "shares": 21,
+        "purchase_price": 704.4033,  # $14,792.47 total (incl $48.37 commission) / 21 sh
+        "currency": "USD",
+        "note": "Bought 23 Oct 2026 @ $702.10 + $48.37 commission (Swissquote ref 1200020092)",
+    },
 ]
 
 # New trades / deposits since the last BOS statement.
