@@ -1312,6 +1312,22 @@ ACCUMULATOR_POSITIONS = [
         "shares_per_day": 1,
         "leverage_below_strike": 2,
     },
+    # GOOGL Accumulator #4 — Bank of Singapore, trade 23 Oct 2026 (SYACDC2629900060)
+    # Notional $120,375 (boosted $240,750). 1 sh/fixing, 2 boosted. 375 fixings. ACTIVE.
+    {
+        "id": "googl_accumulator_4",
+        "name": "GOOGL Accumulator #4",
+        "issuer": "Bank of Singapore (SYACDC2629900060)",
+        "underlying_ticker": "GOOGL",
+        "underlying_name": "Alphabet Inc-CL A",
+        "start_date": "2026-10-26",         # effective date (trade 23 Oct 2026)
+        "end_date": "2028-04-26",           # ~375 fixing dates (~18M)
+        "strike_price": 267.0078,           # 83.18% of spot 321.00
+        "knockout_price": 337.05,           # 105% of spot 321.00
+        "guaranteed_end": "2026-12-18",     # guaranteed period: 23 Oct – 18 Dec 2026
+        "shares_per_day": 1,
+        "leverage_below_strike": 2,
+    },
 ]
 
 # ═════════════════════════════════════════════════════════════════════════════
