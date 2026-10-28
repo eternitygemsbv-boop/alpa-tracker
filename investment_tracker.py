@@ -179,7 +179,17 @@ TRADES_SINCE_STATEMENT = [
     {"date": "14 Oct 26", "description": "UBER/SPOT/NFLX FCN coupon — Period 1 (DIARSC2628146212)", "cost_usd": +1_010.00},
     {"date": "14 Oct 26", "description": "AAPL/TSLA FCN coupon — Period 2 (DIARSC2628582990)", "cost_usd": +1_042.50},
     {"date": "22 Oct 26", "description": "TMO/JNJ/LLY FCN AUTOCALL — par redemption (pending BOS advice)", "cost_usd": +100_000.00},
-    {"date": "22 Oct 26", "description": "TMO/JNJ/LLY FCN final coupon — Period 3 (pending BOS advice)", "cost_usd": +976.70},
+    {"date": "22 Oct 26", "description": "TMO/JNJ/LLY FCN final coupon — Period 3 (DIARSC2629340400, 26 Oct)", "cost_usd": +976.70},
+    {"date": "08 Oct 26", "description": "GOOGL Accu #3 delivery — 10 sh @ strike $275.8665 (period 1, SCTRSC2628220951)", "cost_usd": -2_758.67},
+    {"date": "23 Oct 26", "description": "GLD accumulator delivery — 20 sh @ strike $355.1815 (SCTRSC2629999084)", "cost_usd": -7_103.63},
+    {"date": "20 Oct 26", "description": "Banks FCN (GS/JPM/MS) coupon — Period 4 (DIARSC2628712186)", "cost_usd": +1_791.60},
+    {"date": "20 Oct 26", "description": "AMZN/ORCL FCN coupon — Period 3 (DIARSC2628790543)", "cost_usd": +1_721.25},
+    {"date": "20 Oct 26", "description": "Industrials FCN (HON/SU/SIE) coupon — Period 4 (DIARSC2628873394)", "cost_usd": +1_014.17},
+    {"date": "21 Oct 26", "description": "Asia ETF FCN coupon — Period 4 (DIARSC2629290902)", "cost_usd": +1_938.75},
+    {"date": "22 Oct 26", "description": "Corning (GLW) FCN coupon — Period 2 (DIARSC2629209710)", "cost_usd": +1_437.50},
+    {"date": "26 Oct 26", "description": "Palo Alto/CrowdStrike FCN coupon — Period 1 (DIARSC2629312947)", "cost_usd": +957.50},
+    {"date": "26 Oct 26", "description": "Eaton/Vertiv FCN coupon — Period 1 (DIARSC2629360382)", "cost_usd": +971.67},
+    {"date": "27 Oct 26", "description": "GS Europe Banks #2 FCN coupon — Period 1 (DIARSC2629480499)", "cost_usd": +920.83},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -387,6 +397,7 @@ FCN_POSITIONS = [
             {"date": "2026-07-20", "amount_usd": 1014.17, "note": "Period 1 (DIARSC2619697304 — BOS tran report 22 Jul 2026)"},
             {"date": "2026-08-19", "amount_usd": 1014.17, "note": "Period 2 — BOS transactions 19 Aug 2026"},
             {"date": "2026-09-18", "amount_usd": 1014.17, "note": "Period 3 — BOS export 25 Sep 2026"},
+            {"date": "2026-10-20", "amount_usd": 1014.17, "note": "Period 4 (DIARSC2628873394 — BOS export 28 Oct 2026)"},
         ],
     },
 
@@ -413,6 +424,7 @@ FCN_POSITIONS = [
             {"date": "2026-07-20", "amount_usd": 1791.60, "note": "Period 1 (DIARSC2619685568 — BOS tran report 22 Jul 2026)"},
             {"date": "2026-08-19", "amount_usd": 1791.60, "note": "Period 2 — BOS transactions 19 Aug 2026"},
             {"date": "2026-09-18", "amount_usd": 1791.60, "note": "Period 3 — BOS export 19 Sep 2026"},
+            {"date": "2026-10-20", "amount_usd": 1791.60, "note": "Period 4 (DIARSC2628712186 — BOS export 28 Oct 2026)"},
         ],
     },
 
@@ -438,6 +450,7 @@ FCN_POSITIONS = [
             {"date": "2026-07-21", "amount_usd": 1938.75, "note": "Period 1 (DIARSC2619772044 — BOS tran report 22 Jul 2026)"},
             {"date": "2026-08-19", "amount_usd": 1938.75, "note": "Period 2 — BOS transactions 19 Aug 2026"},
             {"date": "2026-09-21", "amount_usd": 1938.75, "note": "Period 3 — BOS export 25 Sep 2026"},
+            {"date": "2026-10-21", "amount_usd": 1938.75, "note": "Period 4 (DIARSC2629290902 — BOS export 28 Oct 2026)"},
         ],
     },
 
@@ -521,6 +534,7 @@ FCN_POSITIONS = [
         "coupons_received": [
             {"date": "2026-08-19", "amount_usd": 1721.25, "note": "Period 1 — BOS transactions 19 Aug 2026"},
             {"date": "2026-09-18", "amount_usd": 1721.25, "note": "Period 2 — BOS export 19 Sep 2026"},
+            {"date": "2026-10-20", "amount_usd": 1721.25, "note": "Period 3 (DIARSC2628790543 — BOS export 28 Oct 2026)"},
         ],
     },
 
@@ -637,6 +651,7 @@ FCN_POSITIONS = [
         ],
         "coupons_received": [
             {"date": "2026-09-23", "amount_usd": 1437.50, "note": "Period 1 — BOS export 25 Sep 2026"},
+            {"date": "2026-10-22", "amount_usd": 1437.50, "note": "Period 2 (DIARSC2629209710 — BOS export 28 Oct 2026)"},
         ],
     },
 
@@ -720,7 +735,9 @@ FCN_POSITIONS = [
             {"ticker": "ETN", "name": "Eaton Corporation plc", "initial": 423.68, "ki_pct": 55, "strike_pct": 60, "ac_pct": 95, "currency": "USD"},
             {"ticker": "VRT", "name": "Vertiv Holdings Co",    "initial": 285.24, "ki_pct": 55, "strike_pct": 60, "ac_pct": 95, "currency": "USD"},
         ],
-        "coupons_received": [],
+        "coupons_received": [
+            {"date": "2026-10-26", "amount_usd": 971.67, "note": "Period 1 (DIARSC2629360382 — BOS export 28 Oct 2026)"},
+        ],
     },
 
     # ── 18. Palo Alto/CrowdStrike Worst-of FCN  (OCBC, XS3490319905) ──
@@ -747,7 +764,9 @@ FCN_POSITIONS = [
             {"ticker": "PANW", "name": "Palo Alto Networks Inc",   "initial": 327.95, "ki_pct": 50, "strike_pct": 55, "ac_pct": 95, "currency": "USD"},
             {"ticker": "CRWD", "name": "CrowdStrike Holdings Inc", "initial": 210.00, "ki_pct": 50, "strike_pct": 55, "ac_pct": 95, "currency": "USD"},
         ],
-        "coupons_received": [],
+        "coupons_received": [
+            {"date": "2026-10-26", "amount_usd": 957.50, "note": "Period 1 (DIARSC2629312947 — BOS export 28 Oct 2026)"},
+        ],
     },
 
     # ── 19. European Banks Worst-of FCN #2 — HSBA / GLE / UBS  (Goldman Sachs Bank Europe SE, XS3453960984) ──
@@ -774,7 +793,9 @@ FCN_POSITIONS = [
             {"ticker": "GLE.PA", "name": "Société Générale",   "initial": 73.81,   "ki_pct": 65, "strike_pct": 75, "ac_pct": 98, "currency": "EUR"},
             {"ticker": "UBS",    "name": "UBS AG (USD/NYSE)",   "initial": 55.16,   "ki_pct": 65, "strike_pct": 75, "ac_pct": 98, "currency": "USD"},
         ],
-        "coupons_received": [],
+        "coupons_received": [
+            {"date": "2026-10-27", "amount_usd": 920.83, "note": "Period 1 (DIARSC2629480499 — BOS export 28 Oct 2026)"},
+        ],
     },
 
     # ── 20. Power Utilities Worst-of FCN — CEG / VST  (BNP Paribas, XS3502401105) ──
@@ -954,6 +975,16 @@ DIRECT_HOLDINGS = [
         "currency": "USD",
     },
     {
+        "id": "gld_accum_shares",
+        "name": "SPDR Gold Shares ETF (accumulator delivery)",
+        "ticker": "GLD",
+        "isin": "US78463V1070",
+        "shares": 20,
+        "purchase_price": 355.1815,  # GLD accumulator strike; 20 sh delivered 23 Oct 2026 (SCTRSC2629999084)
+        "currency": "USD",
+        "note": "20 sh from GLD Accumulator (SYACDC2628500014) period-1 delivery @ strike $355.18",
+    },
+    {
         "id": "oih",
         "name": "VanEck Oil Services ETF",
         "ticker": "OIH",
@@ -1039,10 +1070,10 @@ DIRECT_HOLDINGS = [
         "name": "Alphabet Inc Class A (accumulator deliveries)",
         "ticker": "GOOGL",
         "isin": "US02079K3059",
-        "shares": 66,
-        "purchase_price": 291.2315,  # blended: 38@$298.1035 (#1) + 18@$285.2599 (#2) + 10@$275.8665 (#3 KO 13 Oct) = $19,221.28 / 66
+        "shares": 76,
+        "purchase_price": 289.2097,  # blended: 38@$298.1035 (#1) + 18@$285.2599 (#2) + 20@$275.8665 (#3: 10 on 8 Oct + 10 KO 13 Oct) = $21,979.94 / 76
         "currency": "USD",
-        "note": "38 sh GOOGL Accu #1 (KO 20 Jun) + 18 sh Accu #2 (KO 29 Jun) + 10 sh Accu #3 (KO 13 Oct 2026, SYACDC2626800017)",
+        "note": "38 sh GOOGL Accu #1 (KO 20 Jun) + 18 sh Accu #2 (KO 29 Jun) + 20 sh Accu #3 (10 on 8 Oct + 10 KO 13 Oct 2026, SYACDC2626800017)",
         "dividends_received": [
             {"date": "2026-09-14", "amount_usd": 8.62, "note": "Q3 dividend — 56 sh (BOS export 19 Sep 2026)"},
         ],
@@ -1265,8 +1296,8 @@ ACCUMULATOR_POSITIONS = [
         "guaranteed_end": "2026-10-22",     # guaranteed period: 24 Sep – 22 Oct 2026
         "shares_per_day": 1,
         "leverage_below_strike": 2,
-        "settled": True,       # KNOCKED OUT 13 Oct 2026 (ref spot 353.78 >= barrier 353.5455); 10 accrued sh -> googl_shares
-        "shares_delivered": 10,
+        "settled": True,       # KNOCKED OUT 13 Oct 2026 (ref spot 353.78 >= barrier 353.5455); 20 sh total (10 on 8 Oct + 10 at KO) -> googl_shares
+        "shares_delivered": 20,
         "event_acked": True,   # 10 shares settled to Direct Holdings — clear from dashboard banner
     },
     # GLD Accumulator — Bank of Singapore, trade date 9 Oct 2026 (SYACDC2628500014)
