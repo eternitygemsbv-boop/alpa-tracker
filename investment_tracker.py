@@ -178,6 +178,8 @@ TRADES_SINCE_STATEMENT = [
     {"date": "14 Oct 26", "description": "Aerospace FCN coupon — Period 3 (DIARSC2628105279)", "cost_usd": +1_021.67},
     {"date": "14 Oct 26", "description": "UBER/SPOT/NFLX FCN coupon — Period 1 (DIARSC2628146212)", "cost_usd": +1_010.00},
     {"date": "14 Oct 26", "description": "AAPL/TSLA FCN coupon — Period 2 (DIARSC2628582990)", "cost_usd": +1_042.50},
+    {"date": "22 Oct 26", "description": "TMO/JNJ/LLY FCN AUTOCALL — par redemption (pending BOS advice)", "cost_usd": +100_000.00},
+    {"date": "22 Oct 26", "description": "TMO/JNJ/LLY FCN final coupon — Period 3 (pending BOS advice)", "cost_usd": +976.70},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -480,6 +482,9 @@ FCN_POSITIONS = [
         "first_autocall_date": "2026-10-22",  # Valuation Date 3 (Periods 1–2 are coupon-only)
         "autocall_freq": "Monthly from Period 3 (22-Oct-2026); Periods 1–2 are coupon-only",
         "ki_type": "European — KI at 65% of initial; checked ONLY at Final Valuation Date (22 Jul 2027); Strike at 75%",
+        "autocalled": True,                 # AUTOCALLED on 22 Oct 2026 (VD3): all 3 closed >= 95% trigger (JNJ 267.61, TMO ~677, LLY ~1307). Redeemed at par ~26 Oct.
+        "autocall_date": "2026-10-22",
+        "event_acked": True,                # par + final coupon booked — clear from dashboard banner (awaiting BOS redemption advice to reconcile)
         "underlyings": [
             {"ticker": "TMO",  "name": "Thermo Fisher Scientific Inc", "initial": 510.85,   "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
             {"ticker": "JNJ",  "name": "Johnson & Johnson",             "initial": 268.00,   "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
@@ -488,6 +493,7 @@ FCN_POSITIONS = [
         "coupons_received": [
             {"date": "2026-08-26", "amount_usd": 976.70, "note": "Period 1 — BOS transactions 26 Aug 2026"},
             {"date": "2026-09-24", "amount_usd": 976.70, "note": "Period 2 — BOS export 25 Sep 2026"},
+            {"date": "2026-10-22", "amount_usd": 976.70, "note": "Period 3 FINAL coupon on autocall (VD3 — pending BOS redemption advice)"},
         ],
     },
 
@@ -2451,6 +2457,52 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None, prev_clo
             '<div style="font-size:15px;font-weight:800;color:#b91c1c">🔔 AUTOCALL / KNOCK-OUT</div>'
             f'{_rows}'
             '<div style="margin-top:8px;font-size:12px;color:#7f1d1d">Upload the BOS statement so Claude can book the redemption / settle the shares.</div>'
+            '</div>' + alert_html)
+
+    # ── Advisory: active FCN whose underlyings are ALL at/above their autocall trigger AND the note
+    #    is on/past its first callable date → it has autocalled (or will on the next observation).
+    #    Soft amber "verify", NOT a definitive claim — uses live prices only to avoid stale false-fires.
+    import re as _re2
+    _MON = {m: i for i, m in enumerate(
+        ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"], 1)}
+    def _true_first_autocall(f):
+        # The TRUE first callable date is the first DD-Mon-YYYY token in autocall_freq
+        # (e.g. "Autocall from Period 6 (08-Mar-2027)"); fall back to the coupon anchor.
+        mm = _re2.search(r'(\d{1,2})[- ]([A-Za-z]{3})[a-z]*[- ](\d{4})', f.get("autocall_freq", ""))
+        if mm:
+            try:
+                return _dtdate(int(mm.group(3)), _MON[mm.group(2).lower()], int(mm.group(1)))
+            except Exception:
+                pass
+        fa = f.get("first_autocall_date", "")
+        try:
+            return _dtdate.fromisoformat(fa)
+        except Exception:
+            return None
+    _watch = []
+    if live_mode:
+        for f in FCN_POSITIONS:
+            if f.get("autocalled") or f.get("event_acked"):
+                continue
+            tfa = _true_first_autocall(f)
+            if not tfa or _today < tfa:
+                continue
+            us = [underlying_status(u, prices) for u in f.get("underlyings", [])]
+            if not us or any(u.get("current") is None or u.get("ac_lvl") is None for u in us):
+                continue
+            if all(u["current"] >= u["ac_lvl"] for u in us):   # worst-of: ALL at/above trigger
+                det = " · ".join(f'{u["ticker"]} {u["current"]:.2f} ≥ {u["ac_lvl"]:.2f}' for u in us)
+                _watch.append((f["name"], f.get("notional_usd", 0), det))
+    if _watch:
+        _wrows = "".join(
+            f'<div style="margin-top:6px;font-size:13px"><strong>{name}</strong> (${notl:,.0f}) — {det}</div>'
+            for name, notl, det in _watch)
+        alert_html = (
+            '<div class="ab" style="border:2px solid #d97706;background:#fffbeb;border-radius:12px;padding:14px 18px;margin-bottom:14px">'
+            '<div style="font-size:15px;font-weight:800;color:#b45309">⚠ LIKELY AUTOCALLED — VERIFY</div>'
+            '<div style="margin-top:4px;font-size:12px;color:#92400e">These notes are past their first callable date with ALL underlyings at/above the autocall trigger. '
+            'If a monthly observation date has passed, the note has autocalled — check the closing prices on that date and confirm so Claude can book the redemption.</div>'
+            f'{_wrows}'
             '</div>' + alert_html)
 
     # ── Income summary ──────────────────────────────────────────────────────────
