@@ -2490,10 +2490,12 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None, prev_clo
             '<div style="margin-top:8px;font-size:12px;color:#7f1d1d">Upload the BOS statement so Claude can book the redemption / settle the shares.</div>'
             '</div>' + alert_html)
 
-    # ── Advisory: active FCN whose underlyings are ALL at/above their autocall trigger AND the note
-    #    is on/past its first callable date → it has autocalled (or will on the next observation).
-    #    Soft amber "verify", NOT a definitive claim — uses live prices only to avoid stale false-fires.
-    import re as _re2
+    # ── Advisory: active FCN that looks AUTOCALLED. Autocall only happens ON a monthly observation
+    #    date, so fire ONLY within a few days AFTER an observation date (when today's live prices are a
+    #    fair proxy for that date's close) AND all underlyings are at/above the autocall trigger. This
+    #    avoids false "likely autocalled" between observations (e.g. a laggard below-trigger on the
+    #    observation day that recovers mid-month). Soft amber "verify", live prices only.
+    import re as _re2, calendar as _cal2
     _MON = {m: i for i, m in enumerate(
         ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"], 1)}
     def _true_first_autocall(f):
@@ -2510,6 +2512,19 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None, prev_clo
             return _dtdate.fromisoformat(fa)
         except Exception:
             return None
+    def _last_monthly_obs(start, today, n=40):
+        # latest monthly observation date (same day-of-month as `start`) that is <= today
+        if not start or today < start:
+            return None
+        y, mo, d, last = start.year, start.month, start.day, None
+        for i in range(n):
+            mm = mo + i; yy = y + (mm - 1) // 12; mm2 = (mm - 1) % 12 + 1
+            od = _dtdate(yy, mm2, min(d, _cal2.monthrange(yy, mm2)[1]))
+            if od <= today:
+                last = od
+            else:
+                break
+        return last
     _watch = []
     if live_mode:
         for f in FCN_POSITIONS:
@@ -2518,21 +2533,25 @@ def build_html(prices, fcn_stats, alerts, live_mode=False, closes=None, prev_clo
             tfa = _true_first_autocall(f)
             if not tfa or _today < tfa:
                 continue
+            last_obs = _last_monthly_obs(tfa, _today)
+            # Only flag in the window just after an observation date (obs close ≈ current price).
+            if not last_obs or (_today - last_obs).days > 5:
+                continue
             us = [underlying_status(u, prices) for u in f.get("underlyings", [])]
             if not us or any(u.get("current") is None or u.get("ac_lvl") is None for u in us):
                 continue
             if all(u["current"] >= u["ac_lvl"] for u in us):   # worst-of: ALL at/above trigger
                 det = " · ".join(f'{u["ticker"]} {u["current"]:.2f} ≥ {u["ac_lvl"]:.2f}' for u in us)
-                _watch.append((f["name"], f.get("notional_usd", 0), det))
+                _watch.append((f["name"], f.get("notional_usd", 0), last_obs.isoformat(), det))
     if _watch:
         _wrows = "".join(
-            f'<div style="margin-top:6px;font-size:13px"><strong>{name}</strong> (${notl:,.0f}) — {det}</div>'
-            for name, notl, det in _watch)
+            f'<div style="margin-top:6px;font-size:13px"><strong>{name}</strong> (${notl:,.0f}) — obs {obs} · {det}</div>'
+            for name, notl, obs, det in _watch)
         alert_html = (
             '<div class="ab" style="border:2px solid #d97706;background:#fffbeb;border-radius:12px;padding:14px 18px;margin-bottom:14px">'
             '<div style="font-size:15px;font-weight:800;color:#b45309">⚠ LIKELY AUTOCALLED — VERIFY</div>'
-            '<div style="margin-top:4px;font-size:12px;color:#92400e">These notes are past their first callable date with ALL underlyings at/above the autocall trigger. '
-            'If a monthly observation date has passed, the note has autocalled — check the closing prices on that date and confirm so Claude can book the redemption.</div>'
+            '<div style="margin-top:4px;font-size:12px;color:#92400e">A monthly observation date just passed with ALL underlyings at/above the autocall trigger. '
+            'Confirm the official closing prices on that observation date — if all held above, the note has autocalled and Claude can book the redemption.</div>'
             f'{_wrows}'
             '</div>' + alert_html)
 
