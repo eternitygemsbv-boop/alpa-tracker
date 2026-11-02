@@ -2900,21 +2900,30 @@ def _fetch_with_fallback(tickers):
     return prices, prev_closes
 
 def _compute_alerts(prices, closes=None):
+    from datetime import date as _d
+    _today = _d.today()
     alerts    = []
     fcn_stats = []
     for f in FCN_POSITIONS:
+        if f.get("autocalled"):
+            continue  # redeemed — no barrier alerts or status
         us = [underlying_status(u, prices) for u in f.get("underlyings", [])]
-        if "BREACH" in [u["status"] for u in us]:
-            st = "BREACH"
-            alerts.append(("error", f"🔴 KI BREACH: {f['name']} — one or more underlyings below knock-in level!"))
-        elif "WATCH" in [u["status"] for u in us]:
-            st = "WATCH"
-            alerts.append(("warn", f"⚠ APPROACHING KI: {f['name']} — an underlying is within 20% of knock-in."))
-        elif "SAFE" in [u["status"] for u in us]:
-            st = "SAFE"
-        else:
-            st = "UNKNOWN"
+        statuses = [u["status"] for u in us]
+        st = ("BREACH" if "BREACH" in statuses else
+              "WATCH"  if "WATCH"  in statuses else
+              "SAFE"   if "SAFE"   in statuses else "UNKNOWN")
         fcn_stats.append(st)
+        # KI here is EUROPEAN — only evaluated at the Final Valuation Date. An underlying dipping toward
+        # (or below) the KI mid-life has NO effect; it can recover before final valuation. So only surface
+        # KI alerts within ~45 days of maturity (the final-valuation window); suppress the rest as noise.
+        try:
+            near_final = (_d.fromisoformat(f.get("maturity_date", "")) - _today).days <= 45
+        except Exception:
+            near_final = False
+        if near_final and st == "BREACH":
+            alerts.append(("error", f"🔴 KI BREACH (near final valuation): {f['name']} — an underlying is below knock-in."))
+        elif near_final and st == "WATCH":
+            alerts.append(("warn", f"⚠ APPROACHING KI (near final valuation): {f['name']} — an underlying within 20% of knock-in."))
     for a in ACCUMULATOR_POSITIONS:
         s = accumulator_status(a, prices, closes)
         if s["status"] == "DOUBLE_UP":
