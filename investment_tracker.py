@@ -190,6 +190,9 @@ TRADES_SINCE_STATEMENT = [
     {"date": "26 Oct 26", "description": "Palo Alto/CrowdStrike FCN coupon — Period 1 (DIARSC2629312947)", "cost_usd": +957.50},
     {"date": "26 Oct 26", "description": "Eaton/Vertiv FCN coupon — Period 1 (DIARSC2629360382)", "cost_usd": +971.67},
     {"date": "27 Oct 26", "description": "GS Europe Banks #2 FCN coupon — Period 1 (DIARSC2629480499)", "cost_usd": +920.83},
+    {"date": "09 Nov 26", "description": "Gold Miners FCN (AAL/NEM/B) AUTOCALL — par redemption (DIARSC2631370379)", "cost_usd": +100_000.00},
+    {"date": "09 Nov 26", "description": "Gold Miners FCN final coupon — Period 3 (pending BOS advice)", "cost_usd": +931.67},
+    {"date": "09 Nov 26", "description": "HDB Accumulator KO delivery — 580 sh @ strike $20.4617 (SYACDC2629200026)", "cost_usd": -11_867.79},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -245,6 +248,12 @@ KNOWN_KO_EVENTS = {
         "ko_price":         353.78,      # GOOGL ref spot 13 Oct 2026 (vs barrier 353.5455)
         "ticker":           "GOOGL",
         "knockout_barrier": 353.5455,
+    },
+    "hdb_accumulator": {
+        "ko_date":          "2026-11-06",
+        "ko_price":         25.14,       # HDB ref spot 6 Nov 2026 (vs barrier 24.8955)
+        "ticker":           "HDB",
+        "knockout_barrier": 24.8955,
     },
 }
 
@@ -584,6 +593,9 @@ FCN_POSITIONS = [
         "first_autocall_date": "2026-11-05",  # Observation Date 3 — first autocall; Obs 1–2 coupon-only
         "autocall_freq": "Monthly from Observation Date 3 (5-Nov-2026); Obs 1–2 are coupon-only",
         "ki_type": "European — KI at 55% of initial; checked ONLY at Determination Date (5 Aug 2027); Strike at 65%",
+        "autocalled": True,                 # AUTOCALLED on 5 Nov 2026 obs (all 3 >= 95% trigger); redeemed at par 9 Nov 2026 (DIARSC2631370379)
+        "autocall_date": "2026-11-05",
+        "event_acked": True,                # par + final coupon booked 9 Nov — clear from dashboard banner
         "underlyings": [
             {"ticker": "AAL.L", "name": "Anglo American PLC",  "initial": 3524.00, "ki_pct": 55, "strike_pct": 65, "ac_pct": 95, "currency": "GBP"},
             {"ticker": "NEM",   "name": "Newmont Corporation", "initial": 94.65,   "ki_pct": 55, "strike_pct": 65, "ac_pct": 95, "currency": "USD"},
@@ -592,6 +604,7 @@ FCN_POSITIONS = [
         "coupons_received": [
             {"date": "2026-09-10", "amount_usd": 931.67, "note": "Period 1 — BOS export 19 Sep 2026"},
             {"date": "2026-10-07", "amount_usd": 931.67, "note": "Period 2 (DIARSC2627443090 — BOS export 8 Oct 2026)"},
+            {"date": "2026-11-05", "amount_usd": 931.67, "note": "Period 3 FINAL coupon on autocall (pending BOS advice)"},
         ],
     },
 
@@ -975,6 +988,16 @@ DIRECT_HOLDINGS = [
         "currency": "USD",
     },
     {
+        "id": "hdb_shares",
+        "name": "HDFC Bank ADR (accumulator delivery)",
+        "ticker": "HDB",
+        "isin": "US40415F1012",
+        "shares": 580,
+        "purchase_price": 20.4617,   # accumulator strike; 580 sh delivered on KO 6 Nov 2026 (SYACDC2629200026)
+        "currency": "USD",
+        "note": "580 sh from HDB Accumulator KO 6 Nov 2026 (ref spot $25.14 vs barrier $24.8955) @ strike $20.46",
+    },
+    {
         "id": "gld_accum_shares",
         "name": "SPDR Gold Shares ETF (accumulator delivery)",
         "ticker": "GLD",
@@ -1332,6 +1355,9 @@ ACCUMULATOR_POSITIONS = [
         "guaranteed_end": "2026-12-11",     # guaranteed period: 16 Oct – 11 Dec 2026
         "shares_per_day": 20,
         "leverage_below_strike": 2,
+        "settled": True,       # KNOCKED OUT 6 Nov 2026 (ref spot 25.14 >= barrier 24.8955); 580 sh accrued -> hdb_shares
+        "shares_delivered": 580,
+        "event_acked": True,   # 580 shares settled to Direct Holdings — clear from dashboard banner
     },
     # AVGO (Broadcom) Accumulator — Bank of Singapore, trade 16 Oct 2026 (SYACDC2629200235)
     # Notional $120,623.48 (boosted $241,246.96). 1 sh/fixing, 2 boosted. 356 fixings. ACTIVE.
