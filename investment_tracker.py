@@ -193,6 +193,17 @@ TRADES_SINCE_STATEMENT = [
     {"date": "09 Nov 26", "description": "Gold Miners FCN (AAL/NEM/B) AUTOCALL — par redemption (DIARSC2631370379)", "cost_usd": +100_000.00},
     {"date": "09 Nov 26", "description": "Gold Miners FCN final coupon — Period 3 (pending BOS advice)", "cost_usd": +931.67},
     {"date": "09 Nov 26", "description": "HDB Accumulator KO delivery — 580 sh @ strike $20.4617 (SYACDC2629200026)", "cost_usd": -11_867.79},
+    {"date": "30 Oct 26", "description": "HDB accumulator delivery — 200 sh @ strike $20.4617 (period 1, SCTRSC2630614475)", "cost_usd": -4_092.34},
+    {"date": "30 Oct 26", "description": "AVGO accumulator delivery — 10 sh @ strike $276.485 (SCTRSC2630648070)", "cost_usd": -2_764.85},
+    {"date": "06 Nov 26", "description": "GLD accumulator delivery — 20 sh @ strike $355.1815 (period 2, SCTRSC2631319908)", "cost_usd": -7_103.63},
+    {"date": "06 Nov 26", "description": "GOOGL Accu #4 delivery — 10 sh @ strike $267.0078 (SCTRSC2631387326)", "cost_usd": -2_670.08},
+    {"date": "30 Oct 26", "description": "US Tech FCN (META/GOOGL/NVDA) coupon — Period 5 (DIARSC2630122520)", "cost_usd": +1_083.33},
+    {"date": "30 Oct 26", "description": "SPY shares cash dividend (DIARSC2626485020)", "cost_usd": +46.28},
+    {"date": "30 Oct 26", "description": "Current-account interest credit", "cost_usd": +128.60},
+    {"date": "30 Oct 26", "description": "Current-account interest/fee debit", "cost_usd": -111.33},
+    {"date": "02 Nov 26", "description": "Current-account interest credit", "cost_usd": +0.39},
+    {"date": "05 Nov 26", "description": "Roundhill DRAM FCN coupon — Period 3 (DIARSC2630316014)", "cost_usd": +1_839.20},
+    {"date": "09 Nov 26", "description": "Power Utilities FCN (CEG/VST) coupon — Period 1 (DIARSC2630731438)", "cost_usd": +975.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -318,6 +329,7 @@ FCN_POSITIONS = [
             {"date": "2026-07-30", "amount_usd": 1083.33, "note": "Period 2 (DIARSC2620873375 — BOS tran report 4 Aug 2026)"},
             {"date": "2026-09-01", "amount_usd": 1083.33, "note": "Period 3 — BOS transactions 1 Sep 2026"},
             {"date": "2026-09-30", "amount_usd": 1083.33, "note": "Period 4 — BOS app 30 Sep 2026 (note still live, not autocalled)"},
+            {"date": "2026-10-30", "amount_usd": 1083.33, "note": "Period 5 (DIARSC2630122520 — BOS export 11 Nov 2026)"},
         ],
     },
 
@@ -571,6 +583,7 @@ FCN_POSITIONS = [
         "coupons_received": [
             {"date": "2026-09-08", "amount_usd": 1839.20, "note": "Period 1 (DIARSC2624526609 — BOS export 9 Sep 2026)"},
             {"date": "2026-10-07", "amount_usd": 1839.20, "note": "Period 2 (DIARSC2627420660 — BOS export 8 Oct 2026)"},
+            {"date": "2026-11-05", "amount_usd": 1839.20, "note": "Period 3 (DIARSC2630316014 — BOS export 11 Nov 2026)"},
         ],
     },
 
@@ -834,7 +847,9 @@ FCN_POSITIONS = [
             {"ticker": "CEG", "name": "Constellation Energy Corp", "initial": 255.47, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
             {"ticker": "VST", "name": "Vistra Corp",               "initial": 142.00, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
         ],
-        "coupons_received": [],
+        "coupons_received": [
+            {"date": "2026-11-09", "amount_usd": 975.00, "note": "Period 1 (DIARSC2630731438 — BOS export 11 Nov 2026)"},
+        ],
     },
     {
         "id": "hdb_ibn_rs",
@@ -992,21 +1007,14 @@ DIRECT_HOLDINGS = [
         "name": "HDFC Bank ADR (accumulator delivery)",
         "ticker": "HDB",
         "isin": "US40415F1012",
-        "shares": 580,
-        "purchase_price": 20.4617,   # accumulator strike; 580 sh delivered on KO 6 Nov 2026 (SYACDC2629200026)
+        "shares": 780,
+        "purchase_price": 20.4617,   # accumulator strike; 780 sh total (200 on 30 Oct + 580 at KO 6 Nov) @ strike $20.4617
         "currency": "USD",
-        "note": "580 sh from HDB Accumulator KO 6 Nov 2026 (ref spot $25.14 vs barrier $24.8955) @ strike $20.46",
+        "note": "780 sh from HDB Accumulator (SYACDC2629200026): 200 delivered 30 Oct + 580 at KO 6 Nov 2026 (ref spot $25.14 vs barrier $24.8955)",
     },
-    {
-        "id": "gld_accum_shares",
-        "name": "SPDR Gold Shares ETF (accumulator delivery)",
-        "ticker": "GLD",
-        "isin": "US78463V1070",
-        "shares": 20,
-        "purchase_price": 355.1815,  # GLD accumulator strike; 20 sh delivered 23 Oct 2026 (SCTRSC2629999084)
-        "currency": "USD",
-        "note": "20 sh from GLD Accumulator (SYACDC2628500014) period-1 delivery @ strike $355.18",
-    },
+    # NOTE: GLD accumulator (SYACDC2628500014) is still ACTIVE — its delivered shares are valued by the
+    # daily accumulator model (_shares_accumulated), NOT listed here, to avoid double-counting. They will
+    # be added to Direct Holdings only if/when that accumulator knocks out. Same for AVGO & GOOGL#4 accums.
     {
         "id": "oih",
         "name": "VanEck Oil Services ETF",
@@ -1147,6 +1155,9 @@ DIRECT_HOLDINGS = [
         "purchase_price": 621.8289,  # avg strike; 35 sh total $21,764.01 (9@25Jun + 9@9Jul + 10@23Jul + 7@4Aug)
         "currency": "USD",
         "note": "35 sh from SPY Accu (KO 4 Aug 2026, close $771.33 vs barrier $765.261); guaranteed period ended 9 Jul 2026",
+        "dividends_received": [
+            {"date": "2026-10-30", "amount_usd": 46.28, "note": "Q dividend — 35 sh (DIARSC2626485020 — BOS export 11 Nov 2026)"},
+        ],
     },
     # QQQ Accumulator KO'd 5 Oct 2026 (close $756.20 vs barrier $753.816) → shares settled to equity here.
     {
