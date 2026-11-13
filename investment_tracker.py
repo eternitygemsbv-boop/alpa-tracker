@@ -204,6 +204,15 @@ TRADES_SINCE_STATEMENT = [
     {"date": "02 Nov 26", "description": "Current-account interest credit", "cost_usd": +0.39},
     {"date": "05 Nov 26", "description": "Roundhill DRAM FCN coupon — Period 3 (DIARSC2630316014)", "cost_usd": +1_839.20},
     {"date": "09 Nov 26", "description": "Power Utilities FCN (CEG/VST) coupon — Period 1 (DIARSC2630731438)", "cost_usd": +975.00},
+    {"date": "13 Nov 26", "description": "AAPL/TSLA FCN AUTOCALL — par redemption (MCAL XS3407131419)", "cost_usd": +100_000.00},
+    {"date": "13 Nov 26", "description": "AAPL/TSLA FCN final coupon — Period 3 (pending BOS advice)", "cost_usd": +1_042.50},
+    {"date": "11 Nov 26", "description": "MS GOOGL/META Note purchase (XS3557952259)", "cost_usd": -100_000.00},
+    {"date": "12 Nov 26", "description": "China Tech FCN (Alibaba/Tencent/BYD) coupon — Period 1 (DIARSC...)", "cost_usd": +959.20},
+    {"date": "12 Nov 26", "description": "GS India Banks FCN (HDFC/ICICI) coupon — Period 1", "cost_usd": +1_666.67},
+    {"date": "12 Nov 26", "description": "Aerospace FCN coupon — Period 4", "cost_usd": +1_021.67},
+    {"date": "12 Nov 26", "description": "Memory FCN (SanDisk/SK Hynix) coupon — Period 1", "cost_usd": +1_128.33},
+    {"date": "12 Nov 26", "description": "GOOGL/AMZN/AVGO FCN coupon — Period 2", "cost_usd": +981.70},
+    {"date": "12 Nov 26", "description": "UBER/SPOT/NFLX FCN coupon — Period 2", "cost_usd": +1_010.00},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -497,6 +506,7 @@ FCN_POSITIONS = [
             {"date": "2026-08-12", "amount_usd": 1021.67, "note": "Period 1 — BOS transactions 12 Aug 2026"},
             {"date": "2026-09-11", "amount_usd": 1021.67, "note": "Period 2 — BOS export 19 Sep 2026"},
             {"date": "2026-10-14", "amount_usd": 1021.67, "note": "Period 3 (DIARSC2628105279 — BOS export 16 Oct 2026)"},
+            {"date": "2026-11-12", "amount_usd": 1021.67, "note": "Period 4 — BOS export 13 Nov 2026"},
         ],
     },
 
@@ -639,6 +649,9 @@ FCN_POSITIONS = [
         "first_autocall_date": "2026-11-10",  # Observation Date 3 — first early-redemption obs; Obs 1–2 coupon-only
         "autocall_freq": "Monthly from Observation Date 3 (10-Nov-2026); Obs 1–2 are coupon-only",
         "ki_type": "European — KI at 60% of initial; checked ONLY at Final Valuation Date (10 Aug 2027); Strike at 70%",
+        "autocalled": True,                 # AUTOCALLED on 10 Nov 2026 obs (both >= 95% trigger); redeemed at par 13 Nov 2026 (MCAL XS3407131419)
+        "autocall_date": "2026-11-10",
+        "event_acked": True,                # par + final coupon booked — clear from dashboard banner
         "underlyings": [
             {"ticker": "AAPL", "name": "Apple Inc.",  "initial": 335.00, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
             {"ticker": "TSLA", "name": "Tesla, Inc.", "initial": 312.73, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
@@ -646,7 +659,27 @@ FCN_POSITIONS = [
         "coupons_received": [
             {"date": "2026-09-14", "amount_usd": 1042.50, "note": "Period 1 — BOS export 19 Sep 2026"},
             {"date": "2026-10-14", "amount_usd": 1042.50, "note": "Period 2 (DIARSC2628582990 — BOS export 16 Oct 2026)"},
+            {"date": "2026-11-10", "amount_usd": 1042.50, "note": "Period 3 FINAL coupon on autocall (pending BOS advice)"},
         ],
+    },
+    {
+        "id": "googl_meta_ms",
+        "name": "GOOGL/META Worst-of Note ⚠ PLACEHOLDER",
+        "issuer": "Morgan Stanley (ISIN: XS3557952259)",
+        "notional_usd": 100_000,          # $100k — confirmed from BOS export (trade 11 Nov, issue 25 Nov)
+        "coupon_monthly_pct": 0.0,        # ⚠ TERM SHEET PENDING — coupon unknown
+        "coupon_annual_pct": 0.0,         # ⚠ update when MS term sheet arrives
+        "issue_date": "2026-11-25",       # value/settlement date from BOS export
+        "maturity_date": "2027-11-27",    # "261127" in description (confirm on term sheet)
+        "first_autocall_date": "2027-02-25",  # PLACEHOLDER anchor — confirm from term sheet
+        "autocall_freq": "⚠ PLACEHOLDER — economics pending MS term sheet (XS3557952259). 'MS BEN - GOOGL/META'.",
+        "ki_type": "⚠ PLACEHOLDER — KI/Strike/autocall not confirmed; awaiting MS term sheet",
+        "underlyings": [
+            {"ticker": "GOOGL", "name": "Alphabet Inc Class A", "initial": 320.00, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},  # ⚠ placeholder initial — confirm from term sheet
+            {"ticker": "META",  "name": "Meta Platforms Class A","initial": 630.00, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},  # ⚠ placeholder initial — confirm from term sheet
+        ],
+        "coupons_received": [],
+        "placeholder": True,
     },
 
     # ── 14. Corning (GLW) Single-Stock FCN  (Barclays, XS3457845785) ──
@@ -707,6 +740,7 @@ FCN_POSITIONS = [
         ],
         "coupons_received": [
             {"date": "2026-10-13", "amount_usd": 981.70, "note": "Period 1 (DIARSC2628084080 — BOS export 16 Oct 2026)"},
+            {"date": "2026-11-12", "amount_usd": 981.70, "note": "Period 2 — BOS export 13 Nov 2026"},
         ],
     },
 
@@ -736,6 +770,7 @@ FCN_POSITIONS = [
         ],
         "coupons_received": [
             {"date": "2026-10-14", "amount_usd": 1010.00, "note": "Period 1 (DIARSC2628146212 — BOS export 16 Oct 2026)"},
+            {"date": "2026-11-12", "amount_usd": 1010.00, "note": "Period 2 — BOS export 13 Nov 2026"},
         ],
     },
 
@@ -867,7 +902,9 @@ FCN_POSITIONS = [
             {"ticker": "HDB", "name": "HDFC Bank ADR",  "initial": 23.27, "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
             {"ticker": "IBN", "name": "ICICI Bank ADR", "initial": 27.94, "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
         ],
-        "coupons_received": [],
+        "coupons_received": [
+            {"date": "2026-11-12", "amount_usd": 1666.67, "note": "Period 1 — BOS export 13 Nov 2026 (confirms 10% p.a. on $200k)"},
+        ],
     },
     {
         "id": "c_blk_bx",
@@ -930,7 +967,9 @@ FCN_POSITIONS = [
             {"ticker": "SNDK", "name": "SanDisk Corporation", "initial": 1785.70, "ki_pct": 50, "strike_pct": 60, "ac_pct": 85, "currency": "USD"},
             {"ticker": "SKHY", "name": "SK Hynix Inc (ADR)",  "initial": 185.60,  "ki_pct": 50, "strike_pct": 60, "ac_pct": 85, "currency": "USD"},
         ],
-        "coupons_received": [],
+        "coupons_received": [
+            {"date": "2026-11-12", "amount_usd": 1128.33, "note": "Period 1 — BOS export 13 Nov 2026"},
+        ],
     },
 
     # ── 22. China Tech Worst-of FCN — Alibaba / Tencent / BYD  (Barclays, XS3213039608) ──
@@ -957,7 +996,9 @@ FCN_POSITIONS = [
             {"ticker": "0700.HK", "name": "Tencent Holdings (HK)", "initial": 434.20, "ki_pct": 60, "strike_pct": 70, "ac_pct": 85, "currency": "HKD"},
             {"ticker": "1211.HK", "name": "BYD Company (HK)",      "initial": 77.50,  "ki_pct": 60, "strike_pct": 70, "ac_pct": 85, "currency": "HKD"},
         ],
-        "coupons_received": [],
+        "coupons_received": [
+            {"date": "2026-11-12", "amount_usd": 959.20, "note": "Period 1 — BOS export 13 Nov 2026"},
+        ],
     },
 ]
 
