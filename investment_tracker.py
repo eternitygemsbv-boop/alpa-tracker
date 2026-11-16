@@ -108,6 +108,7 @@ SWISSQUOTE_CASH_BASE = sum(t["amount_usd"] for t in SWISSQUOTE_DEPOSITS)
 # Cash movements since (purchases negative, income positive) — same convention as TRADES_SINCE_STATEMENT.
 SWISSQUOTE_TRADES = [
     {"date": "23 Oct 26", "description": "Buy 21 QQQ @ $702.10 (+$48.37 comm) — ref 1200020092", "cost_usd": -14_792.47},
+    {"date": "13 Nov 26", "description": "Buy 90 NVDA @ $165.00 (+$48.53 comm) — ref 1213167796", "cost_usd": -14_898.53},
 ]
 # Equities / ETFs held in Swissquote (same shape as DIRECT_HOLDINGS; yfinance prices live).
 SWISSQUOTE_HOLDINGS = [
@@ -120,6 +121,16 @@ SWISSQUOTE_HOLDINGS = [
         "purchase_price": 704.4033,  # $14,792.47 total (incl $48.37 commission) / 21 sh
         "currency": "USD",
         "note": "Bought 23 Oct 2026 @ $702.10 + $48.37 commission (Swissquote ref 1200020092)",
+    },
+    {
+        "id": "sq_nvda",
+        "name": "NVIDIA Corporation",
+        "ticker": "NVDA",
+        "isin": "US67066G1040",
+        "shares": 90,
+        "purchase_price": 165.5392,  # $14,898.53 total (incl $48.53 commission) / 90 sh
+        "currency": "USD",
+        "note": "Bought 13 Nov 2026 @ $165.00 + $48.53 commission (Swissquote ref 1213167796)",
     },
 ]
 
@@ -213,6 +224,7 @@ TRADES_SINCE_STATEMENT = [
     {"date": "12 Nov 26", "description": "Memory FCN (SanDisk/SK Hynix) coupon — Period 1", "cost_usd": +1_128.33},
     {"date": "12 Nov 26", "description": "GOOGL/AMZN/AVGO FCN coupon — Period 2", "cost_usd": +981.70},
     {"date": "12 Nov 26", "description": "UBER/SPOT/NFLX FCN coupon — Period 2", "cost_usd": +1_010.00},
+    {"date": "12 Nov 26", "description": "AVGO accumulator KO delivery — 29 sh @ strike $276.4853 (SYACDC2629200235)", "cost_usd": -8_018.07},
 ]
 CASH_SINCE_STATEMENT = sum(t["cost_usd"] for t in TRADES_SINCE_STATEMENT)
 
@@ -274,6 +286,12 @@ KNOWN_KO_EVENTS = {
         "ko_price":         25.14,       # HDB ref spot 6 Nov 2026 (vs barrier 24.8955)
         "ticker":           "HDB",
         "knockout_barrier": 24.8955,
+    },
+    "avgo_accumulator": {
+        "ko_date":          "2026-11-12",
+        "ko_price":         364.36,      # AVGO ref spot 12 Nov 2026 (vs barrier 355.7715)
+        "ticker":           "AVGO",
+        "knockout_barrier": 355.7715,
     },
 }
 
@@ -664,22 +682,21 @@ FCN_POSITIONS = [
     },
     {
         "id": "googl_meta_ms",
-        "name": "GOOGL/META Worst-of Note ⚠ PLACEHOLDER",
-        "issuer": "Morgan Stanley (ISIN: XS3557952259)",
-        "notional_usd": 100_000,          # $100k — confirmed from BOS export (trade 11 Nov, issue 25 Nov)
-        "coupon_monthly_pct": 0.0,        # ⚠ TERM SHEET PENDING — coupon unknown
-        "coupon_annual_pct": 0.0,         # ⚠ update when MS term sheet arrives
-        "issue_date": "2026-11-25",       # value/settlement date from BOS export
-        "maturity_date": "2027-11-27",    # "261127" in description (confirm on term sheet)
-        "first_autocall_date": "2027-02-25",  # PLACEHOLDER anchor — confirm from term sheet
-        "autocall_freq": "⚠ PLACEHOLDER — economics pending MS term sheet (XS3557952259). 'MS BEN - GOOGL/META'.",
-        "ki_type": "⚠ PLACEHOLDER — KI/Strike/autocall not confirmed; awaiting MS term sheet",
+        "name": "GOOGL/META Shares-Linked Note (14.85%)",
+        "issuer": "Morgan Stanley & Co. Int'l PLC (ISIN: XS3557952259, Aa3/A+/AA)",
+        "notional_usd": 100_000,
+        "coupon_monthly_pct": 0.0,        # NO monthly coupon — single 14.85% payout at maturity (see autocall_freq)
+        "coupon_annual_pct": 14.85,       # 14.85% min return at maturity (12M) + 100% upside participation
+        "issue_date": "2026-11-25",
+        "maturity_date": "2027-11-30",    # Maturity 30-Nov-2027 (Final Valuation 26-Nov-2027)
+        "first_autocall_date": "2027-11-26",  # NOT autocallable — set to final valuation so autocall/coupon logic stays inert
+        "autocall_freq": "Worst-of Shares-Linked Note — NOT autocallable, no monthly coupons. At maturity: par + max(14.85% coupon, 100% × worst-share performance) if worst >= 80% strike; else physical delivery of worst share. Single payout at Final Valuation 26-Nov-2027.",
+        "ki_type": "At maturity only (European): Strike at 80% of initial. If Worst-of closing < 80% strike on 26-Nov-2027 → receive shares of worst performer; else cash (par + coupon/participation).",
         "underlyings": [
-            {"ticker": "GOOGL", "name": "Alphabet Inc Class A", "initial": 320.00, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},  # ⚠ placeholder initial — confirm from term sheet
-            {"ticker": "META",  "name": "Meta Platforms Class A","initial": 630.00, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},  # ⚠ placeholder initial — confirm from term sheet
+            {"ticker": "GOOGL", "name": "Alphabet Inc Class A", "initial": 290.19, "ki_pct": 80, "strike_pct": 80, "ac_pct": 100, "currency": "USD"},
+            {"ticker": "META",  "name": "Meta Platforms Class A","initial": 646.13, "ki_pct": 80, "strike_pct": 80, "ac_pct": 100, "currency": "USD"},
         ],
         "coupons_received": [],
-        "placeholder": True,
     },
 
     # ── 14. Corning (GLW) Single-Stock FCN  (Barclays, XS3457845785) ──
@@ -1042,6 +1059,16 @@ DIRECT_HOLDINGS = [
         "shares": 57,
         "purchase_price": 434.7778,
         "currency": "USD",
+    },
+    {
+        "id": "avgo_shares",
+        "name": "Broadcom Inc (accumulator delivery)",
+        "ticker": "AVGO",
+        "isin": "US11135F1012",
+        "shares": 39,
+        "purchase_price": 276.4853,  # accumulator strike; 39 sh total (10 on 30 Oct + 29 at KO 12 Nov) (SYACDC2629200235)
+        "currency": "USD",
+        "note": "39 sh from Broadcom Accumulator (SYACDC2629200235): 10 delivered 30 Oct + 29 at KO 12 Nov 2026 (ref spot $364.36 vs barrier $355.7715)",
     },
     {
         "id": "hdb_shares",
@@ -1426,6 +1453,9 @@ ACCUMULATOR_POSITIONS = [
         "guaranteed_end": "2026-12-11",     # guaranteed period: 16 Oct – 11 Dec 2026
         "shares_per_day": 1,
         "leverage_below_strike": 2,
+        "settled": True,       # KNOCKED OUT 12 Nov 2026 (ref spot 364.36 >= barrier 355.7715); 39 sh total (10 on 30 Oct + 29 at KO) -> avgo_shares
+        "shares_delivered": 39,
+        "event_acked": True,   # 39 shares settled to Direct Holdings — clear from dashboard banner
     },
     # GOOGL Accumulator #4 — Bank of Singapore, trade 23 Oct 2026 (SYACDC2629900060)
     # Notional $120,375 (boosted $240,750). 1 sh/fixing, 2 boosted. 375 fixings. ACTIVE.
