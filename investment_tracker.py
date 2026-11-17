@@ -218,6 +218,7 @@ TRADES_SINCE_STATEMENT = [
     {"date": "13 Nov 26", "description": "AAPL/TSLA FCN AUTOCALL — par redemption (MCAL XS3407131419)", "cost_usd": +100_000.00},
     {"date": "13 Nov 26", "description": "AAPL/TSLA FCN final coupon — Period 3 (pending BOS advice)", "cost_usd": +1_042.50},
     {"date": "11 Nov 26", "description": "MS GOOGL/META Note purchase (XS3557952259)", "cost_usd": -100_000.00},
+    {"date": "16 Nov 26", "description": "CSI/CITIC Healthcare FCN (JNJ/LLY/TMO) purchase (XS3536160487)", "cost_usd": -100_000.00},
     {"date": "12 Nov 26", "description": "China Tech FCN (Alibaba/Tencent/BYD) coupon — Period 1 (DIARSC...)", "cost_usd": +959.20},
     {"date": "12 Nov 26", "description": "GS India Banks FCN (HDFC/ICICI) coupon — Period 1", "cost_usd": +1_666.67},
     {"date": "12 Nov 26", "description": "Aerospace FCN coupon — Period 4", "cost_usd": +1_021.67},
@@ -958,6 +959,26 @@ FCN_POSITIONS = [
             {"ticker": "ASML", "name": "ASML Holding NV",          "initial": 1783.55, "ki_pct": 50, "strike_pct": 55, "ac_pct": 95, "currency": "USD"},
             {"ticker": "MRVL", "name": "Marvell Technology",       "initial": 274.71,  "ki_pct": 50, "strike_pct": 55, "ac_pct": 95, "currency": "USD"},
             {"ticker": "TSM",  "name": "Taiwan Semiconductor (ADR)","initial": 454.00,  "ki_pct": 50, "strike_pct": 55, "ac_pct": 95, "currency": "USD"},
+        ],
+        "coupons_received": [],
+    },
+
+    {
+        "id": "jnj_lly_tmo_csi",
+        "name": "Healthcare Worst-of FCN #2 (JNJ/LLY/TMO)",
+        "issuer": "CSI Financial Products / CITIC Securities grtr (ISIN: XS3536160487, A-/BBB+)",
+        "notional_usd": 100_000,
+        "coupon_monthly_pct": 0.9283,       # 11.14% p.a. ÷ 12 (coupon barrier 0% — unconditional)
+        "coupon_annual_pct": 11.14,
+        "issue_date": "2026-11-23",
+        "maturity_date": "2027-12-08",      # Maturity (Final Valuation 1-Dec-2027)
+        "first_autocall_date": "2027-03-04",  # COUPON-SCHEDULE ANCHOR (first coupon 4-Jan-2027); true first autocall KO Obs 1 = 01-Jun-2027
+        "autocall_freq": "Autocall (KO) from Observation 1 (01-Jun-2027) monthly through 01-Dec-2027; coupon periods Jan–May 2027 are NON-CALL. KO at 95% of initial.",
+        "ki_type": "American — Knock-in at 65% of initial (monitored during term). If KI occurs AND worst-of < 75% strike at Final Valuation → physical delivery of worst share; Put Strike at 75%.",
+        "underlyings": [
+            {"ticker": "JNJ", "name": "Johnson & Johnson",             "initial": 289.25,   "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "LLY", "name": "Eli Lilly & Co",                "initial": 1455.00,  "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "TMO", "name": "Thermo Fisher Scientific Inc",  "initial": 699.08,   "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
         ],
         "coupons_received": [],
     },
