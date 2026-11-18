@@ -219,6 +219,7 @@ TRADES_SINCE_STATEMENT = [
     {"date": "13 Nov 26", "description": "AAPL/TSLA FCN final coupon — Period 3 (pending BOS advice)", "cost_usd": +1_042.50},
     {"date": "11 Nov 26", "description": "MS GOOGL/META Note purchase (XS3557952259)", "cost_usd": -100_000.00},
     {"date": "16 Nov 26", "description": "CSI/CITIC Healthcare FCN (JNJ/LLY/TMO) purchase (XS3536160487)", "cost_usd": -100_000.00},
+    {"date": "16 Nov 26", "description": "HSBC Gold Miners FCN #2 (Anglo/Newmont/Barrick) purchase (XS3495027552)", "cost_usd": -100_000.00},
     {"date": "12 Nov 26", "description": "China Tech FCN (Alibaba/Tencent/BYD) coupon — Period 1 (DIARSC...)", "cost_usd": +959.20},
     {"date": "12 Nov 26", "description": "GS India Banks FCN (HDFC/ICICI) coupon — Period 1", "cost_usd": +1_666.67},
     {"date": "12 Nov 26", "description": "Aerospace FCN coupon — Period 4", "cost_usd": +1_021.67},
@@ -979,6 +980,26 @@ FCN_POSITIONS = [
             {"ticker": "JNJ", "name": "Johnson & Johnson",             "initial": 289.25,   "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
             {"ticker": "LLY", "name": "Eli Lilly & Co",                "initial": 1455.00,  "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
             {"ticker": "TMO", "name": "Thermo Fisher Scientific Inc",  "initial": 699.08,   "ki_pct": 65, "strike_pct": 75, "ac_pct": 95, "currency": "USD"},
+        ],
+        "coupons_received": [],
+    },
+
+    {
+        "id": "aal_nem_b_2",
+        "name": "Gold Miners Worst-of FCN #2 (Anglo/Newmont/Barrick)",
+        "issuer": "HSBC Bank plc (ISIN: XS3495027552, A+/A1/AA)",
+        "notional_usd": 100_000,
+        "coupon_monthly_pct": 0.98,         # 11.76% p.a. × 1/12 (Maxi Autocallable FCN)
+        "coupon_annual_pct": 11.76,
+        "issue_date": "2026-12-01",
+        "maturity_date": "2027-12-03",      # Maturity 3-Dec-2027 (Final Valuation 1-Dec-2027)
+        "first_autocall_date": "2027-03-06",  # COUPON-SCHEDULE ANCHOR (first coupon 6-Jan-2027); true first autocall AC Obs 1 = 01-Jun-2027
+        "autocall_freq": "Autocall from Autocall Valuation 1 (01-Jun-2027) monthly through 01-Dec-2027; coupon periods Jan–May 2027 are NON-CALL. KO at 95% of initial.",
+        "ki_type": "European — KI (Barrier) at 60% of initial; checked at Final Valuation (01-Dec-2027). Strike at 70%. Principal at risk only if worst-of < barrier.",
+        "underlyings": [
+            {"ticker": "AAL.L", "name": "Anglo American PLC",  "initial": 3725.00, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "GBP"},  # £37.25 in pence (yfinance GBp)
+            {"ticker": "NEM",   "name": "Newmont Corporation", "initial": 111.67,  "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "B",     "name": "Barrick Mining Corp", "initial": 37.05,   "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
         ],
         "coupons_received": [],
     },
