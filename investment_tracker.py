@@ -1499,6 +1499,22 @@ ACCUMULATOR_POSITIONS = [
         "shares_delivered": 39,
         "event_acked": True,   # 39 shares settled to Direct Holdings — clear from dashboard banner
     },
+    # NVDA (NVIDIA) Accumulator — Bank of Singapore, trade 17 Nov 2026 (SYACDC2632200052)
+    # Notional $138,849.88 (boosted $277,699.76). 2 sh/fixing, 4 boosted. 442 fixings. KO at 107%. ACTIVE.
+    {
+        "id": "nvda_accumulator",
+        "name": "NVIDIA Accumulator",
+        "issuer": "Bank of Singapore (SYACDC2632200052)",
+        "underlying_ticker": "NVDA",
+        "underlying_name": "NVIDIA Corporation",
+        "start_date": "2026-11-18",         # effective date (trade 17 Nov 2026)
+        "end_date": "2028-11-17",           # ~442 fixing dates (~24M)
+        "strike_price": 112.9962,           # 71.94% of spot 157.07
+        "knockout_price": 168.0649,         # 107% of spot 157.07
+        "guaranteed_end": "2027-01-12",     # guaranteed period: 17 Nov 2026 – 12 Jan 2027
+        "shares_per_day": 2,
+        "leverage_below_strike": 2,
+    },
     # GOOGL Accumulator #4 — Bank of Singapore, trade 23 Oct 2026 (SYACDC2629900060)
     # Notional $120,375 (boosted $240,750). 1 sh/fixing, 2 boosted. 375 fixings. ACTIVE.
     {
@@ -1531,7 +1547,7 @@ MANUAL_PRICES = {
     # US Tech
     "META":  578.77,    # 26 Aug 2026 close (META Accu #2 KO day)
     "GOOGL": 348.83,    # 15 Jul 2026
-    "NVDA":  200.42,    # no update in this statement
+    "NVDA":  150.96,    # NVIDIA close 18 Nov 2026 (yfinance fetches live)
     "MSFT":  486.10,    # 15 Jul 2026
     # Semiconductors
     "INTC":  107.04,    # no update in this statement
