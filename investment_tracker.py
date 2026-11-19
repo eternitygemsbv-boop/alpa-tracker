@@ -220,6 +220,7 @@ TRADES_SINCE_STATEMENT = [
     {"date": "11 Nov 26", "description": "MS GOOGL/META Note purchase (XS3557952259)", "cost_usd": -100_000.00},
     {"date": "16 Nov 26", "description": "CSI/CITIC Healthcare FCN (JNJ/LLY/TMO) purchase (XS3536160487)", "cost_usd": -100_000.00},
     {"date": "16 Nov 26", "description": "HSBC Gold Miners FCN #2 (Anglo/Newmont/Barrick) purchase (XS3495027552)", "cost_usd": -100_000.00},
+    {"date": "18 Nov 26", "description": "CSI/CITIC US Index FCN (DIA/QQQ/SPY) purchase (XS3536146148)", "cost_usd": -125_000.00},
     {"date": "12 Nov 26", "description": "China Tech FCN (Alibaba/Tencent/BYD) coupon — Period 1 (DIARSC...)", "cost_usd": +959.20},
     {"date": "12 Nov 26", "description": "GS India Banks FCN (HDFC/ICICI) coupon — Period 1", "cost_usd": +1_666.67},
     {"date": "12 Nov 26", "description": "Aerospace FCN coupon — Period 4", "cost_usd": +1_021.67},
@@ -1000,6 +1001,26 @@ FCN_POSITIONS = [
             {"ticker": "AAL.L", "name": "Anglo American PLC",  "initial": 3725.00, "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "GBP"},  # £37.25 in pence (yfinance GBp)
             {"ticker": "NEM",   "name": "Newmont Corporation", "initial": 111.67,  "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
             {"ticker": "B",     "name": "Barrick Mining Corp", "initial": 37.05,   "ki_pct": 60, "strike_pct": 70, "ac_pct": 95, "currency": "USD"},
+        ],
+        "coupons_received": [],
+    },
+
+    {
+        "id": "dia_qqq_spy_csi",
+        "name": "US Index Worst-of FCN #2 (DIA/QQQ/SPY)",
+        "issuer": "CSI Financial Products / CITIC Securities grtr (ISIN: XS3536146148, A-/BBB+)",
+        "notional_usd": 125_000,
+        "coupon_monthly_pct": 0.8040,       # 9.648% p.a. ÷ 12 (coupon barrier 0% — unconditional)
+        "coupon_annual_pct": 9.648,
+        "issue_date": "2026-11-25",
+        "maturity_date": "2027-12-10",      # Maturity (Final Valuation 3-Dec-2027)
+        "first_autocall_date": "2027-03-04",  # COUPON-SCHEDULE ANCHOR (first coupon 4-Jan-2027); true first autocall KO Obs 1 = 03-Jun-2027
+        "autocall_freq": "Autocall (KO) from Observation 1 (03-Jun-2027) monthly through 03-Dec-2027; coupon periods Jan–May 2027 are NON-CALL. KO at 95% of initial.",
+        "ki_type": "American — Knock-in at 80% of initial (monitored during term). If KI occurs AND worst-of < 85% strike at Final Valuation → physical delivery of worst share; Put Strike at 85%.",
+        "underlyings": [
+            {"ticker": "DIA", "name": "SPDR Dow Jones Industrial ETF", "initial": 505.60,  "ki_pct": 80, "strike_pct": 85, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "QQQ", "name": "Invesco QQQ Trust",             "initial": 661.03,  "ki_pct": 80, "strike_pct": 85, "ac_pct": 95, "currency": "USD"},
+            {"ticker": "SPY", "name": "SPDR S&P 500 ETF Trust",        "initial": 733.35,  "ki_pct": 80, "strike_pct": 85, "ac_pct": 95, "currency": "USD"},
         ],
         "coupons_received": [],
     },
