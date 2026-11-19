@@ -111,6 +111,7 @@ SWISSQUOTE_TRADES = [
     {"date": "23 Oct 26", "description": "Buy 21 QQQ @ $702.10 (+$48.37 comm) — ref 1200020092", "cost_usd": -14_792.47},
     {"date": "13 Nov 26", "description": "Buy 90 NVDA @ $165.00 (+$48.53 comm) — ref 1213167796", "cost_usd": -14_898.53},
     {"date": "17 Nov 26", "description": "Buy CSI/CITIC Healthcare FCN (JNJ/LLY/TMO) @ par (+$257.50 costs) XS3536160487 — transferred to BOS custody", "cost_usd": -100_257.50},
+    {"date": "18 Nov 26", "description": "Buy CSI/CITIC US Index FCN (DIA/QQQ/SPY) @ par XS3536146148 — transferred to BOS custody (settles ~25 Nov; exact commission pending next statement)", "cost_usd": -125_000.00},
 ]
 # Equities / ETFs held in Swissquote (same shape as DIRECT_HOLDINGS; yfinance prices live).
 SWISSQUOTE_HOLDINGS = [
@@ -224,7 +225,8 @@ TRADES_SINCE_STATEMENT = [
     # (see SWISSQUOTE_TRADES) and transferred into BOS custody — so it is NOT funded from BOS cash.
     # The note position is kept in FCN_POSITIONS (held for portfolio 1000400774-1); no BOS cash entry.
     {"date": "16 Nov 26", "description": "HSBC Gold Miners FCN #2 (Anglo/Newmont/Barrick) purchase (XS3495027552)", "cost_usd": -100_000.00},
-    {"date": "18 Nov 26", "description": "CSI/CITIC US Index FCN (DIA/QQQ/SPY) purchase (XS3536146148)", "cost_usd": -125_000.00},
+    # NOTE: CSI/CITIC US Index FCN (DIA/QQQ/SPY, XS3536146148) was PURCHASED THROUGH SWISSQUOTE
+    # (see SWISSQUOTE_TRADES), transferred into BOS custody — NOT funded from BOS cash. No BOS cash entry.
     {"date": "12 Nov 26", "description": "China Tech FCN (Alibaba/Tencent/BYD) coupon — Period 1 (DIARSC...)", "cost_usd": +959.20},
     {"date": "12 Nov 26", "description": "GS India Banks FCN (HDFC/ICICI) coupon — Period 1", "cost_usd": +1_666.67},
     {"date": "12 Nov 26", "description": "Aerospace FCN coupon — Period 4", "cost_usd": +1_021.67},
