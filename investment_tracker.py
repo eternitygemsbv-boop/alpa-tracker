@@ -103,12 +103,14 @@ CASH_BALANCE_DATE   = "1 Sep 2026"    # Re-baselined to BOS app USD current-acco
 # ═════════════════════════════════════════════════════════════════════════════
 SWISSQUOTE_DEPOSITS = [
     {"date": "21 Oct 26", "amount_usd": 130_000.00, "ref": "FT26294BG847"},
+    {"date": "18 Nov 26", "amount_usd": 130_000.00, "ref": "SWIFT deposit (Swissquote statement 18 Nov)"},
 ]
 SWISSQUOTE_CASH_BASE = sum(t["amount_usd"] for t in SWISSQUOTE_DEPOSITS)
 # Cash movements since (purchases negative, income positive) — same convention as TRADES_SINCE_STATEMENT.
 SWISSQUOTE_TRADES = [
     {"date": "23 Oct 26", "description": "Buy 21 QQQ @ $702.10 (+$48.37 comm) — ref 1200020092", "cost_usd": -14_792.47},
     {"date": "13 Nov 26", "description": "Buy 90 NVDA @ $165.00 (+$48.53 comm) — ref 1213167796", "cost_usd": -14_898.53},
+    {"date": "17 Nov 26", "description": "Buy CSI/CITIC Healthcare FCN (JNJ/LLY/TMO) @ par (+$257.50 costs) XS3536160487 — transferred to BOS custody", "cost_usd": -100_257.50},
 ]
 # Equities / ETFs held in Swissquote (same shape as DIRECT_HOLDINGS; yfinance prices live).
 SWISSQUOTE_HOLDINGS = [
@@ -218,7 +220,9 @@ TRADES_SINCE_STATEMENT = [
     {"date": "13 Nov 26", "description": "AAPL/TSLA FCN AUTOCALL — par redemption (MCAL XS3407131419)", "cost_usd": +100_000.00},
     {"date": "13 Nov 26", "description": "AAPL/TSLA FCN final coupon — Period 3 (pending BOS advice)", "cost_usd": +1_042.50},
     {"date": "11 Nov 26", "description": "MS GOOGL/META Note purchase (XS3557952259)", "cost_usd": -100_000.00},
-    {"date": "16 Nov 26", "description": "CSI/CITIC Healthcare FCN (JNJ/LLY/TMO) purchase (XS3536160487)", "cost_usd": -100_000.00},
+    # NOTE: CSI/CITIC Healthcare FCN (JNJ/LLY/TMO, XS3536160487) was PURCHASED THROUGH SWISSQUOTE
+    # (see SWISSQUOTE_TRADES) and transferred into BOS custody — so it is NOT funded from BOS cash.
+    # The note position is kept in FCN_POSITIONS (held for portfolio 1000400774-1); no BOS cash entry.
     {"date": "16 Nov 26", "description": "HSBC Gold Miners FCN #2 (Anglo/Newmont/Barrick) purchase (XS3495027552)", "cost_usd": -100_000.00},
     {"date": "18 Nov 26", "description": "CSI/CITIC US Index FCN (DIA/QQQ/SPY) purchase (XS3536146148)", "cost_usd": -125_000.00},
     {"date": "12 Nov 26", "description": "China Tech FCN (Alibaba/Tencent/BYD) coupon — Period 1 (DIARSC...)", "cost_usd": +959.20},
