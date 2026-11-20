@@ -1050,7 +1050,7 @@ FCN_POSITIONS = [
         "autocall_freq": "Monthly autocall from 08-Jan-2027 (Obs 3); Periods 1–2 NON-CALL; barrier 85%",
         "ki_type": "European — KI at 50% of initial; checked ONLY at Final Valuation Date (08-Apr-2027); Strike at 60%",
         "underlyings": [
-            {"ticker": "SNDK", "name": "SanDisk Corporation", "initial": 1785.70, "ki_pct": 50, "strike_pct": 60, "ac_pct": 85, "currency": "USD"},
+            {"ticker": "SNDK", "name": "SanDisk Corporation", "initial": 223.2125, "ki_pct": 50, "strike_pct": 60, "ac_pct": 85, "currency": "USD"},  # SPLIT-ADJUSTED: term-sheet initial $1,785.70 ÷ 8 (8-for-1 forward split eff. ~20-Nov-2026) to match post-split live price
             {"ticker": "SKHY", "name": "SK Hynix Inc (ADR)",  "initial": 185.60,  "ki_pct": 50, "strike_pct": 60, "ac_pct": 85, "currency": "USD"},
         ],
         "coupons_received": [
@@ -1610,7 +1610,7 @@ MANUAL_PRICES = {
     "BX":    110.45,    # Blackstone initial 8 Oct 2026 (yfinance fetches live)
     # New FCN underlyings (Citi XS3446114244; Barclays XS3213039608) — placeholders pending term sheets
     "SKHY":  185.60,    # SK Hynix ADR initial 24 Sep 2026 (Citi XS3446114244)
-    "SNDK":  1785.70,   # SanDisk initial 24 Sep 2026 (Citi XS3446114244)
+    "SNDK":  79.24,     # SanDisk post-split (8-for-1 ~20-Nov-2026) fallback; yfinance fetches live
     "9988.HK": 107.70,  # Alibaba HK initial 25 Sep 2026 (Barclays XS3213039608)
     "0700.HK": 434.20,  # Tencent HK initial 25 Sep 2026
     "1211.HK": 77.50,   # BYD HK initial 25 Sep 2026
@@ -1874,7 +1874,17 @@ def _update_du_log(closes, close_dates):
 #  STATUS COMPUTATION
 # ═════════════════════════════════════════════════════════════════════════════
 
-def underlying_status(u: dict, prices: dict) -> dict:
+def _note_ki_flags(f: dict):
+    """(ki_european, near_final) for a note: European KI only tested at final valuation, so being below
+    KI mid-life is a risk (WATCH), not a breach — until within ~45 days of maturity."""
+    euro = "European" in (f.get("ki_type", "") or "")
+    try:
+        nf = (date.fromisoformat(f.get("maturity_date", "")) - date.today()).days <= 45
+    except Exception:
+        nf = False
+    return euro, nf
+
+def underlying_status(u: dict, prices: dict, ki_european: bool = False, near_final: bool = False) -> dict:
     ticker     = u["ticker"]
     init       = u.get("initial")
     ki_pct     = u.get("ki_pct")
@@ -1890,7 +1900,9 @@ def underlying_status(u: dict, prices: dict) -> dict:
     status = "UNKNOWN"
     if curr_pct_of_init is not None and ki_pct is not None:
         if curr_pct_of_init < ki_pct:
-            status = "BREACH"
+            # European KI is only tested at the Final Valuation Date — being below the KI mid-life is a
+            # RISK, not a breach (the underlying can recover). Only call it BREACH at/near final valuation.
+            status = "BREACH" if (not ki_european or near_final) else "WATCH"
         elif curr_pct_of_init < ki_pct * 1.20:
             status = "WATCH"
         else:
@@ -2122,7 +2134,8 @@ def _match_coupons_to_schedule(received, expected_dates):
     return matched
 
 def fcn_card(fcn, prices):
-    us = [underlying_status(u, prices) for u in fcn.get("underlyings", [])]
+    _euro, _nf = _note_ki_flags(fcn)
+    us = [underlying_status(u, prices, _euro, _nf) for u in fcn.get("underlyings", [])]
     with_curr = [u for u in us if u["curr_pct"] is not None]
     worst_tick = min(with_curr, key=lambda u: u["curr_pct"])["ticker"] if with_curr else None
     statuses   = [u["status"] for u in us]
@@ -3100,7 +3113,8 @@ def _compute_alerts(prices, closes=None):
     for f in FCN_POSITIONS:
         if f.get("autocalled"):
             continue  # redeemed — no barrier alerts or status
-        us = [underlying_status(u, prices) for u in f.get("underlyings", [])]
+        _euro, _nf = _note_ki_flags(f)
+        us = [underlying_status(u, prices, _euro, _nf) for u in f.get("underlyings", [])]
         statuses = [u["status"] for u in us]
         st = ("BREACH" if "BREACH" in statuses else
               "WATCH"  if "WATCH"  in statuses else
